@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Atelier - Gestion (1 utilisateur)</title>
+<style>
+  /* === Thème mécanique / industriel === */
+  :root{
+    --bg:#0f1113; --panel:#141617; --muted:#9aa3ac; --accent:#f5c542;
+    --card:#17191b; --glass: rgba(255,255,255,0.03);
+    --success:#2ecc71;
+  }
+  html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, Arial; background:linear-gradient(180deg,#0c0d0e 0%,#0f1113 100%); color:#e6e9eb;}
+  header{display:flex;align-items:center;gap:18px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.03);background:linear-gradient(90deg,#0d0f10 0,#111214 100%)}
+  header .brand{display:flex;gap:12px;align-items:center}
+  .logo{
+    width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#2b2d2f,#131516);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.7) inset;
+  }
+  .brand h1{margin:0;font-size:18px;color:var(--accent);letter-spacing:0.6px}
+  nav{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .nav-btn{
+    background:var(--panel);border:1px solid rgba(255,255,255,0.03);color:#e9ecef;padding:8px 12px;border-radius:8px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;
+  }
+  .nav-btn:hover{transform:translateY(-1px)}
+  main{max-width:1100px;margin:18px auto;padding:12px}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+  .card{background:linear-gradient(180deg,var(--card),#0f1113);padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow: 0 8px 30px rgba(0,0,0,0.6)}
+  .card h2{margin:0 0 10px;font-size:16px;color:var(--accent)}
+  label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
+  input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit;margin-top:6px}
+  button{background:linear-gradient(180deg,var(--accent),#e6bf3b);border:none;padding:8px 10px;border-radius:8px;cursor:pointer;color:#111;font-weight:600}
+  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);font-weight:600}
+  .muted{color:var(--muted);font-size:13px}
+  table{width:100%;border-collapse:collapse;margin-top:10px;color:inherit}
+  th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);text-align:left;font-size:14px}
+  th{color:var(--muted);font-weight:600}
+  .right{text-align:right}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .page{display:none}
+  .page.active{display:block}
+  .history-item{background:linear-gradient(180deg,#151617,#101112);border-left:4px solid var(--accent);padding:10px;border-radius:6px;margin-bottom:8px}
+  .kbd{background:#111;padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.03);font-size:12px}
+  /* responsive */
+  @media (max-width:980px){.grid{grid-template-columns:1fr;}.nav-btn{padding:8px}}
+  /* print */
+  @media print{
+    body *{visibility:hidden}
+    #printArea, #printArea *{visibility:visible}
+    #printArea{position:fixed;left:0;top:0;width:100%}
+  }
+  /* small icons */
+  .icon {width:18px;height:18px;display:inline-block;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <!-- simple gearSVG -->
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" stroke="#f5c542" stroke-width="1.4"/><path d="M19.4 15a7 7 0 0 0 .1-1 7 7 0 0 0-.1-1l2.2-1.7a.5.5 0 0 0 .12-.63l-2.1-3.64a.5.5 0 0 0-.6-.22l-2.6 1a6.9 6.9 0 0 0-1.7-.98L14.5 2.4a.5.5 0 0 0-.5-.4h-4.1a.5.5 0 0 0-.5.4L8.2 6.2c-.6.2-1.1.5-1.7.9l-2.6-1a.5.5 0 0 0-.6.22L1.2 9.9a.5.5 0 0 0 .12.63L3.5 12a7 7 0 0 0 0 2l-2.2 1.7a.5.5 0 0 0-.12.63l2.1 3.64a.5.5 0 0 0 .6.22l2.6-1c.5.4 1.1.7 1.7.9l.9 3.8c.08.3.36.4.5.4h4.1c.14 0 .42-.1.5-.4l.9-3.8c.6-.2 1.1-.5 1.7-.9l2.6 1a.5.5 0 0 0 .6-.22l2.1-3.64a.5.5 0 0 0-.12-.63L19.4 15z" stroke="#f5c542" stroke-width="0.9" fill="rgba(0,0,0,0)"/></svg>
+    </div>
+    <div>
+      <h1>Atelier — Gestion</h1>
+      <div class="muted" style="font-size:12px">1 utilisateur — Local • PWA</div>
+    </div>
+  </div>
+
+  <nav>
+    <button class="nav-btn" id="nav-dashboard" title="Tableau de bord">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M3 13h8V3H3v10zM13 21h8V11h-8v10zM13 3v6h8V3h-8zM3 21h8v-4H3v4z" fill="#fff"/></svg> Dashboard
+    </button>
+
+    <button class="nav-btn" id="nav-newwo" title="Nouveau bon de travail">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="#fff" stroke-width="1.2"/><path d="M6 6v14h12V6" stroke="#fff" stroke-width="1.2"/></svg> Nouveau
+    </button>
+
+    <button class="nav-btn" id="nav-invoices" title="Factures / Devis">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="#fff" stroke-width="1.4"/><rect x="4" y="5" width="16" height="14" rx="2" stroke="#fff" stroke-width="1.2"/></svg> Factures
+    </button>
+
+    <button class="nav-btn" id="nav-history" title="Historique des bons">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 6v6l4 2" stroke="#fff" stroke-width="1.4"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.2"/></svg> Historique
+    </button>
+
+    <button class="nav-btn" id="btn-install" style="display:none" title="Installer l'application">Installer</button>
+    <button class="nav-btn" id="nav-settings" title="Paramètres">Paramètres</button>
+  </nav>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- Left column -->
+    <div>
+      <!-- Dashboard Page -->
+      <section id="page-dashboard" class="page active card">
+        <h2>Tableau de bord</h2>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px" class="card">
+            <div class="muted">Bons de travail ouverts</div>
+            <div id="stat-open" style="font-size:22px;margin-top:8px">0</div>
+          </div>
+          <div style="flex:1;min-width:220px" class="card">
+            <div class="muted">Nombre de factures</div>
+            <div id="stat-invoices" style="font-size:22px;margin-top:8px">0</div>
+          </div>
+          <div style="flex:1;min-width:220px" class="card">
+            <div class="muted">Total encaissé (tous)</div>
+            <div id="stat-total" style="font-size:22px;margin-top:8px">0.00 $</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="muted">Récents (bons de travail)</div>
+            <div class="muted" style="font-size:13px">Double-cliquer sur un bon pour l'ouvrir</div>
+          </div>
+          <div id="recent-wo" style="margin-top:8px"></div>
+        </div>
+      </section>
+
+      <!-- New Work Order Page -->
+      <section id="page-newwo" class="page card">
+        <h2>Nouveau bon de travail</h2>
+
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <label>Client</label>
+            <input id="wo_client" placeholder="Nom client" />
+          </div>
+          <div style="width:160px">
+            <label>Plaque / VIN</label>
+            <input id="wo_vehicle" placeholder="Plaque ou VIN" />
+          </div>
+        </div>
+
+        <label>Véhicule - modèle / année</label>
+        <input id="wo_vehicle_info" placeholder="Ex: Honda Civic 2012" />
+
+        <label>Description du problème / job</label>
+        <textarea id="wo_description" rows="3" placeholder="Détails..."></textarea>
+
+        <div style="display:flex;gap:12px;margin-top:10px">
+          <div class="card" style="flex:1;padding:10px">
+            <div class="muted">Ajouter une pièce</div>
+            <input id="wo_part_name" placeholder="Nom pièce" />
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <input id="wo_part_qty" type="number" placeho
