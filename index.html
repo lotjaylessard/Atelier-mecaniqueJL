@@ -150,8 +150,13 @@
             <div class="muted">Ajouter une pièce</div>
             <input id="wo_part_name" placeholder="Nom pièce" />
             <div style="display:flex;gap:8px;margin-top:6px"/>
-              <input id="wo_part_qty" type="number" placeholder=Prix uni step=0.01 /­­>
-               <input id="wo_part_price" type="number" placeholder="Prix" step="0.01" />
+              <div class="input-container">
+  <label for="wo_part_qty">Qty:</label>
+  <input id="wo_part_qty" type="number" placeholder="Qty" uni step=0.01 /­­>
+
+  <label for="wo_part_price">Prix:</label>
+  <input id="wo_part_price" type="number" placeholder="Prix" step="0.01" />
+</div>
               <button class="ghost"
                 id="wo_add_part">Ajouter</button>
             </div>
