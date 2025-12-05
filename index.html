@@ -747,5 +747,21 @@ function getHistoryByClient(clientName){
 
 console.log('Enhanced system loaded.');
 </script>
+  
+  <!-- ===================== CLIENT MODAL (NEW) ===================== -->
+  <div id="clientModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:var(--card); width:750px; max-width:95%; padding:20px; border-radius:12px; border:1px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
+      <h2 style="color:var(--accent); margin-bottom:10px;">Fiche Client</h2>
+      <div id="clientModalContent" style="margin-bottom:20px; color:var(--text);">
+        <!-- CONTENU GÉNÉRÉ PAR JS -->
+        Chargement...
+      </div>
+      <div style="text-align:right; margin-top:15px;">
+        <button id="closeClientModal" class="ghost">Fermer</button>
+      </div>
+    </div>
+  </div>
+  <!-- =================== END CLIENT MODAL =================== -->
+
 </body>
 </html>
