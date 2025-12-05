@@ -279,6 +279,23 @@
     <label>Numéro de pièce</label>
     <input id="partInvNumber" />
 
+    <label>Catégorie</label>
+<select id="partInvCategory">
+  <option value="Moteur">Moteur</option>
+  <option value="Transmission">Transmission</option>
+  <option value="Suspension">Suspension</option>
+  <option value="Direction">Direction</option>
+  <option value="Freins">Freins</option>
+  <option value="Échappement">Échappement</option>
+  <option value="Électrique">Électrique</option>
+  <option value="Tuning">Tuning</option>
+  <option value="Fabrication">Fabrication</option>
+  <option value="Hybride">Hybride</option>
+  <option value="Carrosserie">Carrosserie</option>
+  <option value="Pneus">Pneus</option>
+  <option value="Divers">Divers</option>
+</select>
+
     <label>Quantité en stock</label>
     <input id="partInvQty" type="number" value="1" />
 
@@ -292,7 +309,24 @@
   </div>
 
   <!-- Recherche -->
-  <input id="partInvSearch" placeholder="Rechercher une pièce (nom ou numéro)..." style="margin-bottom:15px;" />
+      <select id="partInvFilter" style="margin-bottom:10px;">
+  <option value="">Toutes catégories</option>
+  <option value="Moteur">Moteur</option>
+  <option value="Transmission">Transmission</option>
+  <option value="Suspension">Suspension</option>
+  <option value="Direction">Direction</option>
+  <option value="Freins">Freins</option>
+  <option value="Échappement">Échappement</option>
+  <option value="Électrique">Électrique</option>
+  <option value="Tuning">Tuning</option>
+  <option value="Fabrication">Fabrication</option>
+  <option value="Hybride">Hybride</option>
+  <option value="Carrosserie">Carrosserie</option>
+  <option value="Pneus">Pneus</option>
+  <option value="Divers">Divers</option>
+</select>
+      
+      <input id="partInvSearch" placeholder="Rechercher une pièce (nom ou numéro)..." style="margin-bottom:15px;" />
 
   <!-- Liste des pièces -->
   <div id="partsInventoryList" style="display:flex;flex-wrap:wrap;gap:15px;"></div>
@@ -768,10 +802,12 @@ function renderParts(){
   wrap.innerHTML = "";
 
   const q = ($("partInvSearch")?.value || "").toLowerCase();
+  const filterCat = ($("partInVFilter")?.value || "");
 
   PARTS.forEach((p,i)=>{
     const hay = `${p.name} ${p.number}`.toLowerCase();
     if(q && !hay.includes(q)) return;
+    if(filterCat && p.category !== filterCat) return;
 
     const profit = p.price > 0 ? ((p.price - p.cost) / p.price * 100).toFixed(0) : 0;
 
@@ -787,6 +823,7 @@ function renderParts(){
 card.innerHTML = `
   <h3 style="margin-bottom:10px;color:var(--accent);">${p.name}</h3>
   <div class="small"># Pièce : <b>${p.number}</b></div>
+  <div class="small">Catégorie : <b>${p.category}</b></div>
   <div class="small">Stock : <b>${p.qty}</b></div>
   <div class="small">Coût : <b>${p.cost.toFixed(2)} $</b></div>
   <div class="small">Prix : <b>${p.price.toFixed(2)} $</b></div>
@@ -876,10 +913,11 @@ $("partInvAddBtn").addEventListener("click",()=>{
   const qty = Number($("partInvQty").value)||0;
   const cost = Number($("partInvCost").value)||0;
   const price = Number($("partInvPrice").value)||0;
+  const category = $("partInvCatergory").value;
 
   if(!name) return alert("Nom obligatoire");
 
-  PARTS.push({name,number,qty,cost,price});
+  PARTS.push({name,number,qty,cost,price,category});
   saveParts();
   renderParts();
 
@@ -893,6 +931,9 @@ $("partInvAddBtn").addEventListener("click",()=>{
 /* Recherche */
 if($("partInvSearch"))
   $("partInvSearch").addEventListener("input",renderParts);
+  if($("partInVFilter'))
+       $
+  ("partInvFilter").addEventListener("change",renderParts);
 
 /* Init */
 loadParts();
