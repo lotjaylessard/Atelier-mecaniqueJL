@@ -266,10 +266,9 @@
       </table>
     </div>
 
-    <div class="page" id="page-parts">
-    <h2>Inventaire des pièces</h2>
+<div class="page" id="page-parts">
+  <h2>Inventaire des pièces</h2>
 
-  <!-- Formulaire d'ajout -->
   <div class="card">
     <h3>Ajouter une pièce</h3>
 
@@ -280,21 +279,21 @@
     <input id="partInvNumber" />
 
     <label>Catégorie</label>
-<select id="partInvCategory">
-  <option value="Moteur">Moteur</option>
-  <option value="Transmission">Transmission</option>
-  <option value="Suspension">Suspension</option>
-  <option value="Direction">Direction</option>
-  <option value="Freins">Freins</option>
-  <option value="Échappement">Échappement</option>
-  <option value="Électrique">Électrique</option>
-  <option value="Tuning">Tuning</option>
-  <option value="Fabrication">Fabrication</option>
-  <option value="Hybride">Hybride</option>
-  <option value="Carrosserie">Carrosserie</option>
-  <option value="Pneus">Pneus</option>
-  <option value="Divers">Divers</option>
-</select>
+    <select id="partInvCategory">
+      <option value="Moteur">Moteur</option>
+      <option value="Transmission">Transmission</option>
+      <option value="Suspension">Suspension</option>
+      <option value="Direction">Direction</option>
+      <option value="Freins">Freins</option>
+      <option value="Échappement">Échappement</option>
+      <option value="Électrique">Électrique</option>
+      <option value="Tuning">Tuning</option>
+      <option value="Fabrication">Fabrication</option>
+      <option value="Hybride">Hybride</option>
+      <option value="Carrosserie">Carrosserie</option>
+      <option value="Pneus">Pneus</option>
+      <option value="Divers">Divers</option>
+    </select>
 
     <label>Quantité en stock</label>
     <input id="partInvQty" type="number" value="1" />
@@ -308,30 +307,28 @@
     <button id="partInvAddBtn">Ajouter dans l’inventaire</button>
   </div>
 
-  <!-- Recherche -->
-      <select id="partInvFilter" style="margin-bottom:10px;">
-  <option value="">Toutes catégories</option>
-  <option value="Moteur">Moteur</option>
-  <option value="Transmission">Transmission</option>
-  <option value="Suspension">Suspension</option>
-  <option value="Direction">Direction</option>
-  <option value="Freins">Freins</option>
-  <option value="Échappement">Échappement</option>
-  <option value="Électrique">Électrique</option>
-  <option value="Tuning">Tuning</option>
-  <option value="Fabrication">Fabrication</option>
-  <option value="Hybride">Hybride</option>
-  <option value="Carrosserie">Carrosserie</option>
-  <option value="Pneus">Pneus</option>
-  <option value="Divers">Divers</option>
-</select>
-      
-      <input id="partInvSearch" placeholder="Rechercher une pièce (nom ou numéro)..." style="margin-bottom:15px;" />
+  <select id="partInvFilter" style="margin-bottom:10px;">
+    <option value="">Toutes catégories</option>
+    <option value="Moteur">Moteur</option>
+    <option value="Transmission">Transmission</option>
+    <option value="Suspension">Suspension</option>
+    <option value="Direction">Direction</option>
+    <option value="Freins">Freins</option>
+    <option value="Échappement">Échappement</option>
+    <option value="Électrique">Électrique</option>
+    <option value="Tuning">Tuning</option>
+    <option value="Fabrication">Fabrication</option>
+    <option value="Hybride">Hybride</option>
+    <option value="Carrosserie">Carrosserie</option>
+    <option value="Pneus">Pneus</option>
+    <option value="Divers">Divers</option>
+  </select>
 
-  <!-- Liste des pièces -->
+  <input id="partInvSearch" placeholder="Rechercher une pièce (nom ou numéro)..." style="margin-bottom:15px;" />
+
   <div id="partsInventoryList" style="display:flex;flex-wrap:wrap;gap:15px;"></div>
-
 </div>
+    
     <div class="page" id="page-history"></div>
     <div class="page" id="page-settings"></div>
   </div>
@@ -783,14 +780,19 @@ saveClientsToStorage = function(){
 
 loadVehicles();
 
-  /* ====================================================================
+/* ====================================================================
    INVENTAIRE DES PIÈCES — CARTES VISUELLES
 ==================================================================== */
 
 let PARTS = [];
 
 function loadParts(){
-  PARTS = JSON.parse(localStorage.getItem("ar_parts_inventory") || "[]");
+  try{
+    PARTS = JSON.parse(localStorage.getItem("ar_parts_inventory") || "[]");
+    if(!Array.isArray(PARTS)) PARTS = [];
+  }catch(e){
+    PARTS = [];
+  }
 }
 
 function saveParts(){
@@ -799,15 +801,16 @@ function saveParts(){
 
 function renderParts(){
   const wrap = $("partsInventoryList");
+  if(!wrap) return;
   wrap.innerHTML = "";
 
   const q = ($("partInvSearch")?.value || "").toLowerCase();
-  const filterCat = ($("partInvFilter")?.value || ""); // ← Correction ici
+  const filterCat = ($("partInvFilter")?.value || "");
 
   PARTS.forEach((p,i)=>{
-    const hay = `${p.name} ${p.number}`.toLowerCase();
+    const hay = `${p.name||""} ${p.number||""}`.toLowerCase();
     if(q && !hay.includes(q)) return;
-    if(filterCat && p.category !== filterCat) return;
+    if(filterCat && p.category && p.category !== filterCat) return;
 
     const profit = p.price > 0 ? ((p.price - p.cost) / p.price * 100).toFixed(0) : 0;
 
@@ -822,8 +825,8 @@ function renderParts(){
 
     card.innerHTML = `
       <h3 style="margin-bottom:10px;color:var(--accent);">${p.name}</h3>
-      <div class="small"># Pièce : <b>${p.number}</b></div>
-      <div class="small">Catégorie : <b>${p.category}</b></div>
+      <div class="small"># Pièce : <b>${p.number||""}</b></div>
+      <div class="small">Catégorie : <b>${p.category||"Divers"}</b></div>
       <div class="small">Stock : <b>${p.qty}</b></div>
       <div class="small">Coût : <b>${p.cost.toFixed(2)} $</b></div>
       <div class="small">Prix : <b>${p.price.toFixed(2)} $</b></div>
@@ -842,7 +845,7 @@ function renderParts(){
     wrap.appendChild(card);
   });
 
-  /* Actions boutons */
+  /* Supprimer une pièce */
   wrap.querySelectorAll("button[data-action='del']").forEach(btn=>{
     btn.addEventListener("click",()=>{
       const id = Number(btn.dataset.id);
@@ -854,6 +857,7 @@ function renderParts(){
     });
   });
 
+  /* Modifier une pièce */
   wrap.querySelectorAll("button[data-action='edit']").forEach(btn=>{
     btn.addEventListener("click",()=>{
       const id = Number(btn.dataset.id);
@@ -881,15 +885,13 @@ function renderParts(){
   });
 }
 
-/* Modifier une pièce */
 function editPart(i){
   const p = PARTS[i];
   if(!p) return;
 
-  const newName = prompt("Nom de la pièce :", p.name);
-  if(!newName) return;
-
-  const newNumber = prompt("Numéro de pièce :", p.number) || "";
+  const newName = prompt("Nom de la pièce :", p.name) || p.name;
+  const newNumber = prompt("Numéro de pièce :", p.number||"") || p.number;
+  const newCat = prompt("Catégorie :", p.category || "Divers") || p.category || "Divers";
   const newQty = Number(prompt("Quantité :", p.qty) || p.qty);
   const newCost = Number(prompt("Prix coûtant :", p.cost) || p.cost);
   const newPrice = Number(prompt("Prix de vente :", p.price) || p.price);
@@ -897,6 +899,7 @@ function editPart(i){
   PARTS[i] = {
     name:newName,
     number:newNumber,
+    category:newCat,
     qty:newQty,
     cost:newCost,
     price:newPrice
@@ -906,34 +909,36 @@ function editPart(i){
   renderParts();
 }
 
-/* Ajouter une pièce */
-$("partInvAddBtn").addEventListener("click",()=>{
-  const name = $("partInvName").value.trim();
-  const number = $("partInvNumber").value.trim();
-  const qty = Number($("partInvQty").value)||0;
-  const cost = Number($("partInvCost").value)||0;
-  const price = Number($("partInvPrice").value)||0;
-  const category = $("partInvCatergory").value;
+/* Ajouter une pièce via formulaire */
+if($("partInvAddBtn")){
+  $("partInvAddBtn").addEventListener("click",()=>{
+    const name = $("partInvName").value.trim();
+    const number = $("partInvNumber").value.trim();
+    const qty = Number($("partInvQty").value)||0;
+    const cost = Number($("partInvCost").value)||0;
+    const price = Number($("partInvPrice").value)||0;
+    const category = $("partInvCategory")?.value || "Divers";
 
-  if(!name) return alert("Nom obligatoire");
+    if(!name) return alert("Nom obligatoire");
 
-  PARTS.push({name,number,qty,cost,price,category});
-  saveParts();
-  renderParts();
+    PARTS.push({name,number,qty,cost,price,category});
+    saveParts();
+    renderParts();
 
-  $("partInvName").value="";
-  $("partInvNumber").value="";
-  $("partInvQty").value=1;
-  $("partInvCost").value="";
-  $("partInvPrice").value="";
-});
+    $("partInvName").value="";
+    $("partInvNumber").value="";
+    $("partInvQty").value=1;
+    $("partInvCost").value="";
+    $("partInvPrice").value="";
+  });
+}
 
-/* Recherche */
+/* Recherche + filtre */
 if($("partInvSearch"))
   $("partInvSearch").addEventListener("input",renderParts);
-  if($("partInVFilter'))
-       $
-  ("partInvFilter").addEventListener("change",renderParts);
+
+if($("partInvFilter"))
+  $("partInvFilter").addEventListener("change",renderParts);
 
 /* Init */
 loadParts();
