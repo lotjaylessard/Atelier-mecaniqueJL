@@ -229,7 +229,30 @@
 </div>
 
   <!-- PAGE CLIENTS -->
-  <div class="page" id="page-clients" style="display:none; padding:20px;"></div>
+  <div class="page" id="page-clients" style="display:none; padding:20px;">
+
+  <h2 style="color:var(--accent); margin-bottom:15px;">👤 Gestion des Clients</h2>
+
+  <!-- Barre recherche + bouton ajouter -->
+  <div style="display:flex; gap:10px; margin-bottom:15px; align-items:center;">
+    <input id="clientSearch" placeholder="Rechercher un client..." style="flex:1;">
+    <button id="btnAddClient">Ajouter un client</button>
+  </div>
+
+  <!-- Tableau des clients -->
+  <table id="clientsTable" style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Téléphone</th>
+        <th>Véhicules</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+</div></div>
 
   <!-- PAGE VÉHICULES -->
   <div class="page" id="page-vehicles" style="display:none; padding:20px;"></div>
