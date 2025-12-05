@@ -266,7 +266,38 @@
       </table>
     </div>
 
-    <div class="page" id="page-parts"></div>
+    <div class="page" id="page-parts">
+    <h2>Inventaire des pièces</h2>
+
+  <!-- Formulaire d'ajout -->
+  <div class="card">
+    <h3>Ajouter une pièce</h3>
+
+    <label>Nom de la pièce</label>
+    <input id="partInvName" />
+
+    <label>Numéro de pièce</label>
+    <input id="partInvNumber" />
+
+    <label>Quantité en stock</label>
+    <input id="partInvQty" type="number" value="1" />
+
+    <label>Prix coûtant ($)</label>
+    <input id="partInvCost" type="number" step="0.01" />
+
+    <label>Prix de vente ($)</label>
+    <input id="partInvPrice" type="number" step="0.01" />
+
+    <button id="partInvAddBtn">Ajouter dans l’inventaire</button>
+  </div>
+
+  <!-- Recherche -->
+  <input id="partInvSearch" placeholder="Rechercher une pièce (nom ou numéro)..." style="margin-bottom:15px;" />
+
+  <!-- Liste des pièces -->
+  <div id="partsInventoryList" style="display:flex;flex-wrap:wrap;gap:15px;"></div>
+
+</div>
     <div class="page" id="page-history"></div>
     <div class="page" id="page-settings"></div>
   </div>
@@ -717,6 +748,132 @@ saveClientsToStorage = function(){
 };
 
 loadVehicles();
+
+  /* ====================================================================
+   INVENTAIRE DES PIÈCES — CARTES VISUELLES
+==================================================================== */
+
+let PARTS = [];
+
+function loadParts(){
+  PARTS = JSON.parse(localStorage.getItem("ar_parts_inventory") || "[]");
+}
+
+function saveParts(){
+  localStorage.setItem("ar_parts_inventory", JSON.stringify(PARTS));
+}
+
+function renderParts(){
+  const wrap = $("partsInventoryList");
+  wrap.innerHTML = "";
+
+  const q = ($("partInvSearch")?.value || "").toLowerCase();
+
+  PARTS.forEach((p,i)=>{
+    const hay = `${p.name} ${p.number}`.toLowerCase();
+    if(q && !hay.includes(q)) return;
+
+    const profit = p.price > 0 ? ((p.price - p.cost) / p.price * 100).toFixed(0) : 0;
+
+    const card = document.createElement("div");
+    card.style = `
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:12px;
+      width:260px;
+    `;
+
+    card.innerHTML = `
+      <h3 style="margin-bottom:10px;color:var(--accent);">${p.name}</h3>
+      <div class="small"># Pièce : <b>${p.number}</b></div>
+      <div class="small">Stock : <b>${p.qty}</b></div>
+      <div class="small">Coût : <b>${p.cost.toFixed(2)} $</b></div>
+      <div class="small">Prix : <b>${p.price.toFixed(2)} $</b></div>
+      <div class="small">Marge : <b>${profit}%</b></div>
+
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="ghost" data-action="edit" data-id="${i}" style="flex:1;">Modifier</button>
+        <button class="ghost" data-action="del" data-id="${i}" style="flex:1;">Supprimer</button>
+      </div>
+    `;
+
+    wrap.appendChild(card);
+  });
+
+  /* Actions boutons */
+  wrap.querySelectorAll("button[data-action='del']").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const id = Number(btn.dataset.id);
+      if(confirm("Supprimer cette pièce ?")){
+        PARTS.splice(id,1);
+        saveParts();
+        renderParts();
+      }
+    });
+  });
+
+  wrap.querySelectorAll("button[data-action='edit']").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const id = Number(btn.dataset.id);
+      editPart(id);
+    });
+  });
+}
+
+/* Modifier une pièce */
+function editPart(i){
+  const p = PARTS[i];
+  if(!p) return;
+
+  const newName = prompt("Nom de la pièce :", p.name);
+  if(!newName) return;
+
+  const newNumber = prompt("Numéro de pièce :", p.number) || "";
+  const newQty = Number(prompt("Quantité :", p.qty) || p.qty);
+  const newCost = Number(prompt("Prix coûtant :", p.cost) || p.cost);
+  const newPrice = Number(prompt("Prix de vente :", p.price) || p.price);
+
+  PARTS[i] = {
+    name:newName,
+    number:newNumber,
+    qty:newQty,
+    cost:newCost,
+    price:newPrice
+  };
+
+  saveParts();
+  renderParts();
+}
+
+/* Ajouter une pièce */
+$("partInvAddBtn").addEventListener("click",()=>{
+  const name = $("partInvName").value.trim();
+  const number = $("partInvNumber").value.trim();
+  const qty = Number($("partInvQty").value)||0;
+  const cost = Number($("partInvCost").value)||0;
+  const price = Number($("partInvPrice").value)||0;
+
+  if(!name) return alert("Nom obligatoire");
+
+  PARTS.push({name,number,qty,cost,price});
+  saveParts();
+  renderParts();
+
+  $("partInvName").value="";
+  $("partInvNumber").value="";
+  $("partInvQty").value=1;
+  $("partInvCost").value="";
+  $("partInvPrice").value="";
+});
+
+/* Recherche */
+if($("partInvSearch"))
+  $("partInvSearch").addEventListener("input",renderParts);
+
+/* Init */
+loadParts();
+renderParts();
 
 </script>
 
