@@ -411,7 +411,6 @@ $('addLabor').addEventListener('click',()=>{
 });
 
 /* ===================== RENDER ITEMS ===================== */
-
 function renderItems(){
   const tbody=document.querySelector('#itemsTable tbody');
   if(!tbody) return;
@@ -440,22 +439,30 @@ function renderItems(){
   $('totalAmount').innerText = money(sub + (sub*0.05) + ((sub+sub*0.05)*0.09975));
 }
 
+
+/* ===================== REMOVE ITEM ===================== */
 function removeItem(i){
   const item = items[i];
+
+  // restaurer le stock si l’item est lié à l’inventaire
   if(item && item.invNumber){
-    // on remet le stock en place
     const qty = Number(item.qty)||1;
     adjustStockForLinkedItem(item, qty);
   }
+
   items.splice(i,1);
   renderItems();
 }
 
-  if($('clearItems')){
+
+/* ===================== CLEAR ALL ITEMS ===================== */
+if($('clearItems')){
   $('clearItems').addEventListener('click',()=>{
     if(!items.length) return;
+
     if(!confirm("Vider tous les articles de la facture ?")) return;
 
+    // Restaurer le stock pour tous les items liés
     items.forEach(it=>{
       if(it.invNumber){
         const qty = Number(it.qty)||1;
@@ -463,10 +470,12 @@ function removeItem(i){
       }
     });
 
+    // Vider la facture
     items = [];
     renderItems();
   });
 }
+
 
 /* ===================== SAVE INVOICE ===================== */
 
