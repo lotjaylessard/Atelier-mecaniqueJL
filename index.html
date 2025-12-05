@@ -224,15 +224,29 @@
       <div id="printArea" style="display:none"></div>
     </div>
 
-    <!-- PAGE CLIENTS -->
-    <div class="page" id="page-clients">
-      <h2>Gestion des Clients</h2>
-      <input id="clientSearch" placeholder="Rechercher un client..." />
-      <button id="btnAddClient">Ajouter client</button>
-      <table id="clientsTable"><thead><tr>
-        <th>Nom</th><th>Téléphone</th><th>Véhicules</th><th></th>
-      </tr></thead><tbody></tbody></table>
-    </div>
+<!-- PAGE CLIENTS -->
+<div class="page" id="page-clients">
+  <h2>Gestion des Clients</h2>
+
+  <div style="display:flex;gap:10px;margin-bottom:15px;align-items:center;">
+    <input id="clientSearch" placeholder="Rechercher un client..." />
+    <button id="btnAddClient">Ajouter un client</button>
+  </div>
+
+  <table id="clientsTable">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Téléphone</th>
+        <th>Email</th>
+        <th>Adresse</th>
+        <th>Véhicules</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
     <!-- AUTRES PAGES -->
     <div class="page" id="page-vehicles"><h2>Véhicules</h2></div>
