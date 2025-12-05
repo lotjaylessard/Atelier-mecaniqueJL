@@ -103,15 +103,123 @@
   <!-- PAGE FACTURES -->
   <div class="page" id="page-invoices" style="display:block; padding:20px;">
 
-  <!-- ======= MODULE FACTURES (DÉPLACÉ ET NETTOYÉ) ======= -->
-  <h2 style="color:var(--accent);margin-bottom:20px">🧾 Factures</h2>
-
-  <!-- === Carte : Créer devis / travail === -->
+  <!-- === Carte : Créer devis / travail (RESTAURÉ) === -->
   <div class="card">
-    <h2 style="margin-bottom:8px">Créer Devis / Travail</h2>
-    <!-- Le contenu original sera automatiquement utilisé car les IDs sont partagés. -->
-    <!-- Les champs et actions restent fonctionnels. -->
-  </div>
+      <h2 style="margin-bottom:8px">Créer Devis / Travail</h2>
+
+      <div class="row">
+        <div>
+          <label>Client</label>
+          <input id="customerName" placeholder="Nom du client" />
+        </div>
+        <div>
+          <label>Numéro de facture (auto)</label>
+          <input id="invoiceNumber" disabled />
+        </div>
+      </div>
+
+      <label>Véhicule / Description</label>
+      <input id="jobDesc" placeholder="Ex: Honda Civic 2012 - Freins avant" />
+
+      <div class="flex" style="margin-top:10px">
+
+        <!-- Ajouter pièce -->
+        <div class="card" style="flex:1">
+          <h3 class="small">Ajouter une pièce</h3>
+          <label>Nom pièce</label>
+          <input id="partName" placeholder="Ex: Plaquette de frein" />
+
+          <div class="row">
+            <div>
+              <label>Quantité</label>
+              <input id="partQty" type="number" min="1" value="1" />
+            </div>
+            <div>
+              <label>Prix unitaire</label>
+              <input id="partPrice" type="number" min="0" step="0.01" />
+            </div>
+          </div>
+
+          <button style="margin-top:8px" id="addPart">Ajouter pièce</button>
+        </div>
+
+
+        <!-- Ajouter main-d'œuvre -->
+        <div class="card" style="flex:1">
+          <h3 class="small">Ajouter main-d'œuvre</h3>
+          <label>Description</label>
+          <input id="laborDesc" placeholder="Ex: Remplacement plaquettes" />
+
+          <div class="row">
+            <div>
+              <label>Heures</label>
+              <input id="laborHours" type="number" min="0" step="0.1" />
+            </div>
+            <div>
+              <label>Taux /h</label>
+              <input id="laborRate" type="number" min="0" step="0.01" />
+            </div>
+          </div>
+
+          <button style="margin-top:8px" id="addLabor">Ajouter main-d'œuvre</button>
+        </div>
+      </div>
+
+      <h3 style="margin-top:12px">Articles</h3>
+      <table id="itemsTable">
+        <thead><tr><th>Type</th><th>Description</th><th>Qté/hrs</th><th>Prix/unité</th><th>Total</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:12px;align-items:center">
+        <div style="width:320px;">
+          <label>Appliquer taxes</label>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <label><input type="checkbox" id="applyGST" /> TPS/GST</label>
+            <label><input type="checkbox" id="applyQST" /> TVQ/QST</label>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <label class="small">TPS (%)</label>
+            <input id="gstRate" type="number" step="0.001" />
+            <label class="small">TVQ (%)</label>
+            <input id="qstRate" type="number" step="0.001" />
+          </div>
+        </div>
+
+        <div style="text-align:right;min-width:260px">
+          <div class="muted">Sous-total: <span id="subTotal">0.00</span> $</div>
+          <div class="muted">TPS: <span id="gstAmount">0.00</span> $</div>
+          <div class="muted">TVQ: <span id="qstAmount">0.00</span> $</div>
+          <h3>Total: $<span id="totalAmount">0.00</span></h3>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button id="saveInvoice">Enregistrer facture</button>
+            <button id="clearItems" class="ghost">Vider</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- === Carte : Factures enregistrées (RESTAURÉE) === -->
+    <div class="card">
+      <h2>Factures enregistrées</h2>
+
+      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+        <input id="searchInvoices" placeholder="Rechercher client, numéro ou date" />
+        <select id="filterSort">
+          <option value="new">Les plus récentes</option>
+          <option value="old">Les plus anciennes</option>
+        </select>
+      </div>
+
+      <table id="invoicesTable">
+        <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Véhicule/Job</th><th>Total</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+</div>
 
   <!-- === Carte : Factures enregistrées === -->
   <div class="card">
