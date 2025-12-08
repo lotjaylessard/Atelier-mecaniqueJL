@@ -1570,6 +1570,9 @@ function openInvoiceEditModal(invoiceNumber){
   }
   let editItems=JSON.parse(JSON.stringify(inv.items||[]));
 
+  window.editInvoiceObj = inv;      // ← nécessaire pour l'impression
+window.editItems = editItems;     // ← nécessaire pour afficher les items modifiés
+
   function renderEditUI(){
     content.innerHTML=`
       <label>Client</label>
