@@ -264,7 +264,8 @@
       <div class="card">
         <h2>Créer Devis / Travail</h2>
         <label>Client</label>
-        <input id="customerName" />
+<select id="customerSelect"></select>
+<button id="btnCreateCustomerFromInvoice" class="ghost" style="margin-top:6px;">➕ Nouveau client</button>
 
         <label>Numéro de facture</label>
         <input id="invoiceNumber" disabled />
@@ -830,7 +831,13 @@ function renderInvoicesTable(){
 if($('saveInvoice')){
   $('saveInvoice').addEventListener('click',()=>{
     if(!items.length) return alert("Aucun article dans la facture.");
-    const cust = $('customerName').value.trim();
+    const customerId = $("customerSelect").value;
+if(!customerId){
+    alert("Veuillez sélectionner un client.");
+    return;
+}
+const clientObj = CLIENTS.find(c => String(c.id) === String(customerId));
+const cust = clientObj ? clientObj.name : "Client inconnu";
     if(!cust) return alert("Le nom du client est requis.");
     const job = $('jobDesc').value.trim();
     const number = $('invoiceNumber').value || nextInvoiceNumber();
@@ -858,6 +865,7 @@ function initInvoices(){
   loadParts();
   resetInvoiceForm();
   renderInvoicesTable();
+  refreshInvoiceClientSelect();
 }
 
 /* ===================== CLIENTS ===================== */
@@ -870,6 +878,53 @@ function loadClients(){
 function saveClients(){
   localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
 }
+
+  /* ======== AJOUT POUR INVOICES : sélectionner un client ======== */
+function refreshInvoiceClientSelect() {
+  const select = $("customerSelect");
+  if (!select) return;
+  select.innerHTML = "";
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "-- Sélectionner un client --";
+  select.appendChild(opt0);
+
+  CLIENTS.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.name;
+    select.appendChild(opt);
+  });
+}
+
+  /* ======== AJOUT : créer un client pendant une facture ======== */
+$("btnCreateCustomerFromInvoice").onclick = () => {
+  const name = prompt("Nom du nouveau client :");
+  if (!name) return;
+
+  const phone = prompt("Téléphone (optionnel) :") || "";
+  const email = prompt("Email (optionnel) :") || "";
+  const address = prompt("Adresse (optionnel) :") || "";
+
+  const newClient = {
+    id: Date.now(),
+    name,
+    phone,
+    email,
+    address,
+    vehicles: []
+  };
+
+  CLIENTS.push(newClient);
+  saveClients();
+  refreshInvoiceClientSelect();
+
+  $("customerSelect").value = newClient.id;
+
+  alert("Client ajouté !");
+  renderClientsTable();
+};
 
 function renderVehiclesPage(){
   const tbody = document.querySelector('#vehiclesTable tbody');
