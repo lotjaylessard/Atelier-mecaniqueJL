@@ -321,28 +321,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <h2>Factures enregistrées</h2>
-        <input id="searchInvoices" placeholder="Rechercher..." />
-        <select id="filterSort" style="margin-top:8px;">
-          <option value="new">Plus récentes</option>
-          <option value="old">Plus anciennes</option>
-        </select>
-        <table id="invoicesTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Date</th>
-              <th>Client</th>
-              <th>Job</th>
-              <th>Total</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
       <div id="printArea" style="display:none"></div>
     </div>
 
@@ -831,21 +809,9 @@ function resetInvoiceForm(){
 }
 
 function renderInvoicesTable(){
-  const tbody = document.querySelector('#invoicesTable tbody');
-  if(!tbody) return;
-  tbody.innerHTML = '';
-
-  let list = [...INVOICES];
-  const q = ($('searchInvoices')?.value || '').toLowerCase();
-  const sort = $('filterSort')?.value || 'new';
-
-  if(q){
-    list = list.filter(inv =>
-      (inv.customer||'').toLowerCase().includes(q) ||
-      (inv.job||'').toLowerCase().includes(q) ||
-      String(inv.number||'').includes(q)
-    );
-  }
+  // Liste dans Historique seulement — rien à afficher ici
+  renderHistoryTable(); 
+}
   list.sort((a,b)=> sort==='new'
     ? new Date(b.date)-new Date(a.date)
     : new Date(a.date)-new Date(b.date));
@@ -907,12 +873,6 @@ function initInvoices(){
   loadInvoices();
   loadParts();
   resetInvoiceForm();
-  if($('searchInvoices')){
-    $('searchInvoices').addEventListener('input',renderInvoicesTable);
-  }
-  if($('filterSort')){
-    $('filterSort').addEventListener('change',renderInvoicesTable);
-  }
   renderInvoicesTable();
 }
 
