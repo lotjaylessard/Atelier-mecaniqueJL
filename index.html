@@ -793,17 +793,6 @@ $("saveInvoice").onclick = () => {
 /* ============================================================
    IMPRESSION — MODE PROFESSIONNEL
 ============================================================ */
-function printInvoiceObject(inv){
-  if(!inv) return;
-
-  const area = $("printArea");
-
-  area.innerHTML = `
-    <div class="invoice-header">
-      <h1>Garage-Atelier Mécanique J.L</h1>
-      <div class="muted">Facture #${inv.number}</div>
-      <div class="muted">${inv.date}</div>
-    </div>
 
     <h3>Client</h3>
     <p><strong>${inv.customer}</strong><br>${inv.job || ""}</p>
