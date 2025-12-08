@@ -1525,7 +1525,17 @@ function openInvoiceEditModal(invoiceNumber){
         <tbody id="editItemsBody"></tbody>
       </table>
 
-      <button id="addEditItemBtn" style="margin-top:10px;" class="ghost">+ Ajouter un article</button>
+      <div style="margin-top:10px;">
+  <button id="addEditItemBtn" class="ghost">+ Ajouter un article</button>
+
+  <div id="editItemMenu" 
+       style="display:none;background:#333;padding:10px;border-radius:8px;border:1px solid var(--border);margin-top:6px;">
+    <button class="ghost" id="editAddInventory">➕ Pièce (inventaire)</button>
+    <button class="ghost" id="editAddManualPart">➕ Pièce manuelle</button>
+    <button class="ghost" id="editAddService">🛠️ Service enregistré</button>
+    <button class="ghost" id="editAddLabor">👨‍🔧 Main-d’œuvre</button>
+  </div>
+</div>
 
       <h3 style="margin-top:20px;">Totaux</h3>
       <div>Sous-total : <span id="editSubTotal">0.00</span> $</div>
@@ -1633,6 +1643,125 @@ function openInvoiceEditModal(invoiceNumber){
 
   modal.style.display='flex';
   renderEditUI();
+  
+  // Ouvrir/fermer le menu
+$('addEditItemBtn').onclick = () => {
+  const menu = $('editItemMenu');
+  menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+};
+
+  $('editAddInventory').onclick = () => {
+  if (!PARTS.length) {
+    alert("Aucune pièce dans l’inventaire.");
+    return;
+  }
+
+  // Choisir la pièce
+  let list = "Choisir une pièce :\n\n";
+  PARTS.forEach((p, i) => {
+    list += `${i+1}) ${p.name} (#${p.number}) — ${money(p.price)}$\n`;
+  });
+
+  const choice = Number(prompt(list)) - 1;
+  if (choice < 0 || choice >= PARTS.length) return;
+
+  const p = PARTS[choice];
+
+  if (p.qty <= 0) return alert("Stock insuffisant.");
+
+  p.qty--;
+  saveParts();
+
+  editItems.push({
+    type: "Pièce (Inventaire)",
+    desc: `${p.name} (#${p.number})`,
+    qty: 1,
+    rate: p.price,
+    invNumber: p.number
+  });
+
+  renderEditItems();
+  renderDashboard();
+};
+
+  $('editAddInventory').onclick = () => {
+  if (!PARTS.length) {
+    alert("Aucune pièce dans l’inventaire.");
+    return;
+  }
+
+  // Choisir la pièce
+  let list = "Choisir une pièce :\n\n";
+  PARTS.forEach((p, i) => {
+    list += `${i+1}) ${p.name} (#${p.number}) — ${money(p.price)}$\n`;
+  });
+
+  const choice = Number(prompt(list)) - 1;
+  if (choice < 0 || choice >= PARTS.length) return;
+
+  const p = PARTS[choice];
+
+  if (p.qty <= 0) return alert("Stock insuffisant.");
+
+  p.qty--;
+  saveParts();
+
+  editItems.push({
+    type: "Pièce (Inventaire)",
+    desc: `${p.name} (#${p.number})`,
+    qty: 1,
+    rate: p.price,
+    invNumber: p.number
+  });
+
+  renderEditItems();
+  renderDashboard();
+};
+
+  $('editAddService').onclick = () => {
+  if (!SERVICES.length) {
+    alert("Aucun service enregistré.");
+    return;
+  }
+
+  let list = "Choisir un service :\n\n";
+  SERVICES.forEach((s, i) => {
+    list += `${i+1}) ${s.name} — ${s.category}\n`;
+  });
+
+  const idx = Number(prompt(list)) - 1;
+  if (idx < 0 || idx >= SERVICES.length) return;
+
+  const s = SERVICES[idx];
+
+  let item;
+  if (s.priceFixed > 0) {
+    item = {type:"Service", desc:s.name, qty:1, rate:s.priceFixed};
+  } else {
+    item = {type:"Service (horaire)", desc:s.name, qty:s.hours, rate:s.rate};
+  }
+
+  editItems.push(item);
+  renderEditItems();
+};
+
+  $('editAddLabor').onclick = () => {
+  const desc = prompt("Description :");
+  if (!desc) return;
+
+  const hours = Number(prompt("Heures :", 1));
+  const rate = Number(prompt("Taux / h :", 90));
+
+  editItems.push({
+    type: "Main-d'œuvre",
+    desc,
+    qty: hours,
+    rate
+  });
+
+  renderEditItems();
+};
+
 }
 
 /* ===================== PRINT SIMPLE ===================== */
