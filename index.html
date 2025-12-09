@@ -1559,36 +1559,39 @@ function renderDashboard(){
   if($('statVehicles')) $('statVehicles').innerText=vehiclesCount;
   
     /* ===== 5 DERNIÈRES FACTURES ===== */
-  if ($("lastInvoicesBox")) {
+if ($("lastInvoicesBox")) {
 
-      const lastFive = [...INVOICES]
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
-          .slice(0, 5);
+    const lastFive = [...INVOICES]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5);
 
-      let html = "";
+    // IMPORTANT : vider la boîte avant d'insérer
+    $("lastInvoicesBox").innerHTML = "";
 
-      if (lastFive.length === 0) {
-          html = `<span style="color:var(--muted);">Aucune facture enregistrée.</span>`;
-      } else {
-          html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
+    let html = "";
 
-          lastFive.forEach(inv => {
-              html += `
-                  <div 
-                      style="padding:6px; border:1px solid var(--border); border-radius:6px; cursor:pointer;"
-                      onclick="openFromDashboard('${inv.number}')"
-                  >
-                      <b>#${inv.number}</b> — ${money(inv.total)} $
-                      <br><span class="muted">${inv.customer || "Client inconnu"}</span>
-                  </div>
-              `;
-          });
+    if (lastFive.length === 0) {
+        html = `<span style="color:var(--muted);">Aucune facture enregistrée.</span>`;
+    } else {
+        html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
 
-          html += `</div>`;
-      }
+        lastFive.forEach(inv => {
+            html += `
+                <div 
+                    style="padding:6px; border:1px solid var(--border); border-radius:6px; cursor:pointer;"
+                    onclick="openFromDashboard('${inv.number}')"
+                >
+                    <b>#${inv.number}</b> — ${money(inv.total)} $
+                    <br><span class="muted">${inv.customer || "Client inconnu"}</span>
+                </div>
+            `;
+        });
 
-      $("lastInvoicesBox").innerHTML = html;
-  }
+        html += `</div>`;
+    }
+
+    $("lastInvoicesBox").innerHTML = html;
+}
 }
 
   function openFromDashboard(number){
