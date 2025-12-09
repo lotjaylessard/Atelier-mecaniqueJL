@@ -242,10 +242,7 @@
           <div class="stat-label">Véhicules</div>
           <div class="stat-value" id="statVehicles">0</div>
         </div>
-        <div class="stat-card" style="min-height:150px;">
-    <h3>🧾 5 Dernières factures</h3>
-    <div id="lastInvoicesList" style="font-size:14px; line-height:18px; margin-top:10px;"></div>
-</div>
+      </div>
 
       <div class="card" style="margin-top:20px;">
         <h3>Raccourcis</h3>
@@ -1556,34 +1553,6 @@ function renderDashboard(){
   if($('statRevenue')) $('statRevenue').innerText=money(revenue)+' $';
   if($('statClients')) $('statClients').innerText=clientsCount;
   if($('statVehicles')) $('statVehicles').innerText=vehiclesCount;
-  
-  // ===========================
-// 5 DERNIÈRES FACTURES
-// ===========================
-if ($('lastInvoicesList')) {
-
-    const lastFive = [...INVOICES]
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
-
-    let html = "";
-
-    if (lastFive.length === 0) {
-        html = `<div class="muted">Aucune facture pour l'instant.</div>`;
-    } else {
-        lastFive.forEach(inv => {
-            html += `
-                <div style="margin-bottom:6px;">
-                    <b>#${inv.number}</b> — ${money(inv.total)} $
-                    <br><span class="muted">${inv.customer || "Client inconnu"}</span>
-                </div>
-            `;
-        });
-    }
-
-    $('lastInvoicesList').innerHTML = html;
-}
-
 }
 
 /* ===================== EDIT EXISTING INVOICE ===================== */
