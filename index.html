@@ -1766,45 +1766,65 @@ $("exportPdfEditBtn").onclick = async () => {
   pdfContainer.style.width = "800px"; // format A4 largeur
 
   pdfContainer.innerHTML = `
-    <h2 style="color:#000;">Facture #${inv.number}</h2>
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;margin-bottom:20px;">
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAHgCAYAAAB5L3C9AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAL+wAAC/sBtcYv2gAAGDZJREFUeJzt3VuMXOWV5vFv+q7pmrZt27Zt27Zt27Zt26Zt2zbttttttm2bNm3btm2btttttt2bNm3btm2bttttttn3RWpxUTSBLKDQMSuEoH4qToIIopShIkg8vEYgoCCEkSZPUmkkmruPwkhQipLvSZWul333XvOec+5zn/P+55xzvnPOd87u9B+XWvPTfeeec45xzPnPPOSGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgjhCdlh6AIAAAAASUVORK5CYII=" style="height:70px;margin-right:15px;border-radius:8px;">
+    
+    <div style="color:#000;">
+      <div style="font-size:22px;font-weight:bold;color:#FFD000;">J.L. Garage</div>
+      <div style="font-size:13px;">Téléphone : 581-309-6481</div>
+    </div>
+  </div>
 
-    <p style="color:#000;"><strong>Date :</strong> ${inv.date}</p>
-    <p style="color:#000;"><strong>Client :</strong> ${inv.customer}</p>
-    <p style="color:#000;"><strong>Description :</strong> ${inv.job || ""}</p>
+  <hr style="border:0;border-top:2px solid #FFD000;margin:10px 0;">
 
-    <h3 style="color:var(--accent-yellow); margin-top:20px;">Articles</h3>
+  <h2 style="color:#000;margin-top:10px;">Facture #${inv.number}</h2>
 
-    <table style="width:100%; border-collapse:collapse; font-size:14px; color:#000;">
-      <thead>
+  <p style="color:#000;"><strong>Date :</strong> ${inv.date}</p>
+  <p style="color:#000;"><strong>Client :</strong> ${inv.customer}</p>
+  <p style="color:#000;"><strong>Description :</strong> ${inv.job || ""}</p>
+
+  <h3 style="color:#FFD000; margin-top:20px;">Articles</h3>
+
+  <table style="width:100%; border-collapse:collapse; font-size:14px; color:#000;">
+    <thead>
+      <tr style="color:#000;">
+        <th style="border-bottom:2px solid #000;">Type</th>
+        <th style="border-bottom:2px solid #000;">Description</th>
+        <th style="border-bottom:2px solid #000;">Qté</th>
+        <th style="border-bottom:2px solid #000;">Prix</th>
+        <th style="border-bottom:2px solid #000;">Total</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      ${window.editItems.map(it => `
         <tr style="color:#000;">
-          <th style="border-bottom:2px solid #000;">Type</th>
-          <th style="border-bottom:2px solid #000;">Description</th>
-          <th style="border-bottom:2px solid #000;">Qté</th>
-          <th style="border-bottom:2px solid #000;">Prix</th>
-          <th style="border-bottom:2px solid #000;">Total</th>
+          <td>${it.type}</td>
+          <td>${it.desc}</td>
+          <td>${it.qty}</td>
+          <td>${money(it.rate)} $</td>
+          <td>${money(it.qty * it.rate)} $</td>
         </tr>
-      </thead>
+      `).join("")}
+    </tbody>
+  </table>
 
-      <tbody>
-        ${window.editItems.map(it => `
-          <tr style="color:#000;">
-            <td>${it.type}</td>
-            <td>${it.desc}</td>
-            <td>${it.qty}</td>
-            <td>${money(it.rate)} $</td>
-            <td>${money(it.qty * it.rate)} $</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
+  <h3 style="color:#FFD000; margin-top:20px;">Totaux</h3>
 
-    <h3 style="color:var(--accent-yellow); margin-top:20px;">Totaux</h3>
+  <p style="color:#000;"><strong>Sous-total :</strong> ${money(inv.subTotal)} $</p>
+  <p style="color:#000;"><strong>TPS :</strong> ${money(inv.gst)} $</p>
+  <p style="color:#000;"><strong>TVQ :</strong> ${money(inv.qst)} $</p>
+  <p style="color:#000; font-size:18px;"><strong>Total :</strong> ${money(inv.total)} $</p>
 
-    <p style="color:#000;"><strong>Sous-total :</strong> ${money(inv.subTotal)} $</p>
-    <p style="color:#000;"><strong>TPS :</strong> ${money(inv.gst)} $</p>
-    <p style="color:#000;"><strong>TVQ :</strong> ${money(inv.qst)} $</p>
-    <p style="color:#000; font-size:18px;"><strong>Total :</strong> ${money(inv.total)} $</p>
+  <hr style="border:0;border-top:1px solid #999;margin:25px 0 10px 0;">
+
+  <!-- FOOTER -->
+  <div style="text-align:center;font-size:12px;color:#000;">
+    Merci de votre confiance — J.L. Garage  
+  </div>
 `;
+
 
   // On ajoute TEMPORAIREMENT ce conteneur à la page
   document.body.appendChild(pdfContainer);
