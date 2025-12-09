@@ -1138,6 +1138,7 @@ function renderClientModal(id){
       if(idx===-1) CLIENTS.push(client);
       else CLIENTS[idx]=client;
       saveClients();
+      refreshInvoiceClientSelect();
       renderClientsTable();
       closeClientModal();
     });
