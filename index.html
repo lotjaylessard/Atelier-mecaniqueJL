@@ -1830,59 +1830,7 @@ $("exportPdfEditBtn").onclick = async () => {
   pdf.save(`facture_${inv.number}.pdf`);
 };
 
-    const area = $("printArea");
-    area.innerHTML = `
-        <div id="pdfContent" style="padding:20px; font-family:Arial; color:#000;">
-          <h2>Facture #${inv.number}</h2>
-          <p><strong>Date :</strong> ${inv.date}</p>
-          <p><strong>Client :</strong> ${inv.customer}</p>
-          <p><strong>Description :</strong> ${inv.job || ""}</p>
-
-          <h3>Articles</h3>
-          <table style="width:100%; border-collapse:collapse; font-size:14px;">
-            <thead>
-              <tr>
-                <th style="border-bottom:1px solid #999;">Type</th>
-                <th style="border-bottom:1px solid #999;">Description</th>
-                <th style="border-bottom:1px solid #999;">Qté</th>
-                <th style="border-bottom:1px solid #999;">Prix</th>
-                <th style="border-bottom:1px solid #999;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${editItems.map(it => `
-                <tr>
-                  <td>${it.type}</td>
-                  <td>${it.desc}</td>
-                  <td>${it.qty}</td>
-                  <td>${money(it.rate)} $</td>
-                  <td>${money(it.qty * it.rate)} $</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-
-          <h3>Totaux</h3>
-          <p><strong>Sous-total :</strong> ${money(inv.subTotal)} $</p>
-          <p><strong>TPS :</strong> ${money(inv.gst)} $</p>
-          <p><strong>TVQ :</strong> ${money(inv.qst)} $</p>
-          <p><strong>Total :</strong> ${money(inv.total)} $</p>
-        </div>
-    `;
-
-    const element = document.getElementById("pdfContent");
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`facture_${inv.number}.pdf`);
-};
-
+  
   $('closeInvoiceEditModal').onclick=()=>{
     modal.style.display='none';
   };
