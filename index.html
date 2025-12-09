@@ -1639,11 +1639,17 @@ if ($("filterVehicle")) {
     const vehicles = [];
     CLIENTS.forEach(c => (c.vehicles || []).forEach(v => vehicles.push(v)));
 
-    const uniqueVehicles = [...new Set(vehicles)].sort();
+    const unique = [];
+    vehicles.forEach(v => {
+        const label = `${v.make || ""} ${v.model || ""} ${v.year || ""}`.trim();
+        if (label && !unique.includes(label)) unique.push(label);
+    });
+
+    unique.sort();
 
     $("filterVehicle").innerHTML =
       `<option value="">Tous les véhicules</option>` +
-      uniqueVehicles.map(v => `<option value="${v}">${v}</option>`).join("");
+      unique.map(label => `<option value="${label}">${label}</option>`).join("");
 }
 }
 
