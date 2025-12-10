@@ -1340,6 +1340,145 @@ function linkNewItemToInventory(item){
   return true;
 }
 
+  
+  /* ===================== PART PICKER ===================== */
+
+const partPickerModal = $("partPickerModal");
+const partPickerList = $("partPickerList");
+const partPickerFilter = $("partPickerFilter");
+const btnOpenPartPicker = $("openPartPicker");
+const btnClosePartPicker = $("closePartPicker");
+
+/* Rendu du PartPicker */
+function renderPartPicker() {
+    loadParts();
+    let filter = partPickerFilter?.value || "";
+    let html = "";
+
+    let partsToShow = PARTS.filter(p => !filter || p.category === filter);
+
+    if (partsToShow.length === 0) {
+        partPickerList.innerHTML = `<div class="muted">Aucune pièce dans cette catégorie.</div>`;
+        return;
+    }
+
+    partsToShow.forEach(p => {
+        html += `
+        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;">
+            <b>${p.name}</b> (#${p.number})<br>
+            Catégorie : ${p.category}<br>
+            Stock : ${p.qty}<br>
+            Prix : ${money(p.price)} $
+
+            <div style="margin-top:8px;">
+                <label>Qté :</label>
+                <input type="number" min="1" max="${p.qty}" id="qty_${p.number}" value="1"
+                       style="width:70px;padding:4px;background:#111;color:white;border:1px solid var(--border);border-radius:4px;">
+            </div>
+
+            <button class="ghost" data-number="${p.number}" style="margin-top:6px;">
+                ➕ Ajouter
+            </button>
+        </div>`;
+    });
+
+    partPickerList.innerHTML = html;
+
+    partPickerList.querySelectorAll("button[data-number]").forEach(btn => {
+        btn.onclick = () => {
+            const num = btn.dataset.number;
+            const part = PARTS.find(x => String(x.number) === String(num));
+            if (!part) return;
+
+            const qtyInput = document.getElementById("qty_" + num);
+            const qty = Number(qtyInput?.value || 1);
+
+            if (qty <= 0) return alert("Quantité invalide");
+
+            btn.dataset.qty = qty;
+
+            // NOTE : la fonction qui récupère qty dépend de l'appelant
+            // (facture ou work order)
+        };
+    });
+}
+
+/* Ouvrir PartPicker */
+if (btnOpenPartPicker) {
+    btnOpenPartPicker.onclick = () => {
+        renderPartPicker();
+        partPickerModal.style.display = "flex";
+    };
+}
+
+/* Fermer */
+if (btnClosePartPicker) {
+    btnClosePartPicker.onclick = () => {
+        partPickerModal.style.display = "none";
+    };
+}
+
+if (partPickerFilter) {
+    partPickerFilter.onchange = renderPartPicker;
+}
+  
+
+/* ===================== SERVICE PICKER ===================== */
+
+const servicePickerModal = $("servicePickerModal");
+const servicePickerList = $("servicePickerList");
+const servicePickerFilter = $("servicePickerFilter");
+const btnOpenServicePicker = $("openServicePicker");
+const btnCloseServicePicker = $("closeServicePicker");
+
+function renderServicePicker() {
+    loadServices();
+    let filter = servicePickerFilter?.value || "";
+    let html = "";
+
+    let srvList = SERVICES.filter(s => !filter || s.category === filter);
+
+    if (srvList.length === 0) {
+        servicePickerList.innerHTML = `<div class="muted">Aucun service dans cette catégorie.</div>`;
+        return;
+    }
+
+    srvList.forEach(s => {
+        html += `
+        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;">
+            <b>${s.name}</b><br>
+            Catégorie : ${s.category}<br>
+            ${s.desc ? ("Description : " + s.desc + "<br>") : ""}
+            ${s.priceFixed ? `Prix fixe : ${money(s.priceFixed)} $` 
+                           : `Temps : ${s.time} h × ${money(s.rate)} $`}
+
+            <button class="ghost" data-service="${s.id}" style="margin-top:6px;">
+                ➕ Ajouter
+            </button>
+        </div>`;
+    });
+
+    servicePickerList.innerHTML = html;
+}
+
+if (btnOpenServicePicker) {
+    btnOpenServicePicker.onclick = () => {
+        renderServicePicker();
+        servicePickerModal.style.display = "flex";
+    };
+}
+
+if (btnCloseServicePicker) {
+    btnCloseServicePicker.onclick = () => {
+        servicePickerModal.style.display = "none";
+    };
+}
+
+if (servicePickerFilter) {
+    servicePickerFilter.onchange = renderServicePicker;
+}
+  
+
 /* RENDER ITEMS & TOTALS */
 function renderTotals(subTotalOverride){
   const sub = (typeof subTotalOverride === 'number') ? subTotalOverride
