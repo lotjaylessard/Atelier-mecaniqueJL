@@ -2538,9 +2538,28 @@ function renderNotes() {
 
     wrap.innerHTML = filtered.map(n => `
         <div style="border:1px solid var(--border);padding:10px;border-radius:8px;margin-bottom:8px;">
-            <div style="font-size:0.8rem;color:var(--muted)">
-                ${n.date} — <b>${n.category}</b>
-            </div>
+            <div style="font-size:0.8rem;color:var(--muted); display:flex; align-items:center; gap:10px;">
+    <span style="font-size:0.8rem;">${n.date}</span>
+
+    <span style="
+        padding:3px 8px;
+        border-radius:6px;
+        font-size:0.9rem;
+        font-weight:700;
+        color:white;
+        background:${n.category === 'urgent' 
+            ? '#c62828' 
+            : n.category === 'todo' 
+              ? '#f9a825' 
+              : '#1565c0'};
+    ">
+        ${n.category === 'urgent'
+            ? '🚨 Urgent'
+            : n.category === 'todo'
+                ? '📝 À faire'
+                : '📘 Général'}
+    </span>
+</div>
 
             <div id="noteText_${n.id}" style="margin-top:6px;">
                 ${n.text.replace(/\n/g,'<br>')}
