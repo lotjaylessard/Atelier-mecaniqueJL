@@ -236,14 +236,14 @@
   font-size:1.1rem;
 }
 
-#page-workorders textarea,
-#page-workorders select,
-#page-workorders input {
-    background:#111;
-    border:1px solid var(--border);
-    color:white;
-    border-radius:6px;
-    padding:6px;
+    #page-workorders select,
+#page-workorders input,
+#page-workorders textarea {
+  background:#111;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:6px;
 }
 
 
@@ -709,27 +709,24 @@
 
   <!-- Barre de recherche -->
   <div class="card">
-  <h3>Liens enregistrés</h3>
+    <h3>Liens enregistrés</h3>
 
-  <input id="linkSearch" placeholder="Rechercher un lien..."
-         style="width:100%;margin-bottom:10px;padding:6px;">
+    <input id="linkSearch" placeholder="Rechercher un lien..." style="width:100%;margin-bottom:10px;padding:6px;">
 
-  <div id="linksList"></div>
+    <div id="linksList"></div>
 
-  <div style="text-align:right;margin-top:15px;">
-    <button id="exportLinksBtn" class="ghost">Exporter</button>
-    <button id="importLinksBtn" class="ghost">Importer</button>
-    <input type="file" id="importLinksFile" accept=".json" style="display:none;">
+    <div style="text-align:right;margin-top:15px;">
+      <button id="exportLinksBtn" class="ghost">Exporter</button>
+      <button id="importLinksBtn" class="ghost">Importer</button>
+      <input type="file" id="importLinksFile" accept=".json" style="display:none;">
+    </div>
+    <div class="card">
+    <h3>Liens personnalisés</h3>
+    <p class="muted">Tu veux que j'ajoute un système pour ajouter tes propres liens? Dis-moi, je peux te coder ça aussi.</p>
   </div>
 </div>
-
-<div class="card">
-  <h3>Liens personnalisés</h3>
-  <p class="muted">
-    Tu veux que j'ajoute un système pour ajouter tes propres liens?
-  </p>
 </div>
-  </div>
+
 
     
     <!-- PARAMÈTRES -->
@@ -1007,22 +1004,6 @@ function woAddLaborLine(wo) {
     };
   });
 }
-  
-
-  function woSaveEdits(wo) {
-  const desc  = $("woEditDesc")?.value || "";
-  const stat  = $("woEditStatus")?.value || "draft";
-  const km    = Number($("woEditKM")?.value || 0);
-  const notes = $("woEditNotes")?.value || "";
-
-  wo.description   = desc;
-  wo.status        = stat;
-  wo.km            = km;
-  wo.internalNotes = notes;
-
-  saveWorkOrders();
-  renderWorkOrders();
-}
 
   
   /* Rendu des lignes d’un WO */
@@ -1032,10 +1013,7 @@ function woRenderLines(wo) {
   pBody.innerHTML = wo.parts.map((p,i)=>`
     <tr>
       <td>${p.name}</td>
-      <td><input type="number" min="1" value="${p.qty}" 
-     onchange="woEditPartQty(${wo.id},${i},this.value)"
-     style="width:60px;background:#111;color:white;border:1px solid var(--border);border-radius:4px;text-align:center;">
-</td>
+      <td>${p.qty}</td>
       <td>${money(p.rate)}$</td>
       <td>${money(p.qty*p.rate)}$</td>
       <td><button class="ghost" onclick="woRemovePart(${wo.id},${i})">🗑</button></td>
@@ -1047,10 +1025,7 @@ function woRenderLines(wo) {
   lBody.innerHTML = wo.labor.map((l,i)=>`
     <tr>
       <td>${l.description}</td>
-      <td><input type="number" min="0.1" step="0.1" value="${l.hours}"
-     onchange="woEditLaborHours(${wo.id},${i},this.value)"
-     style="width:70px;background:#111;color:white;border:1px solid var(--border);border-radius:4px;text-align:center;">
-</td>
+      <td>${l.hours}</td>
       <td>${money(l.rate)}$</td>
       <td>${money(l.hours*l.rate)}$</td>
       <td><button class="ghost" onclick="woRemoveLabor(${wo.id},${i})">🗑</button></td>
@@ -1073,34 +1048,6 @@ function woRenderLines(wo) {
   const wo = WORKORDERS.find(w=>w.id==woId);
   if(!wo) return;
   wo.parts.splice(index,1);
-  saveWorkOrders();
-  woRenderLines(wo);
-}
-
-  function woEditPartQty(woId,index,value){
-  const wo = WORKORDERS.find(w=>w.id==woId);
-  if(!wo) return;
-
-  const qty = Number(value);
-  if(qty <= 0) return;
-
-  wo.parts[index].qty = qty;
-  wo.parts[index].total = qty * wo.parts[index].rate;
-
-  saveWorkOrders();
-  woRenderLines(wo);
-}
-
-  function woEditLaborHours(woId,index,value){
-  const wo = WORKORDERS.find(w=>w.id==woId);
-  if(!wo) return;
-
-  const h = Number(value);
-  if(h <= 0) return;
-
-  wo.labor[index].hours = h;
-  wo.labor[index].total = h * wo.labor[index].rate;
-
   saveWorkOrders();
   woRenderLines(wo);
 }
@@ -1224,29 +1171,13 @@ function initWorkOrdersModule(){
   <div class="muted" style="margin-bottom:10px;">${wo.date}</div>
 
   <div style="margin-bottom:20px;">
-  <b>Client :</b> ${wo.clientName}<br>
-  <b>Véhicule :</b> ${wo.vehicleLabel}<br>
-
-  <label style="margin-top:10px;">Description du problème :</label>
-  <textarea id="woEditDesc" style="min-height:80px;">${wo.description || ""}</textarea>
-
-  <label style="margin-top:10px;">Statut :</label>
-  <select id="woEditStatus">
-    <option value="draft" ${wo.status==="draft"?"selected":""}>Brouillon</option>
-    <option value="in_progress" ${wo.status==="in_progress"?"selected":""}>En cours</option>
-    <option value="waiting_parts" ${wo.status==="waiting_parts"?"selected":""}>En attente de pièces</option>
-    <option value="completed" ${wo.status==="completed"?"selected":""}>Terminé</option>
-    <option value="billed" ${wo.status==="billed"?"selected":""}>Facturé</option>
-  </select>
-
-  <label style="margin-top:10px;">Kilométrage (optionnel) :</label>
-  <input id="woEditKM" type="number" value="${wo.km || ""}" style="width:150px;">
-  
-  <label style="margin-top:10px;">Notes internes :</label>
-  <textarea id="woEditNotes" style="min-height:80px;">${wo.internalNotes || ""}</textarea>
-
-  <button id="woSaveEdits" style="margin-top:12px;">💾 Sauvegarder modifications</button>
-</div>
+    <b>Client :</b> ${wo.clientName}<br>
+    <b>Véhicule :</b> ${wo.vehicleLabel}<br>
+    <b>Description :</b><br>
+    <div class="muted" style="white-space:pre-line;margin-top:4px;">
+      ${wo.description || "(aucune description)"}
+    </div>
+  </div>
 
   <div class="card">
     <h3>Pièces</h3>
@@ -1279,59 +1210,48 @@ function initWorkOrdersModule(){
 $("woAddLabor").onclick = () => woAddLaborLine(wo);
 woRenderLines(wo);
 
-      $("woSaveEdits").onclick = () => {
-    woSaveEdits(wo);
-    alert("Modifications enregistrées !");
-};
-
-
     };
   }
 }
 
 
   // === Mise à jour automatique du menu véhicule selon le client ===
-function initInvoiceVehicleBindings() {
-  const customerSelect = $("customerSelect");
-  const vehicleSelect  = $("vehicleSelect");
-  const jobDesc        = $("jobDesc");
+$("customerSelect").onchange = () => {
+    const clientName = $("customerSelect").value;
+    const client = CLIENTS.find(c => c.name === clientName);
+    const vehicleMenu = $("vehicleSelect");
 
-  if (!customerSelect || !vehicleSelect || !jobDesc) {
-    // Si un des éléments manque, on ne fait rien : on évite de planter tout le script
-    return;
-  }
-
-  customerSelect.onchange = () => {
-    const clientId = customerSelect.value;
-    const client = CLIENTS.find(c => String(c.id) === String(clientId));
-    const vehicleMenu = vehicleSelect;
-
+    // Vider l'ancien contenu
     vehicleMenu.innerHTML = "";
 
+    // Aucun client choisi
     if (!client) {
         vehicleMenu.innerHTML = `<option value="">— Sélectionnez un client —</option>`;
-        jobDesc.value = "";
+        $("jobDesc").value = "";
         return;
     }
 
+    // Si client sans véhicule
     if (!client.vehicles || client.vehicles.length === 0) {
         vehicleMenu.innerHTML = `<option value="">— Aucun véhicule enregistré —</option>`;
-        jobDesc.value = "";
+        $("jobDesc").value = "";
         return;
     }
 
+    // Sinon : remplir avec les véhicules du client
     client.vehicles.forEach(v => {
         const label = `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim();
         vehicleMenu.innerHTML += `<option value="${label}">${label}</option>`;
     });
 
-    jobDesc.value = vehicleMenu.value;
-  };
+    // mettre la valeur du premier véhicule dans jobDesc
+    $("jobDesc").value = vehicleMenu.value;
+};
 
-  vehicleSelect.onchange = () => {
-    jobDesc.value = vehicleSelect.value;
-  };
-}
+// Quand un véhicule est sélectionné → mettre la valeur dans jobDesc
+$("vehicleSelect").onchange = () => {
+    $("jobDesc").value = $("vehicleSelect").value;
+};
 
 
 /* ===================== SETTINGS ===================== */
@@ -1419,145 +1339,6 @@ function linkNewItemToInventory(item){
   renderDashboard();
   return true;
 }
-
-  
-  /* ===================== PART PICKER ===================== */
-
-const partPickerModal = $("partPickerModal");
-const partPickerList = $("partPickerList");
-const partPickerFilter = $("partPickerFilter");
-const btnOpenPartPicker = $("openPartPicker");
-const btnClosePartPicker = $("closePartPicker");
-
-/* Rendu du PartPicker */
-function renderPartPicker() {
-    loadParts();
-    let filter = partPickerFilter?.value || "";
-    let html = "";
-
-    let partsToShow = PARTS.filter(p => !filter || p.category === filter);
-
-    if (partsToShow.length === 0) {
-        partPickerList.innerHTML = `<div class="muted">Aucune pièce dans cette catégorie.</div>`;
-        return;
-    }
-
-    partsToShow.forEach(p => {
-        html += `
-        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;">
-            <b>${p.name}</b> (#${p.number})<br>
-            Catégorie : ${p.category}<br>
-            Stock : ${p.qty}<br>
-            Prix : ${money(p.price)} $
-
-            <div style="margin-top:8px;">
-                <label>Qté :</label>
-                <input type="number" min="1" max="${p.qty}" id="qty_${p.number}" value="1"
-                       style="width:70px;padding:4px;background:#111;color:white;border:1px solid var(--border);border-radius:4px;">
-            </div>
-
-            <button class="ghost" data-number="${p.number}" style="margin-top:6px;">
-                ➕ Ajouter
-            </button>
-        </div>`;
-    });
-
-    partPickerList.innerHTML = html;
-
-    partPickerList.querySelectorAll("button[data-number]").forEach(btn => {
-        btn.onclick = () => {
-            const num = btn.dataset.number;
-            const part = PARTS.find(x => String(x.number) === String(num));
-            if (!part) return;
-
-            const qtyInput = document.getElementById("qty_" + num);
-            const qty = Number(qtyInput?.value || 1);
-
-            if (qty <= 0) return alert("Quantité invalide");
-
-            btn.dataset.qty = qty;
-
-            // NOTE : la fonction qui récupère qty dépend de l'appelant
-            // (facture ou work order)
-        };
-    });
-}
-
-/* Ouvrir PartPicker */
-if (btnOpenPartPicker) {
-    btnOpenPartPicker.onclick = () => {
-        renderPartPicker();
-        partPickerModal.style.display = "flex";
-    };
-}
-
-/* Fermer */
-if (btnClosePartPicker) {
-    btnClosePartPicker.onclick = () => {
-        partPickerModal.style.display = "none";
-    };
-}
-
-if (partPickerFilter) {
-    partPickerFilter.onchange = renderPartPicker;
-}
-  
-
-/* ===================== SERVICE PICKER ===================== */
-
-const servicePickerModal = $("servicePickerModal");
-const servicePickerList = $("servicePickerList");
-const servicePickerFilter = $("servicePickerFilter");
-const btnOpenServicePicker = $("openServicePicker");
-const btnCloseServicePicker = $("closeServicePicker");
-
-function renderServicePicker() {
-    loadServices();
-    let filter = servicePickerFilter?.value || "";
-    let html = "";
-
-    let srvList = SERVICES.filter(s => !filter || s.category === filter);
-
-    if (srvList.length === 0) {
-        servicePickerList.innerHTML = `<div class="muted">Aucun service dans cette catégorie.</div>`;
-        return;
-    }
-
-    srvList.forEach(s => {
-        html += `
-        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;">
-            <b>${s.name}</b><br>
-            Catégorie : ${s.category}<br>
-            ${s.desc ? ("Description : " + s.desc + "<br>") : ""}
-            ${s.priceFixed ? `Prix fixe : ${money(s.priceFixed)} $` 
-                           : `Temps : ${s.time} h × ${money(s.rate)} $`}
-
-            <button class="ghost" data-service="${s.id}" style="margin-top:6px;">
-                ➕ Ajouter
-            </button>
-        </div>`;
-    });
-
-    servicePickerList.innerHTML = html;
-}
-
-if (btnOpenServicePicker) {
-    btnOpenServicePicker.onclick = () => {
-        renderServicePicker();
-        servicePickerModal.style.display = "flex";
-    };
-}
-
-if (btnCloseServicePicker) {
-    btnCloseServicePicker.onclick = () => {
-        servicePickerModal.style.display = "none";
-    };
-}
-
-if (servicePickerFilter) {
-    servicePickerFilter.onchange = renderServicePicker;
-}
-  
 
 /* RENDER ITEMS & TOTALS */
 function renderTotals(subTotalOverride){
@@ -3607,7 +3388,6 @@ window.addEventListener('load',()=>{
   initNotesModule();
   initLinksModule();
   initWorkOrdersModule();
-  initInvoiceVehicleBindings();
   renderDashboard();
 });
   
