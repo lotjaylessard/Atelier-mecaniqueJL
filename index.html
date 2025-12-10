@@ -533,13 +533,32 @@
 
   <div class="card">
     <h3>Ajouter une note</h3>
+
+    <label>Catégorie :</label>
+    <select id="noteCategory">
+      <option value="general">Général</option>
+      <option value="urgent">Urgent</option>
+      <option value="todo">À faire</option>
+    </select>
+
+    <label style="margin-top:10px;">Contenu :</label>
     <textarea id="noteInput" placeholder="Écris ta note ici..." style="min-height:90px;"></textarea>
+
     <button id="addNoteBtn" style="margin-top:8px;">Ajouter la note</button>
   </div>
 
   <div class="card">
     <h3>Historique des notes</h3>
+
+    <input id="noteSearch" placeholder="Rechercher une note..." style="width:100%;margin-bottom:10px;padding:6px;">
+
     <div id="notesList"></div>
+
+    <div style="text-align:right;margin-top:15px;">
+      <button id="exportNotesBtn" class="ghost">Exporter</button>
+      <button id="importNotesBtn" class="ghost">Importer</button>
+      <input type="file" id="importNotesFile" accept=".json" style="display:none;">
+    </div>
   </div>
 </div>
 
@@ -2452,7 +2471,7 @@ if($("importBackupFile")){
 
 let NOTES = [];
 
-/* Charger les notes */
+/* Charger */
 function loadNotes() {
     try {
         NOTES = JSON.parse(localStorage.getItem(STORAGE.notes) || '[]');
@@ -2460,45 +2479,133 @@ function loadNotes() {
     } catch (e) { NOTES = []; }
 }
 
-/* Sauver les notes */
+/* Sauver */
 function saveNotes() {
     localStorage.setItem(STORAGE.notes, JSON.stringify(NOTES));
 }
 
-/* Ajouter une note */
-function addNote(text) {
+/* Ajouter note */
+function addNote(text, category) {
     const now = new Date();
     const stamp = now.toLocaleString("fr-CA");
 
     NOTES.push({
         id: Date.now(),
         text,
+        category,
         date: stamp
     });
 
-    // Trier du plus récent au plus vieux
     NOTES.sort((a, b) => b.id - a.id);
-
     saveNotes();
     renderNotes();
 }
 
-/* Afficher les notes */
+/* Modifier */
+function updateNote(id, newText) {
+    const n = NOTES.find(x => x.id === id);
+    if (!n) return;
+    n.text = newText;
+    saveNotes();
+    renderNotes();
+}
+
+/* Supprimer */
+function deleteNote(id) {
+    if (!confirm("Supprimer cette note ?")) return;
+    NOTES = NOTES.filter(n => n.id !== id);
+    saveNotes();
+    renderNotes();
+}
+
+/* Rendu Notes */
 function renderNotes() {
     const wrap = $("notesList");
     if (!wrap) return;
 
-    if (NOTES.length === 0) {
-        wrap.innerHTML = `<div class="muted">Aucune note enregistrée.</div>`;
+    const search = ($("noteSearch")?.value || "").toLowerCase();
+
+    let filtered = NOTES.filter(n =>
+        n.text.toLowerCase().includes(search) ||
+        n.category.toLowerCase().includes(search) ||
+        n.date.toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+        wrap.innerHTML = `<div class="muted">Aucune note correspondante.</div>`;
         return;
     }
 
-    wrap.innerHTML = NOTES.map(n => `
+    wrap.innerHTML = filtered.map(n => `
         <div style="border:1px solid var(--border);padding:10px;border-radius:8px;margin-bottom:8px;">
-            <div class="muted" style="font-size:0.8rem;">${n.date}</div>
-            <div style="margin-top:6px;">${n.text.replace(/\n/g, '<br>')}</div>
+            <div style="font-size:0.8rem;color:var(--muted)">
+                ${n.date} — <b>${n.category}</b>
+            </div>
+
+            <div id="noteText_${n.id}" style="margin-top:6px;">
+                ${n.text.replace(/\n/g,'<br>')}
+            </div>
+
+            <div style="margin-top:8px; display:flex;gap:10px;">
+                <button class="ghost" onclick="editNote(${n.id})">✏️ Modifier</button>
+                <button class="ghost" onclick="deleteNote(${n.id})">🗑️ Supprimer</button>
+            </div>
         </div>
     `).join('');
+}
+
+/* Mode édition */
+function editNote(id) {
+    const n = NOTES.find(x => x.id === id);
+    if (!n) return;
+
+    const container = $("noteText_" + id);
+
+    container.innerHTML = `
+        <textarea id="editNoteInput_${id}" style="width:100%;min-height:80px;">${n.text}</textarea>
+        <button class="ghost" onclick="saveEdit(${id})" style="margin-top:6px;">💾 Sauver</button>
+    `;
+}
+
+function saveEdit(id) {
+    const field = $("editNoteInput_" + id);
+    if (!field) return;
+
+    updateNote(id, field.value);
+}
+
+/* Export */
+function exportNotes() {
+    const blob = new Blob([JSON.stringify(NOTES, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "notes_export.json";
+    a.click();
+}
+
+/* Import */
+function importNotes(evt) {
+    const file = evt.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!Array.isArray(data)) throw "Format invalide";
+
+            NOTES = data;
+            saveNotes();
+            renderNotes();
+            alert("Import complété !");
+        } catch (err) {
+            alert("Erreur : fichier invalide.");
+        }
+    };
+
+    reader.readAsText(file);
 }
 
 /* Initialisation */
@@ -2509,10 +2616,23 @@ function initNotesModule() {
     if ($("addNoteBtn")) {
         $("addNoteBtn").onclick = () => {
             const text = $("noteInput").value.trim();
+            const cat = $("noteCategory").value;
             if (!text) return alert("Entrez une note.");
-            addNote(text);
+            addNote(text, cat);
             $("noteInput").value = "";
         };
+    }
+
+    if ($("noteSearch")) $("noteSearch").oninput = renderNotes;
+
+    if ($("exportNotesBtn")) $("exportNotesBtn").onclick = exportNotes;
+
+    if ($("importNotesBtn")) {
+        $("importNotesBtn").onclick = () => $("importNotesFile").click();
+    }
+
+    if ($("importNotesFile")) {
+        $("importNotesFile").onchange = importNotes;
     }
 }
 
