@@ -236,6 +236,16 @@
   font-size:1.1rem;
 }
 
+    #page-workorders select,
+#page-workorders input,
+#page-workorders textarea {
+  background:#111;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:5px;
+  padding:6px;
+}
+
 
   </style>
 
@@ -897,6 +907,45 @@ function saveWorkOrders(){
   localStorage.setItem(STORAGE.workorders, JSON.stringify(WORKORDERS));
 }
 
+  function saveNewWorkOrder() {
+  const clientId = $("woClientSelect")?.value;
+  const vehicleId = $("woVehicleSelect")?.value;
+  const description = $("woDescription")?.value.trim();
+  const status = $("woStatus")?.value;
+
+  if (!clientId) return alert("Sélectionne un client.");
+  if (!vehicleId) return alert("Sélectionne un véhicule.");
+
+  const client = CLIENTS.find(c => String(c.id) === String(clientId));
+  const vehicle = client.vehicles.find(v => String(v.id) === String(vehicleId));
+
+  // Création du Work Order minimal
+  const wo = {
+    id: Date.now(),
+    number: "BT-" + Date.now(),
+    date: new Date().toLocaleString("fr-CA"),
+    clientId,
+    clientName: client.name,
+    vehicleId,
+    vehicleLabel: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+    description,
+    status,
+    parts: [],
+    labor: [],
+    estimateTotal: 0
+  };
+
+  WORKORDERS.push(wo);
+  saveWorkOrders();
+  renderWorkOrders();
+
+  // Afficher confirmation
+  $("woDetailContent").innerHTML = `
+    <div class="muted">Bon de travail créé avec succès.</div>
+  `;
+}
+
+
 function renderWorkOrders(){
   const table = $("woTable");
   const tbody = table ? table.querySelector("tbody") : null;
@@ -934,8 +983,59 @@ function initWorkOrdersModule(){
   const btnNew = $("btnNewWorkOrder");
   if (btnNew){
     btnNew.onclick = () => {
-      alert("Module Work Order — la création détaillée sera ajoutée à la prochaine étape 😉");
-    };
+  const detail = $("woDetailContent");
+  if (!detail) return;
+
+  detail.innerHTML = `
+    <div style="display:grid;gap:10px;max-width:600px;">
+
+      <label>Client :</label>
+      <select id="woClientSelect"></select>
+
+      <label>Véhicule :</label>
+      <select id="woVehicleSelect">
+        <option value="">Sélectionner un client d'abord</option>
+      </select>
+
+      <label>Description du problème :</label>
+      <textarea id="woDescription" style="min-height:80px;"></textarea>
+
+      <label>Statut :</label>
+      <select id="woStatus">
+        <option value="draft">Brouillon</option>
+        <option value="in_progress">En cours</option>
+        <option value="waiting_parts">En attente de pièces</option>
+        <option value="completed">Terminé</option>
+      </select>
+
+      <button id="btnSaveWO" style="margin-top:10px;">💾 Sauvegarder</button>
+    </div>
+  `;
+
+  // Remplir clients
+  const cSel = $("woClientSelect");
+  cSel.innerHTML = `<option value="">Sélectionner</option>`;
+  CLIENTS.forEach(c => {
+    cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+
+  // Charger véhicules selon client
+  cSel.onchange = () => {
+    const vSel = $("woVehicleSelect");
+    vSel.innerHTML = `<option value="">Sélectionner</option>`;
+
+    const client = CLIENTS.find(c => String(c.id) === String(cSel.value));
+    if (!client || !client.vehicles) return;
+
+    client.vehicles.forEach(v => {
+      const label = `${v.year} ${v.make} ${v.model} (${v.plate || "sans plaque"})`;
+      vSel.innerHTML += `<option value="${v.id}">${label}</option>`;
+    });
+  };
+
+  // Sauvegarde Work Order
+  $("btnSaveWO").onclick = saveNewWorkOrder;
+};
   }
 
   const table = $("woTable");
