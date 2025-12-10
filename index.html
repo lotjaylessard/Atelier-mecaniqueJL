@@ -1000,25 +1000,56 @@ function saveWorkOrders(){
   
   /* Ajouter une pièce à un WO */
 function woAddPartLine(wo) {
-  renderPartPicker();
-
-  const list = $("partPickerList");
   const modal = $("partPickerModal");
+  const listEl = $("partPickerList");
+  if (!modal || !listEl) return;
 
-  list.querySelectorAll("button[data-number]").forEach(btn => {
+  // On ouvre le modal
+  modal.style.display = "flex";
+
+  // Si tu n'as aucune pièce dans l'inventaire
+  if (!PARTS.length) {
+    listEl.innerHTML = `<div class="muted">Aucune pièce enregistrée dans l'inventaire.</div>`;
+    return;
+  }
+
+  // On affiche toutes les pièces (on ne touche pas au module facture)
+  listEl.innerHTML = PARTS.map((p, idx) => {
+    const stock = Number(p.qty || 0);
+    return `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;">
+        <b>${p.name}</b> <span class="muted">#${p.number || ""}</span><br>
+        <span class="muted">Catégorie : ${p.category || "Divers"}</span><br>
+        <span class="muted">Stock : ${stock}</span><br>
+        <span class="muted">Prix : ${money(p.price || 0)} $</span><br>
+        <button class="ghost" data-wo-part-index="${idx}">➕ Utiliser pour ce bon</button>
+      </div>
+    `;
+  }).join("");
+
+  // Quand on clique sur "Utiliser pour ce bon"
+  listEl.querySelectorAll("button[data-wo-part-index]").forEach(btn => {
     btn.onclick = () => {
-      const num = btn.dataset.number;
-      const part = PARTS.find(x => String(x.number) === String(num));
+      const idx = Number(btn.dataset.woPartIndex);
+      const part = PARTS[idx];
       if (!part) return;
 
-      const qty = 1;
+      // Demande la quantité à utiliser pour ce Work Order
+      const qtyInput = prompt("Quantité pour cette pièce sur ce bon de travail :", "1");
+      const qty = Number(qtyInput);
+      if (!qty || qty <= 0) return;
+
+      const stock = Number(part.qty || 0);
+      if (qty > stock) {
+        alert("Attention : la quantité demandée dépasse le stock actuel (" + stock + ").");
+      }
 
       wo.parts.push({
         name: part.name,
         number: part.number,
         qty,
-        rate: part.price,
-        total: part.price * qty
+        rate: Number(part.price || 0),
+        total: qty * Number(part.price || 0)
       });
 
       saveWorkOrders();
@@ -1030,21 +1061,63 @@ function woAddPartLine(wo) {
 }
 
 
-/* Ajouter main d’œuvre à un WO */
+/* Ajouter main-d'œuvre à un WO */
 function woAddLaborLine(wo) {
-  renderServicePicker();
-
-  const list = $("servicePickerList");
   const modal = $("servicePickerModal");
+  const listEl = $("servicePickerList");
+  if (!modal || !listEl) return;
 
-  list.querySelectorAll("button[data-service]").forEach(btn => {
+  modal.style.display = "flex";
+
+  if (!SERVICES.length) {
+    listEl.innerHTML = `<div class="muted">Aucun service enregistré.</div>`;
+    return;
+  }
+
+  // On réutilise la logique d'affichage des services
+  listEl.innerHTML = SERVICES.map(s => {
+    const typeLabel = s.priceFixed > 0
+      ? `Forfait: ${money(s.priceFixed)} $`
+      : (s.hours > 0 && s.rate > 0
+          ? `${s.hours} h x ${money(s.rate)} $/h`
+          : `Non défini`);
+
+    const icon = (typeof SERVICE_ICONS !== "undefined" && SERVICE_ICONS[s.category])
+      ? SERVICE_ICONS[s.category]
+      : "⚙️";
+
+    return `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;">
+        <b>${icon} ${s.name}</b><br>
+        <span class="muted">Catégorie : ${s.category || "Divers"}</span><br>
+        <span class="muted">Tarification : ${typeLabel}</span><br>
+        ${s.desc ? `<div class="muted" style="margin-top:4px;">${s.desc}</div>` : ""}
+        <button class="ghost" data-wo-service-id="${s.id}">
+          ➕ Utiliser pour ce bon
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  // Quand on clique sur "Utiliser pour ce bon"
+  listEl.querySelectorAll("button[data-wo-service-id]").forEach(btn => {
     btn.onclick = () => {
-      const id = btn.dataset.service;
+      const id = btn.dataset.woServiceId;
       const srv = SERVICES.find(s => String(s.id) === String(id));
       if (!srv) return;
 
-      const hours = srv.time || 1;
-      const rate = srv.rate || 60;
+      let hours = 1;
+      let rate = 0;
+
+      if (srv.priceFixed > 0) {
+        // Forfait : 1 "unité" à prix fixe
+        hours = 1;
+        rate = Number(srv.priceFixed || 0);
+      } else if (srv.hours > 0 && srv.rate > 0) {
+        // Tarif horaire
+        hours = Number(srv.hours || 0);
+        rate = Number(srv.rate || 0);
+      }
 
       wo.labor.push({
         description: srv.name,
