@@ -945,6 +945,58 @@ function saveWorkOrders(){
   `;
 }
 
+  function renderPartPicker() {
+  const list = $("partPickerList");
+  const modal = $("partPickerModal");
+  list.innerHTML = "";
+
+  if (!PARTS.length) {
+    list.innerHTML = `<div class="muted">Aucune pièce enregistrée.</div>`;
+    modal.style.display = "flex";
+    return;
+  }
+
+  PARTS.forEach(p => {
+    const btn = document.createElement("button");
+    btn.dataset.number = p.number;
+    btn.style = "width:100%;margin-bottom:6px;";
+    btn.className = "ghost";
+    btn.innerHTML = `${p.name} — ${p.price}$`;
+
+    list.appendChild(btn);
+  });
+
+  modal.style.display = "flex";
+}
+
+  function renderServicePicker() {
+  const list = $("servicePickerList");
+  const modal = $("servicePickerModal");
+  list.innerHTML = "";
+
+  if (!SERVICES.length) {
+    list.innerHTML = `<div class="muted">Aucun service enregistré.</div>`;
+    modal.style.display = "flex";
+    return;
+  }
+
+  SERVICES.forEach(s => {
+    const btn = document.createElement("button");
+    btn.dataset.service = s.id;
+    btn.style = "width:100%;margin-bottom:6px;";
+    btn.className = "ghost";
+
+    const label = s.priceFixed
+      ? `${s.name} — ${s.priceFixed}$`
+      : `${s.name} — ${s.hours || 1}h @ ${s.rate || 60}$/h`;
+
+    btn.innerHTML = label;
+    list.appendChild(btn);
+  });
+
+  modal.style.display = "flex";
+}
+
   
   /* Ajouter une pièce à un WO */
 function woAddPartLine(wo) {
