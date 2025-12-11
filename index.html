@@ -1661,6 +1661,18 @@ $("invoiceStatusFilter").onchange = renderInvoiceList;
 
   resetInvoiceForm();
 
+    // === MODE ÉDITION : facture existante ===
+let editingInvoice = true;
+
+// Désactiver client et véhicule lors de l'édition
+$("customerSelect").disabled = true;
+$("vehicleSelect").disabled = true;
+
+// Cacher les boutons d'ajout de pièces et main-d'œuvre
+$("addPart").style.display = "none";
+$("openPartPicker").style.display = "none";
+$("addLabor").style.display = "none";
+$("openServicePicker").style.display = "none";
   $("invoiceNumber").value = inv.number;
 
   // Client
@@ -1683,14 +1695,15 @@ $("markInvoicePaid").onclick = () => {
   inv.status = "paid";
   $("invoiceStatus").value = "paid";
 
-  // --- AJOUTER À L'HISTORIQUE ---
+  // Historique
   addInvoiceToHistory(inv);
 
-  // --- RETIRER DES FACTURES ACTIVES ---
+  // Retirer des factures actives
   INVOICES = INVOICES.filter(i => i.number !== inv.number);
   saveInvoices();
 
   alert("Facture marquée comme payée !");
+  showPage("page-invoice-list");
   renderInvoiceList();
 };
   }
@@ -1906,6 +1919,17 @@ const cust = clientObj ? clientObj.name : "Client inconnu";
     
     // === Étape 6 : ajouter le statut sélectionné ===
 inv.status = $("invoiceStatus").value;
+
+// Vérifier si facture existe déjà
+const existingIndex = INVOICES.findIndex(i => i.number === inv.number);
+
+if (existingIndex !== -1) {
+  // Mise à jour
+  INVOICES[existingIndex] = inv;
+} else {
+  // Nouvelle facture
+  INVOICES.push(inv);
+}
     
     INVOICES.push(inv);
     saveInvoices();
@@ -3845,6 +3869,16 @@ invoice.status = "pending";
   showPage("page-invoice-editor");
     $("btnNewInvoice").onclick = () => {
   resetInvoiceForm();
+      
+      // Mode création : tout est actif
+$("customerSelect").disabled = false;
+$("vehicleSelect").disabled = false;
+
+$("addPart").style.display = "";
+$("openPartPicker").style.display = "";
+$("addLabor").style.display = "";
+$("openServicePicker").style.display = "";
+
   showPage("page-invoice-editor");
 };
 
