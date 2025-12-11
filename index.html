@@ -1673,85 +1673,57 @@ $("invoiceStatusFilter").onchange = renderInvoiceList;
   // Aller sur la page éditeur
   showPage("page-invoice-editor");
 
-  // Réinitialiser l'éditeur
+  // Réinitialiser l'éditeur (totaux, items, etc.)
   resetInvoiceForm();
 
   // ===== CLIENT : remplir le panneau "Informations du client" =====
   let client = null;
 
-  if (inv.clientId != null) {
-    client = CLIENTS.find(c => String(c.id) === String(inv.clientId));
-  }
-  if (!client) {
+  // On essaie de retrouver le client par son nom
+  if (inv.customer) {
     client = CLIENTS.find(c => c.name === inv.customer);
   }
 
   if (client) {
-    $("invClientName").textContent = client.name || "";
-    $("invClientPhone").textContent = client.phone || "";
-    $("invClientAddress").textContent = client.address || "";
-    $("invClientEmail").textContent = client.email || "";
+    $("invClientName").textContent   = client.name   || "";
+    $("invClientPhone").textContent  = client.phone  || "";
+    $("invClientAddress").textContent= client.address|| "";
+    $("invClientEmail").textContent  = client.email  || "";
   } else {
-    // Au minimum, on affiche le nom de la facture
     $("invClientName").textContent = inv.customer || "Client inconnu";
+    if ($("invClientPhone"))   $("invClientPhone").textContent = "";
+    if ($("invClientAddress")) $("invClientAddress").textContent = "";
+    if ($("invClientEmail"))   $("invClientEmail").textContent = "";
   }
 
-  // ===== VÉHICULE : remplir le panneau "Informations du véhicule" =====
-  let vehLabel = "";
-  let vehYear = "";
-  let vehVin = "";
-
-  if (client && Array.isArray(client.vehicles)) {
-    let veh = null;
-
-    // 1) Si on a un vehicleId sur la facture
-    if (inv.vehicleId != null) {
-      veh = client.vehicles.find(v => String(v.id) === String(inv.vehicleId));
-    }
-
-    // 2) Sinon on essaie de matcher avec le texte du job
-    if (!veh && inv.job) {
-      const lowerJob = inv.job.toLowerCase();
-      veh = client.vehicles.find(v => {
-        const lbl = `${v.year || ""} ${v.make || ""} ${v.model || ""}`.toLowerCase().trim();
-        return lbl && lowerJob.includes(lbl);
-      });
-    }
-
-    if (veh) {
-      vehLabel = `${veh.year || ""} ${veh.make || ""} ${veh.model || ""}`.trim();
-      vehYear = veh.year || "";
-      vehVin = veh.vin || "";
-    }
-  }
-
-  if (!vehLabel) {
-    vehLabel = inv.job || "";
-  }
+  // ===== VÉHICULE : pour l’instant, on prend le texte du job =====
+  let vehLabel = inv.job || "";
+  let vehYear  = "";
+  let vehVin   = "";
 
   if ($("invVehicleLabel")) $("invVehicleLabel").textContent = vehLabel;
-  if ($("invVehicleYear")) $("invVehicleYear").textContent = vehYear;
-  if ($("invVehicleVin")) $("invVehicleVin").textContent = vehVin;
+  if ($("invVehicleYear"))  $("invVehicleYear").textContent  = vehYear;
+  if ($("invVehicleVin"))   $("invVehicleVin").textContent   = vehVin;
 
-  // ===== CACHER les sections "Ajouter pièce" / "Ajouter main-d'œuvre" en mode édition =====
-  const h3Part = document.querySelector('h3[data-section="addPart"]');
+  // ===== CACHER les sections "Ajouter une pièce" / "Ajouter main-d’œuvre" en mode édition =====
+  const h3Part      = document.querySelector('h3[data-section="addPart"]');
   const partSection = $("addPartSection");
-  const h3Labor = document.querySelector('h3[data-section="addLabor"]');
-  const laborSection = $("addLaborSection");
+  const h3Labor     = document.querySelector('h3[data-section="addLabor"]');
+  const laborSection= $("addLaborSection");
 
-  if (h3Part) h3Part.style.display = "none";
-  if (partSection) partSection.style.display = "none";
-  if (h3Labor) h3Labor.style.display = "none";
+  if (h3Part)       h3Part.style.display       = "none";
+  if (partSection)  partSection.style.display  = "none";
+  if (h3Labor)      h3Labor.style.display      = "none";
   if (laborSection) laborSection.style.display = "none";
 
-  if ($("addPart")) $("addPart").style.display = "none";
-  if ($("openPartPicker")) $("openPartPicker").style.display = "none";
-  if ($("addLabor")) $("addLabor").style.display = "none";
+  if ($("addPart"))         $("addPart").style.display         = "none";
+  if ($("openPartPicker"))  $("openPartPicker").style.display  = "none";
+  if ($("addLabor"))        $("addLabor").style.display        = "none";
   if ($("openServicePicker")) $("openServicePicker").style.display = "none";
 
-  // ===== Champ numéro et job caché =====
+  // ===== Numéro de facture & description =====
   if ($("invoiceNumber")) $("invoiceNumber").value = inv.number;
-  if ($("jobDesc")) $("jobDesc").value = inv.job || "";
+  if ($("jobDesc"))       $("jobDesc").value       = inv.job || "";
 
   // ===== Charger les items =====
   items = [];
@@ -2009,16 +1981,7 @@ if ($('saveInvoice')) {
     const existing = existingIndex !== -1 ? INVOICES[existingIndex] : null;
 
     // ===== CLIENT =====
-    let customerName = "";
-    let clientId = null;
-    let vehicleId = null;
-
-    if (existing) {
-      customerName = existing.customer || "";
-      clientId = existing.clientId ?? null;
-      vehicleId = existing.vehicleId ?? null;
-    }
-
+    let customerName = existing ? (existing.customer || "") : "";
     if (!customerName && $("invClientName")) {
       customerName = $("invClientName").textContent.trim();
     }
@@ -2044,16 +2007,16 @@ if ($('saveInvoice')) {
     const qst = (sub + gst) * qstRate;
     const total = sub + gst + qst;
 
-    const status = $("invoiceStatus") ? $("invoiceStatus").value : (existing && existing.status) || "draft";
+    const status = $("invoiceStatus")
+      ? $("invoiceStatus").value
+      : (existing && existing.status) || "draft";
 
-    // ===== Construire l'objet facture final =====
+    // ===== Construire l'objet final =====
     const inv = {
       ...(existing || {}),
       number,
       date: existing && existing.date ? existing.date : dateStr,
       customer: customerName,
-      clientId,
-      vehicleId,
       job,
       items: [...items],
       subTotal: sub,
@@ -2071,7 +2034,7 @@ if ($('saveInvoice')) {
 
     saveInvoices();
     alert("Facture enregistrée.");
-    renderInvoicesTable(); // met à jour Historique + Dashboard
+    renderInvoicesTable();
   });
 }
 
