@@ -1279,8 +1279,25 @@ function renderWorkOrders(){
   }
 
   tbody.innerHTML = "";
+    const selectedStatus = $("woStatusFilter").value;
+  const search = $("woSearch").value.toLowerCase();
 
-  WORKORDERS.forEach(wo => {
+  // Appliquer filtre statut + recherche
+  let filtered = WORKORDERS.filter(wo => {
+    let ok = true;
+
+    if (selectedStatus && wo.status !== selectedStatus) ok = false;
+
+    if (search) {
+      const hay = `${wo.clientName} ${wo.vehicleLabel} ${wo.number}`.toLowerCase();
+      if (!hay.includes(search)) ok = false;
+    }
+
+    return ok;
+  });
+
+
+  filtered.forEach(wo => {
     const tr = document.createElement("tr");
     tr.dataset.id = wo.id;
     tr.innerHTML = `
@@ -1303,6 +1320,9 @@ function renderWorkOrders(){
 function initWorkOrdersModule(){
   loadWorkOrders();
   renderWorkOrders();
+
+  $("woStatusFilter").onchange = renderWorkOrders;
+$("woSearch").oninput = renderWorkOrders;
 
   const btnNew = $("btnNewWorkOrder");
   if (btnNew){
