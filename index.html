@@ -2157,18 +2157,35 @@ if (btnCreateFromInvoice) {
     alert("Client ajouté !");
     renderClientsTable();
   };
-}
 
+  
+// Ancienne fonction d’ajout client pendant la facture — maintenant inutilisée
+// mais on garde une version clean pour éviter les erreurs.
+
+function createClientFromInvoice() {
+  const name = prompt("Nom du nouveau client :");
+  if (!name) return;
+
+  const phone = prompt("Téléphone (optionnel) :") || "";
+  const email = prompt("Email (optionnel) :") || "";
+  const address = prompt("Adresse (optionnel) :") || "";
+
+  const newClient = {
+    id: Date.now(),
+    name,
+    phone,
+    email,
+    address,
+    vehicles: []
+  };
 
   CLIENTS.push(newClient);
   saveClients();
-  refreshInvoiceClientSelect();
-
-  $("customerSelect").value = newClient.id;
 
   alert("Client ajouté !");
   renderClientsTable();
-};
+}
+
 
 function renderVehiclesPage(){
   const tbody = document.querySelector('#vehiclesTable tbody');
