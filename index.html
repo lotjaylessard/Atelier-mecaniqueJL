@@ -1556,6 +1556,45 @@ $("woConvertToInvoice").onclick = () => woConvertToInvoice(wo);
 }
 
 
+  // === Mise à jour automatique du menu véhicule selon le client ===
+$("customerSelect").onchange = () => {
+    const clientName = $("customerSelect").value;
+    const client = CLIENTS.find(c => c.name === clientName);
+    const vehicleMenu = $("vehicleSelect");
+
+    // Vider l'ancien contenu
+    vehicleMenu.innerHTML = "";
+
+    // Aucun client choisi
+    if (!client) {
+        vehicleMenu.innerHTML = `<option value="">— Sélectionnez un client —</option>`;
+        $("jobDesc").value = "";
+        return;
+    }
+
+    // Si client sans véhicule
+    if (!client.vehicles || client.vehicles.length === 0) {
+        vehicleMenu.innerHTML = `<option value="">— Aucun véhicule enregistré —</option>`;
+        $("jobDesc").value = "";
+        return;
+    }
+
+    // Sinon : remplir avec les véhicules du client
+    client.vehicles.forEach(v => {
+        const label = `${v.year || ""} ${v.make || ""} ${v.model || ""}`.trim();
+        vehicleMenu.innerHTML += `<option value="${label}">${label}</option>`;
+    });
+
+    // mettre la valeur du premier véhicule dans jobDesc
+    $("jobDesc").value = vehicleMenu.value;
+};
+
+// Quand un véhicule est sélectionné → mettre la valeur dans jobDesc
+$("vehicleSelect").onchange = () => {
+    $("jobDesc").value = $("vehicleSelect").value;
+};
+
+
 /* ===================== SETTINGS ===================== */
 function loadSettings(){
   try{
@@ -1649,88 +1688,86 @@ $("invoiceStatusFilter").onchange = renderInvoiceList;
   // Aller sur la page éditeur
   showPage("page-invoice-editor");
 
-  // Réinitialiser le formulaire / totaux / items
   resetInvoiceForm();
 
-  // ===== Charger les informations client dans la facture =====
-  let client = null;
-  if (inv.clientId != null) {
-    client = CLIENTS.find(c => String(c.id) === String(inv.clientId));
-  }
-  if (!client) {
-    client = CLIENTS.find(c => c.name === inv.customer);
-  }
+    // Charger les informations client dans la facture
+const client = CLIENTS.find(c => c.name === inv.customer);
+if (client) {
+  $("invClientName").textContent = client.name || "";
+  $("invClientPhone").textContent = client.phone || "";
+  $("invClientAddress").textContent = client.address || "";
+  $("invClientEmail").textContent = client.email || "";
+}
 
-  if (client) {
-    $("invClientName").textContent = client.name || "";
-    $("invClientPhone").textContent = client.phone || "";
-    $("invClientAddress").textContent = client.address || "";
-    $("invClientEmail").textContent = client.email || "";
-  }
+// Charger les informations véhicule
+$("invVehicleLabel").textContent = inv.job || ""; // Ex: Subaru Impreza - Changement d'huile
+const veh = client?.vehicles?.find(v => inv.job.includes(v.label));
+if (veh) {
+  $("invVehicleYear").textContent = veh.year || "";
+  $("invVehicleVin").textContent = veh.vin || "";
+}
 
-  // ===== Charger les informations véhicule =====
-  let vehLabel = "";
-  let vehYear = "";
-  let vehVin = "";
+    
+    // ===== Mode édition : désactiver client & véhicule =====
+$("customerSelect").disabled = true;
+$("vehicleSelect").disabled = true;
 
-  if (client && Array.isArray(client.vehicles)) {
-    // 1) si on a un vehicleId sur la facture
-    if (inv.vehicleId != null) {
-      const vehById = client.vehicles.find(
-        v => String(v.id) === String(inv.vehicleId)
-      );
-      if (vehById) {
-        vehLabel = `${vehById.year || ""} ${vehById.make || ""} ${vehById.model || ""}`.trim();
-        vehYear = vehById.year || "";
-        vehVin = vehById.vin || "";
-      }
-    }
+    // ========== MODE ÉDITION : cacher les sections d'ajout ==========
 
-    // 2) fallback : essayer de matcher avec le texte du job
-    if (!vehLabel && inv.job) {
-      const lowerJob = inv.job.toLowerCase();
-      const matchVeh = client.vehicles.find(v => {
-        const lbl = `${v.year || ""} ${v.make || ""} ${v.model || ""}`.toLowerCase();
-        return lbl && lowerJob.includes(lbl.trim());
-      });
-      if (matchVeh) {
-        vehLabel = `${matchVeh.year || ""} ${matchVeh.make || ""} ${matchVeh.model || ""}`.trim();
-        vehYear = matchVeh.year || "";
-        vehVin = matchVeh.vin || "";
-      }
-    }
-  }
+// ===== CACHER SECTION AJOUT PIÈCE =====
+document.querySelector('h3[data-section="addPart"]').style.display = "none";
+document.querySelector('#addPartSection').style.display = "none";
 
-  if (!vehLabel && inv.job) {
-    // dernier recours : on met le texte du job complet
-    vehLabel = inv.job;
-  }
+// ===== CACHER SECTION AJOUT MAIN D’ŒUVRE =====
+document.querySelector('h3[data-section="addLabor"]').style.display = "none";
+document.querySelector('#addLaborSection').style.display = "none";
 
-  $("invVehicleLabel").textContent = vehLabel;
-  if ($("invVehicleYear")) $("invVehicleYear").textContent = vehYear;
-  if ($("invVehicleVin")) $("invVehicleVin").textContent = vehVin;
+    // === MODE ÉDITION : facture existante ===
+let editingInvoice = true;
 
-  // Numéro et statut de la facture
+// Désactiver client et véhicule lors de l'édition
+$("customerSelect").disabled = true;
+$("vehicleSelect").disabled = true;
+
+// Cacher les boutons d'ajout de pièces et main-d'œuvre
+$("addPart").style.display = "none";
+$("openPartPicker").style.display = "none";
+$("addLabor").style.display = "none";
+$("openServicePicker").style.display = "none";
   $("invoiceNumber").value = inv.number;
-  if ($("invoiceStatus")) {
-    $("invoiceStatus").value = inv.status || "draft";
-  }
 
-  // Job description interne (champ caché) pour compatibilité
-  if ($("jobDesc")) {
-    $("jobDesc").value = inv.job || "";
-  }
+  // Client
+  const c = CLIENTS.find(c => c.name === inv.customer);
+  if (c) $("customerSelect").value = c.id;
 
-  // Charger les items
+  $("jobDesc").value = inv.job;
+
   items = [];
-  (inv.items || []).forEach(it => {
-    items.push({ ...it });
-  });
+  inv.items.forEach(it => items.push({...it}));
 
   renderItems();
   invoiceCalcTotals();
-}
 
+    // Recharger le statut dans l’éditeur
+$("invoiceStatus").value = inv.status || "draft";
+
+// Gestion du bouton "Marquer comme payée"
+$("markInvoicePaid").onclick = () => {
+  inv.status = "paid";
+  $("invoiceStatus").value = "paid";
+
+  // Historique
+  addInvoiceToHistory(inv);
+
+  // Retirer des factures actives
+  INVOICES = INVOICES.filter(i => i.number !== inv.number);
+  saveInvoices();
+
+  alert("Facture marquée comme payée !");
+  showPage("page-invoice-list");
+  renderInvoiceList();
+};
+  }
 
   function addInvoiceToHistory(inv){
   let HISTORY = JSON.parse(localStorage.getItem("history") || "[]");
@@ -2025,71 +2062,59 @@ function refreshInvoiceClientSelect() {
 
 /* ======== REMPLIR LE MENU DES VÉHICULES ======== */
 function refreshVehicleListForInvoice() {
-  const customerSelect = $("customerSelect");
-  const select = $("vehicleSelect");
-  if (!customerSelect || !select) return;
+    const customerId = $("customerSelect").value;
+    const select = $("vehicleSelect");
+    select.innerHTML = "";
 
-  const customerId = customerSelect.value;
-  select.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "-- Choisir un véhicule --";
+    select.appendChild(opt0);
 
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = "-- Choisir un véhicule --";
-  select.appendChild(opt0);
+    if (!customerId) return;
 
-  if (!customerId) return;
+    const clientObj = CLIENTS.find(c => String(c.id) === String(customerId));
+    if (!clientObj || !Array.isArray(clientObj.vehicles)) return;
 
-  const clientObj = CLIENTS.find(c => String(c.id) === String(customerId));
-  if (!clientObj || !Array.isArray(clientObj.vehicles)) return;
-
-  clientObj.vehicles.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = `${v.year} ${v.make} ${v.model} - ${v.plate}`;
-    opt.textContent = `${v.year} ${v.make} ${v.model} (${v.plate})`;
-    select.appendChild(opt);
-  });
+    clientObj.vehicles.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = `${v.year} ${v.make} ${v.model} - ${v.plate}`;
+        opt.textContent = `${v.year} ${v.make} ${v.model} (${v.plate})`;
+        select.appendChild(opt);
+    });
 }
 
 /* ======== Quand on change de client => Raffraîchir les véhicules ======== */
-const invoiceCustomerSelect = $("customerSelect");
-if (invoiceCustomerSelect) {
-  invoiceCustomerSelect.addEventListener("change", refreshVehicleListForInvoice);
-}
+$("customerSelect").addEventListener("change", refreshVehicleListForInvoice);
 
   
   /* ======== AJOUT : créer un client pendant une facture ======== */
-const btnCreateFromInvoice = $("btnCreateCustomerFromInvoice");
-if (btnCreateFromInvoice) {
-  btnCreateFromInvoice.onclick = () => {
-    const name = prompt("Nom du nouveau client :");
-    if (!name) return;
+$("btnCreateCustomerFromInvoice").onclick = () => {
+  const name = prompt("Nom du nouveau client :");
+  if (!name) return;
 
-    const phone = prompt("Téléphone (optionnel) :") || "";
-    const email = prompt("Email (optionnel) :") || "";
-    const address = prompt("Adresse (optionnel) :") || "";
+  const phone = prompt("Téléphone (optionnel) :") || "";
+  const email = prompt("Email (optionnel) :") || "";
+  const address = prompt("Adresse (optionnel) :") || "";
 
-    const newClient = {
-      id: Date.now(),
-      name,
-      phone,
-      email,
-      address,
-      vehicles: []
-    };
-
-    CLIENTS.push(newClient);
-    saveClients();
-    refreshInvoiceClientSelect();
-
-    if ($("customerSelect")) {
-      $("customerSelect").value = newClient.id;
-    }
-
-    alert("Client ajouté !");
-    renderClientsTable();
+  const newClient = {
+    id: Date.now(),
+    name,
+    phone,
+    email,
+    address,
+    vehicles: []
   };
-}
 
+  CLIENTS.push(newClient);
+  saveClients();
+  refreshInvoiceClientSelect();
+
+  $("customerSelect").value = newClient.id;
+
+  alert("Client ajouté !");
+  renderClientsTable();
+};
 
 function renderVehiclesPage(){
   const tbody = document.querySelector('#vehiclesTable tbody');
@@ -3870,27 +3895,25 @@ function initLinksModule() {
     $("importLinksBtn").onclick = () => $("importLinksFile").click();
     $("importLinksFile").onchange = importLinks;
 }
-  
-function woConvertToInvoice(wo) {
+
+  function woConvertToInvoice(wo) {
   const number = nextInvoiceNumber();
 
   const invoice = {
     number,
     date: new Date().toLocaleDateString("fr-CA"),
     customer: wo.clientName,
-    clientId: wo.clientId,
-    vehicleId: wo.vehicleId,
-    job: (wo.vehicleLabel || "") + (wo.description ? " - " + wo.description : ""),
+    job: wo.vehicleLabel + " - " + (wo.description || ""),
     items: [],
     subTotal: 0,
     gst: 0,
     qst: 0,
-    total: 0,
-    status: "pending"
+    total: 0
   };
 
-  // Transférer les pièces
-  (wo.parts || []).forEach(p => {
+    invoice.status = "pending";
+    
+  wo.parts.forEach(p => {
     invoice.items.push({
       type: "Pièce",
       desc: p.name,
@@ -3899,8 +3922,7 @@ function woConvertToInvoice(wo) {
     });
   });
 
-  // Transférer la main-d'œuvre
-  (wo.labor || []).forEach(l => {
+  wo.labor.forEach(l => {
     invoice.items.push({
       type: "Main-d'œuvre",
       desc: l.description,
@@ -3909,14 +3931,13 @@ function woConvertToInvoice(wo) {
     });
   });
 
-  // Calcul des totaux
-  invoice.subTotal = invoice.items.reduce(
-    (s, it) => s + (Number(it.qty) * Number(it.rate)),
-    0
-  );
-  invoice.gst = invoice.subTotal * (SETTINGS.gst / 100);
-  invoice.qst = (invoice.subTotal + invoice.gst) * (SETTINGS.qst / 100);
+  invoice.subTotal = invoice.items.reduce((s,it)=>s+it.qty*it.rate,0);
+  invoice.gst = invoice.subTotal * (SETTINGS.gst/100);
+  invoice.qst = (invoice.subTotal + invoice.gst) * (SETTINGS.qst/100);
   invoice.total = invoice.subTotal + invoice.gst + invoice.qst;
+
+    // === Statut par défaut d'une facture générée depuis un WO ===
+invoice.status = "pending";
 
   INVOICES.push(invoice);
   saveInvoices();
@@ -3925,9 +3946,33 @@ function woConvertToInvoice(wo) {
   saveWorkOrders();
   renderWorkOrders();
 
-  alert("Bon de travail terminé. Facture #" + number + " créée (en attente de paiement).");
+  alert("Facture #" + number + " créée !");
+  showPage("page-invoice-editor");
+    $("btnNewInvoice").onclick = () => {
+  resetInvoiceForm();
 
-  openInvoiceEditor(number);
+      // Mode création : afficher les sections d'ajout
+document.querySelectorAll("h3").forEach(h => h.style.display = "");
+$("partName").parentElement.style.display = "";
+$("laborDesc").parentElement.style.display = "";
+
+$("addPart").style.display = "";
+$("openPartPicker").style.display = "";
+$("addLabor").style.display = "";
+$("openServicePicker").style.display = "";
+      
+      // Mode création : tout est actif
+$("customerSelect").disabled = false;
+$("vehicleSelect").disabled = false;
+
+$("addPart").style.display = "";
+$("openPartPicker").style.display = "";
+$("addLabor").style.display = "";
+$("openServicePicker").style.display = "";
+
+  showPage("page-invoice-editor");
+};
+
 }
 
   
