@@ -275,6 +275,14 @@ h3:nth-of-type(2) {
   display:none !important;
 }
 
+    .invoice-info-box {
+  background:#f3f3f3;
+  padding:10px;
+  border-radius:6px;
+  margin-bottom:15px;
+  line-height:1.5;
+}
+
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -438,17 +446,24 @@ h3:nth-of-type(2) {
     <div class="page" id="page-invoice-editor">
       <div class="card">
         <h2>Créer Devis / Travail</h2>
-        <label>Client</label>
-<select id="customerSelect"></select>
-<button id="btnCreateCustomerFromInvoice" class="ghost" style="margin-top:6px;">➕ Nouveau client</button>
+        <h3>Informations du client</h3>
+<div id="invoiceClientInfo" class="invoice-info-box">
+  <strong>Nom :</strong> <span id="invClientName"></span><br>
+  <strong>Téléphone :</strong> <span id="invClientPhone"></span><br>
+  <strong>Adresse :</strong> <span id="invClientAddress"></span><br>
+  <strong>Email :</strong> <span id="invClientEmail"></span>
+</div>
 
-        <label>Numéro de facture</label>
-        <input id="invoiceNumber" disabled />
+<h3>Informations du véhicule</h3>
+<div id="invoiceVehicleInfo" class="invoice-info-box">
+  <strong>Véhicule :</strong> <span id="invVehicleLabel"></span><br>
+  <strong>Année :</strong> <span id="invVehicleYear"></span><br>
+  <strong>VIN :</strong> <span id="invVehicleVin"></span>
+</div>
 
-        <label>Description / Véhicule</label>
-<select id="vehicleSelect" style="width:100%; padding:5px;">
-    <option value="">-- Choisir un véhicule --</option>
-</select>
+<label>Numéro de facture</label>
+<input id="invoiceNumber" disabled />
+
 
 <!-- ON GARDE jobDesc CACHÉ pour compatibilité interne -->
 <input id="jobDesc" style="display:none;" />
@@ -1675,6 +1690,24 @@ $("invoiceStatusFilter").onchange = renderInvoiceList;
 
   resetInvoiceForm();
 
+    // Charger les informations client dans la facture
+const client = CLIENTS.find(c => c.name === inv.customer);
+if (client) {
+  $("invClientName").textContent = client.name || "";
+  $("invClientPhone").textContent = client.phone || "";
+  $("invClientAddress").textContent = client.address || "";
+  $("invClientEmail").textContent = client.email || "";
+}
+
+// Charger les informations véhicule
+$("invVehicleLabel").textContent = inv.job || ""; // Ex: Subaru Impreza - Changement d'huile
+const veh = client?.vehicles?.find(v => inv.job.includes(v.label));
+if (veh) {
+  $("invVehicleYear").textContent = veh.year || "";
+  $("invVehicleVin").textContent = veh.vin || "";
+}
+
+    
     // ===== Mode édition : désactiver client & véhicule =====
 $("customerSelect").disabled = true;
 $("vehicleSelect").disabled = true;
