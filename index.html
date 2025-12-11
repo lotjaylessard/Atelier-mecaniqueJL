@@ -273,7 +273,7 @@
     <h2>Menu</h2>
     <button class="navBtn" data-page="page-dashboard">📊 Dashboard</button>
     <button class="navBtn" data-page="page-workorders">📋 Work Order</button>
-    <button class="navBtn" data-page="page-invoices">🧾 Factures</button>
+    <button class="navBtn" data-page="page-invoice-list">🧾 Factures</button>
     <button class="navBtn" data-page="page-clients">👤 Clients</button>
     <button class="navBtn" data-page="page-vehicles">🚗 Véhicules</button>
     <button class="navBtn" data-page="page-services">🛠️ Services</button>
@@ -329,7 +329,7 @@
       <div class="card" style="margin-top:20px;">
         <h3>Raccourcis</h3>
         <div style="display:flex;flex-wrap:wrap;gap:10px;">
-          <button class="ghost" onclick="showPage('page-invoices')">+ Nouvelle facture</button>
+          <button class="ghost" onclick="showPage('page-invoice-editor')">+ Nouvelle facture</button>
           <button class="ghost" onclick="showPage('page-clients')">+ Nouveau client</button>
           <button class="ghost" onclick="showPage('page-services')">Configurer services</button>
           <button class="ghost" onclick="showPage('page-parts')">Gérer inventaire</button>
@@ -1366,7 +1366,11 @@ function renderWorkOrders(){
   </span>
 </td>
       <td>${money(wo.estimateTotal || 0)} $</td>
-      <td><button class="ghost" data-action="open">Ouvrir</button></td>
+       <td>
+        <button class="ghost" data-action="open">Ouvrir</button>
+        <button class="ghost" onclick="finishWorkOrder(${wo.id})">Terminé</button>
+      </td>
+
     `;
     tbody.appendChild(tr);
   });
@@ -1636,9 +1640,8 @@ function saveInvoices(){
       <td>${money(inv.total)}</td>
       <td>${inv.status || "draft"}</td>
       <td>
-  <button class="ghost" onclick="openWorkOrder(${wo.id})">Ouvrir</button>
-  <button class="ghost" onclick="finishWorkOrder(${wo.id})">Terminé</button>
-</td>
+        <button class="ghost" onclick="openInvoiceEditor(${inv.number})">Ouvrir</button>
+      </td>
     `;
 
     tbody.appendChild(row);
