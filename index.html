@@ -3768,9 +3768,10 @@ function initLinksModule() {
     gst: 0,
     qst: 0,
     total: 0
-    invoice.status = "pending";
   };
 
+    invoice.status = "pending";
+    
   wo.parts.forEach(p => {
     invoice.items.push({
       type: "Pièce",
