@@ -2888,28 +2888,36 @@ function renderHistoryTable(){
 const filterVehicle = $("filterVehicle")?.value || "";
 
 INVOICES
-  .slice()
-  .sort((a, b) => Number(b.number) - Number(a.number))
   .filter(inv => {
-      if (filterClient && inv.customer !== filterClient) return false;
-      if (filterVehicle) {
-    const job = (inv.job || "").toLowerCase();
-    const v = filterVehicle.toLowerCase();
 
-    // Essaye de trouver la marque, modèle ou année dans la description du job
-    if (!job.includes(v)) {
-        // Ex.: "Honda Civic 2014" devrait matcher même si la plaque est différente
-        const parts = v.split(" ").filter(x => x.trim().length > 0);
-        let allMatch = true;
+      const job = (inv.job || "").toLowerCase();
+      const customer = (inv.customer || "").toLowerCase();
 
-        parts.forEach(p => {
-            if (!job.includes(p)) allMatch = false;
-        });
+      // Filtrage client
+      if ($("filterClient") && $("filterClient").value) {
+          const fc = $("filterClient").value.toLowerCase();
+          if (!customer.includes(fc)) return false;
+      }
 
-        if (!allMatch) return false;
-    }
+      // Filtrage véhicule
+      if ($("filterVehicle") && $("filterVehicle").value) {
+          const fv = $("filterVehicle").value.toLowerCase();
+          const v = fv.trim();
+          if (v && !job.includes(v)) {
+
+              const parts = v.split(" ").filter(x => x.trim().length > 0);
+              let allMatch = true;
+
+              parts.forEach(p => {
+                  if (!job.includes(p)) allMatch = false;
+              });
+
+              if (!allMatch) return false;
+          }
+      }
+
       return true;
-  });
+  })   // ← CECI est le bloc correct : 1 accolade + 1 parenthèse
   .forEach(inv => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
