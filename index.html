@@ -953,8 +953,15 @@ function money(n){return Number(n||0).toFixed(2);}
 /* ===================== NAVIGATION ===================== */
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  
   const pg = $(id);
+  
   if(pg) pg.style.display='block';
+
+  if (id === "page-workorders") {
+    initWorkOrdersModule();
+  }
+  
   document.querySelectorAll('.navBtn').forEach(b=>{
     b.classList.toggle('active', b.dataset.page===id);
   });
@@ -4167,9 +4174,6 @@ window.addEventListener('load',()=>{
   initServicesModule();
   initNotesModule();
   initLinksModule();
-  if ($("page-workorders")) {
-  initWorkOrdersModule();
-}
   renderDashboard();
 });
   
