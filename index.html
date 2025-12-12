@@ -1363,9 +1363,13 @@ function renderWorkOrders(){
 const search = $("woSearch")?.value.toLowerCase() || "";
   
     let filtered = WORKORDERS.filter(wo => {
+      
 
   // Toujours afficher seulement "en_cours" et "termine"
   if (!["en_cours", "termine"].includes(wo.status)) return false;
+
+      // Ne jamais masquer un WO valide
+  if (!wo.status) return true;
 
   // Filtre manuel (dropdown)
   if (selectedStatus && wo.status !== selectedStatus) return false;
@@ -1406,20 +1410,17 @@ const search = $("woSearch")?.value.toLowerCase() || "";
 
   function finishWorkOrder(id){
   const wo = WORKORDERS.find(w => w.id === id);
-  if(!wo) return alert("Erreur : bon de travail introuvable.");
+  if (!wo) return alert("Erreur : bon de travail introuvable.");
 
-  if(!confirm("Marquer ce bon de travail comme terminé et créer une facture ?")) return;
+  if (!confirm("Marquer ce bon de travail comme terminé ?")) return;
 
-  // Convertir en facture pending
-  woConvertToInvoice(wo);
-
-  // Mettre le WO en terminé
+  // ✅ STATUT FINAL
   wo.status = "termine";
 
   saveWorkOrders();
   renderWorkOrders();
 
-  alert("Bon de travail terminé. Facture créée.");
+  alert("Bon de travail marqué comme terminé.");
 }
 
 
