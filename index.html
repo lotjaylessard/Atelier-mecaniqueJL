@@ -1495,10 +1495,10 @@ $("woSearch").oninput = renderWorkOrders;
   <div style="margin-bottom:20px;">
     <b>Client :</b> ${wo.clientName}<br>
     <b>Véhicule :</b> ${wo.vehicleLabel}<br>
-    <b>Description :</b><br>
-    <div class="muted" style="white-space:pre-line;margin-top:4px;">
-      ${wo.description || "(aucune description)"}
-    </div>
+    <b>Description :</b>
+<textarea id="woDescription" style="width:100%;min-height:80px;margin-top:4px;">
+${wo.description || ""}
+</textarea>
   </div>
 
   <div class="card">
