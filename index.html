@@ -1380,29 +1380,33 @@ let filtered = WORKORDERS.filter(wo => {
 });
 
 
+filtered.forEach(wo => {
+  const tr = document.createElement("tr");
+  tr.dataset.id = wo.id;
 
-  filtered.forEach(wo => {
-    const tr = document.createElement("tr");
-    tr.dataset.id = wo.id;
-    tr.innerHTML = `
-      <td>${wo.number || ""}</td>
-      <td>${wo.date || ""}</td>
-      <td>${wo.clientName || ""}</td>
-      <td>${wo.vehicleLabel || ""}</td>
-      <td>
-  <span class="status-badge status-${wo.status}">
-    ${wo.status.replace("_"," ")}
-  </span>
-</td>
-      <td>${money(wo.estimateTotal || 0)} $</td>
-       <td>
-        <button class="ghost" data-action="open">Ouvrir</button>
-        <button class="ghost" onclick="finishWorkOrder(${wo.id})">Terminé</button>
-      </td>
+  const statusLabel =
+    wo.status === "en_cours" ? "En cours" :
+    wo.status === "termine"  ? "Terminé"  :
+    wo.status;
 
-    `;
-    tbody.appendChild(tr);
-  });
+  tr.innerHTML = `
+    <td>${wo.number || ""}</td>
+    <td>${wo.date || ""}</td>
+    <td>${wo.clientName || ""}</td>
+    <td>${wo.vehicleLabel || ""}</td>
+    <td>
+      <span class="status-badge status-${wo.status}">
+        ${statusLabel}
+      </span>
+    </td>
+    <td>${money(wo.estimateTotal || 0)} $</td>
+    <td>
+      <button class="ghost" data-action="open">Ouvrir</button>
+      <button class="ghost" onclick="finishWorkOrder(${wo.id})">Terminé</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+});
 }
 
   function finishWorkOrder(id){
