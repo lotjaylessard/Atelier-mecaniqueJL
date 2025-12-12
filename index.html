@@ -1487,6 +1487,7 @@ $("woSearch").oninput = renderWorkOrders;
       if (!detail || !wo) return;
 
       detail.innerHTML = `
+      <input type="hidden" id="woEditId" value="${wo.id}">
   <h3>Bon de travail #${wo.number}</h3>
 
   <div class="muted" style="margin-bottom:10px;">${wo.date}</div>
