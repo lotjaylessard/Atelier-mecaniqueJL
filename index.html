@@ -1538,151 +1538,96 @@ $("woSearch").oninput = renderWorkOrders;
 }
 
   const table = $("woTable");
-  if (table){
-    table.onclick = (e) => {
-      const btn = e.target.closest("button[data-action='open']");
-      if (!btn) return;
+if (table){
+  table.onclick = (e) => {
+    const btn = e.target.closest("button[data-action='open']");
+    if (!btn) return;
 
-      const tr = btn.closest("tr");
-      const id = tr?.dataset.id;
-      const wo = WORKORDERS.find(w => String(w.id) === String(id));
-      const detail = $("woDetailContent");
-      if (!detail || !wo) return;
-      
-      detail.innerHTML = `
+    const tr = btn.closest("tr");
+    const id = tr?.dataset.id;
+    const wo = WORKORDERS.find(w => String(w.id) === String(id));
+    const detail = $("woDetailContent");
+    if (!detail || !wo) return;
+
+    detail.innerHTML = `
       <input type="hidden" id="woEditId" value="${wo.id}">
-  <h3>Bon de travail #${wo.number}</h3>
 
-  <div class="muted" style="margin-bottom:10px;">${wo.date}</div>
+      <h3>Bon de travail #${wo.number}</h3>
+      <div class="muted" style="margin-bottom:10px;">${wo.date}</div>
 
-  <div style="margin-bottom:20px;">
-    <b>Client :</b> ${wo.clientName}<br>
-    <b>Véhicule :</b> ${wo.vehicleLabel}<br>
-    <b>Description :</b>
-<textarea id="woDescription" style="width:100%;min-height:80px;margin-top:4px;">
-${wo.description || ""}
-</textarea>
-  </div>
+      <div style="margin-bottom:20px;">
+        <b>Client :</b> ${wo.clientName}<br>
+        <b>Véhicule :</b> ${wo.vehicleLabel}<br>
+        <b>Description :</b>
+        <textarea id="woDescription" style="width:100%;min-height:80px;margin-top:4px;">${wo.description || ""}</textarea>
+      </div>
 
-  <div class="card">
-    <h3>Pièces</h3>
-    <button id="woAddPart" class="ghost">➕ Ajouter une pièce</button>
-    <table id="woPartsTable" style="margin-top:10px;">
-      <thead>
-        <tr><th>Nom</th><th>Qté</th><th>Prix</th><th>Total</th><th></th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+      <div class="card">
+        <h3>Pièces</h3>
+        <button id="woAddPart" class="ghost">➕ Ajouter une pièce</button>
+        <table id="woPartsTable" style="margin-top:10px;">
+          <thead>
+            <tr><th>Nom</th><th>Qté</th><th>Prix</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-  <div class="card" style="margin-top:20px;">
-    <h3>Main d'œuvre</h3>
-    <button id="woAddLabor" class="ghost">➕ Ajouter main d'œuvre</button>
-    <table id="woLaborTable" style="margin-top:10px;">
-      <thead>
-        <tr><th>Description</th><th>Heures</th><th>Rate</th><th>Total</th><th></th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+      <div class="card" style="margin-top:20px;">
+        <h3>Main d'œuvre</h3>
+        <button id="woAddLabor" class="ghost">➕ Ajouter main d'œuvre</button>
+        <table id="woLaborTable" style="margin-top:10px;">
+          <thead>
+            <tr><th>Description</th><th>Heures</th><th>Rate</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-  <div class="card" style="margin-top:20px;text-align:right;">
-  <h3 style="margin-bottom:5px;">
-    Coût des pièces : <span id="woPartsTotal">0 $</span><br>
-    Main-d'œuvre : <span id="woLaborTotal">0 $</span>
-  </h3>
-  <h3 style="margin-top:10px;">
-    Total estimé : <span id="woEstimateTotal">0 $</span>
-  </h3>
-</div>
+      <div class="card" style="margin-top:20px;text-align:right;">
+        <h3 style="margin-bottom:5px;">
+          Coût des pièces : <span id="woPartsTotal">0 $</span><br>
+          Main-d'œuvre : <span id="woLaborTotal">0 $</span>
+        </h3>
+        <h3 style="margin-top:10px;">
+          Total estimé : <span id="woEstimateTotal">0 $</span>
+        </h3>
+      </div>
 
-  <div class="card" style="margin-top:20px;text-align:right;">
-  <button id="woSaveBtn">💾 Enregistrer</button>
-</div>
-`;
-      
-$("woAddPart").onclick = () => woAddPartLine(wo);
-$("woAddLabor").onclick = () => woAddLaborLine(wo);
-woRenderLines(wo);
-      if ($("woSaveBtn")) {
-    $("woSaveBtn").onclick = () => {
+      <div class="card" style="margin-top:20px;text-align:right;">
+        <button id="woSaveBtn">💾 Enregistrer</button>
+      </div>
+    `;
 
-        const editField = $("woEditId");
-const isEditing = editField && editField.value !== "";
-const editId = isEditing ? Number(editField.value) : null;
+    // Bind boutons
+    $("woAddPart").onclick = () => woAddPartLine(wo);
+    $("woAddLabor").onclick = () => woAddLaborLine(wo);
+    woRenderLines(wo);
 
-if (isEditing) {
-    // === MODE MODIFICATION ===
-    let wo = WORKORDERS.find(w => String(w.id) === String(editId));
-    if (!wo) return alert("Erreur : bon de travail introuvable.");
+    const saveBtn = $("woSaveBtn");
+    if (saveBtn){
+      saveBtn.onclick = () => {
 
-    // Mise à jour de la description
-    wo.description = $("woDescription").value.trim();
+        wo.description = $("woDescription").value.trim();
 
-    // Recalcul total
-    let totalParts = wo.parts.reduce((s,p)=> s + (p.rate * p.qty), 0);
-    let totalLabor = wo.labor.reduce((s,l)=> s + (l.rate * l.hours), 0);
-    wo.estimateTotal = totalParts + totalLabor;
+        const totalParts = wo.parts.reduce((s,p)=> s + (p.rate * p.qty), 0);
+        const totalLabor = wo.labor.reduce((s,l)=> s + (l.rate * l.hours), 0);
 
-// === Mise à jour des totaux séparés ===
-if ($("woPartsTotal")) {
-    $("woPartsTotal").innerText = money(totalParts) + " $";
-}
+        wo.estimateTotal = totalParts + totalLabor;
 
-if ($("woLaborTotal")) {
-    $("woLaborTotal").innerText = money(totalLabor) + " $";
-}
+        if ($("woPartsTotal")) $("woPartsTotal").innerText = money(totalParts) + " $";
+        if ($("woLaborTotal")) $("woLaborTotal").innerText = money(totalLabor) + " $";
+        if ($("woEstimateTotal")) $("woEstimateTotal").innerText = money(wo.estimateTotal) + " $";
 
-// === Mise à jour du total estimé ===
-if ($("woEstimateTotal")) {
-    $("woEstimateTotal").innerText = money(wo.estimateTotal);
-}
-
-  
-    saveWorkOrders();
-    renderWorkOrders();
-
-    alert("Modifications enregistrées !");
-    return;
-}
-
-        // === MODE CRÉATION ===
-        const clientId = $("woClientSelect").value;
-        const vehicleId = $("woVehicleSelect").value;
-        const description = $("woDescription").value.trim();
-
-        if (!clientId) return alert("Veuillez choisir un client.");
-        if (!vehicleId) return alert("Veuillez choisir un véhicule.");
-
-        const client = CLIENTS.find(c => String(c.id) === String(clientId));
-        const vehicle = client?.vehicles.find(v => String(v.id) === String(vehicleId));
-
-        const wo = {
-            id: Date.now(),
-            number: WORKORDERS.length + 1,
-            date: new Date().toLocaleDateString(),
-            clientName: client.name,
-            vehicleLabel: `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.plate || "sans plaque"})`,
-            description,
-            parts: [],
-            labor: [],
-            estimateTotal: 0,
-            status: "en_cours"
-        };
-
-        WORKORDERS.push(wo);
         saveWorkOrders();
         renderWorkOrders();
 
-        alert("Bon de travail créé !");
-        
-        // === MODE CRÉATION (sécurité) ===
-alert("Ce bouton sert uniquement à modifier un bon existant.");
-};
+        alert("Modifications enregistrées !");
+      };
+    }
+  };
 }
-};
-}
-}
+
   
   // === Mise à jour automatique du menu véhicule selon le client ===
 $("customerSelect").onchange = () => {
