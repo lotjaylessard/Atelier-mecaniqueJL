@@ -1358,26 +1358,22 @@ function renderWorkOrders(){
   }
 
   tbody.innerHTML = "";
-    const selectedStatus = $("woStatusFilter").value;
-  const search = $("woSearch").value.toLowerCase();
+    let filtered = WORKORDERS.filter(wo => {
 
-  // Appliquer filtre statut + recherche
-  let filtered = WORKORDERS.filter(wo => {
+  // Toujours afficher seulement "en_cours" et "termine"
+  if (!["en_cours", "termine"].includes(wo.status)) return false;
 
-    // Garder seulement WO "en cours" ou "terminé"
-if (wo.status !== "en_cours" && wo.status !== "terminé") return false;
-    
-    let ok = true;
+  // Filtre manuel (dropdown)
+  if (selectedStatus && wo.status !== selectedStatus) return false;
 
-    if (selectedStatus && wo.status !== selectedStatus) ok = false;
+  // Recherche texte
+  if (search) {
+    const hay = `${wo.clientName} ${wo.vehicleLabel} ${wo.number}`.toLowerCase();
+    if (!hay.includes(search)) return false;
+  }
 
-    if (search) {
-      const hay = `${wo.clientName} ${wo.vehicleLabel} ${wo.number}`.toLowerCase();
-      if (!hay.includes(search)) ok = false;
-    }
-
-    return ok;
-  });
+  return true;
+});
 
 
   filtered.forEach(wo => {
