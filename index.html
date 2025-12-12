@@ -1561,15 +1561,20 @@ if (isEditing) {
     let totalLabor = wo.labor.reduce((s,l)=> s + (l.rate * l.hours), 0);
     wo.estimateTotal = totalParts + totalLabor;
 
-// Mise à jour du coût des pièces
+// === Mise à jour des totaux séparés ===
 if ($("woPartsTotal")) {
     $("woPartsTotal").innerText = money(totalParts) + " $";
 }
 
-// Mise à jour du coût de main-d'œuvre
 if ($("woLaborTotal")) {
     $("woLaborTotal").innerText = money(totalLabor) + " $";
 }
+
+// === Mise à jour du total estimé ===
+if ($("woEstimateTotal")) {
+    $("woEstimateTotal").innerText = money(wo.estimateTotal);
+}
+
   
     saveWorkOrders();
     renderWorkOrders();
