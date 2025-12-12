@@ -1600,6 +1600,41 @@ $("vehicleSelect").onchange = () => {
     $("jobDesc").value = $("vehicleSelect").value;
 };
 
+  function saveNewWorkOrder() {
+  const clientId = $("woClientSelect").value;
+  const vehicleId = $("woVehicleSelect").value;
+  const description = $("woDescription").value.trim();
+
+  if (!clientId) return alert("Veuillez choisir un client.");
+  if (!vehicleId) return alert("Veuillez choisir un véhicule.");
+
+  const client = CLIENTS.find(c => String(c.id) === String(clientId));
+  const vehicle = client?.vehicles.find(v => String(v.id) === String(vehicleId));
+
+  if (!client || !vehicle) return alert("Client ou véhicule introuvable.");
+
+  const wo = {
+    id: Date.now(),
+    number: WORKORDERS.length + 1,
+    date: new Date().toLocaleDateString(),
+    clientName: client.name,
+    vehicleLabel: `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.plate || "sans plaque"})`,
+    description: description,
+    parts: [],
+    labor: [],
+    estimateTotal: 0,
+    status: "en_cours"
+  };
+
+  WORKORDERS.push(wo);
+  saveWorkOrders();
+  renderWorkOrders();
+
+  alert("Bon de travail créé !");
+  showPage("page-workorders");
+}
+
+
 
 /* ===================== SETTINGS ===================== */
 function loadSettings(){
