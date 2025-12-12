@@ -1358,6 +1358,10 @@ function renderWorkOrders(){
   }
 
   tbody.innerHTML = "";
+
+  const selectedStatus = $("woStatusFilter")?.value || "";
+const search = $("woSearch")?.value.toLowerCase() || "";
+  
     let filtered = WORKORDERS.filter(wo => {
 
   // Toujours afficher seulement "en_cours" et "termine"
