@@ -1234,6 +1234,12 @@ function woAddLaborLine(wo) {
   });
 }
 
+  let WO_TIMER = {
+  running: false,
+  startTime: null,
+  intervalId: null
+};
+
   
   /* Rendu des lignes d’un WO */
 function woRenderLines(wo) {
@@ -1282,6 +1288,49 @@ function woRenderLines(wo) {
   if ($("woEstimateTotal")) $("woEstimateTotal").innerText = money(total) + " $";
 
   saveWorkOrders();
+}
+
+
+const timerBtn = $("woTimerBtn");
+
+if (timerBtn) {
+  timerBtn.onclick = () => {
+
+    // === DÉMARRER ===
+    if (!WO_TIMER.running) {
+      WO_TIMER.running = true;
+      WO_TIMER.startTime = Date.now();
+
+      timerBtn.innerText = "⏹ Arrêter";
+      timerBtn.classList.add("danger");
+
+      return;
+    }
+
+    // === ARRÊTER ===
+    WO_TIMER.running = false;
+
+    const elapsedMs = Date.now() - WO_TIMER.startTime;
+    const hours = +(elapsedMs / 3600000).toFixed(2); // ms → heures
+
+    const rate = Number(prompt("Taux horaire :", 90)) || 90;
+
+    wo.labor.push({
+      description: "Main-d'œuvre (timer)",
+      hours,
+      rate
+    });
+
+    WO_TIMER.startTime = null;
+    timerBtn.innerText = "⏱ Démarrer";
+    timerBtn.classList.remove("danger");
+
+    woRenderLines(wo);
+    saveWorkOrders();
+    renderWorkOrders();
+
+    alert(`Main-d'œuvre ajoutée : ${hours} h`);
+  };
 }
 
 
@@ -1575,10 +1624,14 @@ detail.innerHTML = `
 
   <!-- MAIN D’ŒUVRE -->
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <h3 style="margin:0;">🔧 Main-d'œuvre</h3>
-      <button id="woAddLabor" class="ghost">➕ Service Enregistré</button>
-    </div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+  <h3 style="margin:0;">🔧 Main-d'œuvre</h3>
+
+  <div style="display:flex;gap:6px;">
+    <button id="woAddLabor" class="ghost">➕ Ajouter</button>
+    <button id="woTimerBtn" class="ghost">⏱ Démarrer</button>
+  </div>
+</div>
     <table id="woLaborTable" style="margin-top:10px;">
       <thead>
         <tr><th>Description</th><th>Heures</th><th>Taux</th><th>Total</th><th></th></tr>
