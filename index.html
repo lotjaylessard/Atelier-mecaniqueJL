@@ -1291,28 +1291,76 @@ function woRenderLines(wo) {
 }
 
 
-const timerBtn = $("woTimerBtn");
+// ===== TIMER MAIN-D’ŒUVRE (START / PAUSE / RESUME) =====
+let WO_TIMER = window.WO_TIMER || {
+  running: false,
+  startTime: null,
+  elapsed: 0,
+  intervalId: null
+};
+window.WO_TIMER = WO_TIMER;
+
+const timerBtn = document.getElementById("woTimerBtn");
+const timerDisplay = document.getElementById("woTimerDisplay");
+
+function formatTime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+  const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+  const s = String(totalSec % 60).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function updateTimerDisplay() {
+  if (!timerDisplay) return;
+
+  const current = WO_TIMER.running
+    ? Date.now() - WO_TIMER.startTime + WO_TIMER.elapsed
+    : WO_TIMER.elapsed;
+
+  timerDisplay.innerText = "⏱ " + formatTime(current);
+}
 
 if (timerBtn) {
   timerBtn.onclick = () => {
 
-    // === DÉMARRER ===
+    // ▶️ START / RESUME
     if (!WO_TIMER.running) {
       WO_TIMER.running = true;
       WO_TIMER.startTime = Date.now();
 
-      timerBtn.innerText = "⏹ Arrêter";
-      timerBtn.classList.add("danger");
+      WO_TIMER.intervalId = setInterval(updateTimerDisplay, 1000);
 
+      timerBtn.innerText = "⏸ Pause";
+      timerBtn.classList.add("warning");
       return;
     }
 
-    // === ARRÊTER ===
+    // ⏸ PAUSE
     WO_TIMER.running = false;
+    WO_TIMER.elapsed += Date.now() - WO_TIMER.startTime;
+    WO_TIMER.startTime = null;
 
-    const elapsedMs = Date.now() - WO_TIMER.startTime;
-    const hours = +(elapsedMs / 3600000).toFixed(2); // ms → heures
+    clearInterval(WO_TIMER.intervalId);
+    WO_TIMER.intervalId = null;
 
+    timerBtn.innerText = "▶️ Reprendre";
+    timerBtn.classList.remove("warning");
+  };
+}
+
+  const stopBtn = document.getElementById("woTimerStopBtn");
+
+if (stopBtn) {
+  stopBtn.onclick = () => {
+
+    if (WO_TIMER.running) {
+      WO_TIMER.elapsed += Date.now() - WO_TIMER.startTime;
+    }
+
+    clearInterval(WO_TIMER.intervalId);
+
+    const hours = +(WO_TIMER.elapsed / 3600000).toFixed(2);
     const rate = Number(prompt("Taux horaire :", 90)) || 90;
 
     wo.labor.push({
@@ -1321,17 +1369,26 @@ if (timerBtn) {
       rate
     });
 
+    // reset timer
+    WO_TIMER.running = false;
     WO_TIMER.startTime = null;
-    timerBtn.innerText = "⏱ Démarrer";
-    timerBtn.classList.remove("danger");
+    WO_TIMER.elapsed = 0;
+    WO_TIMER.intervalId = null;
+
+    if (timerDisplay) timerDisplay.innerText = "⏱ 00:00:00";
+    if (timerBtn) {
+      timerBtn.innerText = "▶️ Démarrer";
+      timerBtn.classList.remove("warning");
+    }
 
     woRenderLines(wo);
     saveWorkOrders();
     renderWorkOrders();
 
-    alert(`Main-d'œuvre ajoutée : ${hours} h`);
+    alert(`Temps enregistré : ${hours} h`);
   };
 }
+
 
 
 function woEditLine(woId, type, index) {
@@ -1623,15 +1680,21 @@ detail.innerHTML = `
   </div>
 
   <!-- MAIN D’ŒUVRE -->
-  <div class="card">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-  <h3 style="margin:0;">🔧 Main-d'œuvre</h3>
+  <div>
+    <h3 style="margin:0;">🔧 Main-d'œuvre</h3>
+    <div id="woTimerDisplay" class="muted" style="font-size:14px;">
+      ⏱ 00:00:00
+    </div>
+  </div>
 
   <div style="display:flex;gap:6px;">
     <button id="woAddLabor" class="ghost">➕ Ajouter</button>
-    <button id="woTimerBtn" class="ghost">⏱ Démarrer</button>
+    <button id="woTimerBtn" class="ghost">▶️ Démarrer</button>
+    <button id="woTimerStopBtn" class="ghost danger">⏹ Arrêter</button>
   </div>
 </div>
+
     <table id="woLaborTable" style="margin-top:10px;">
       <thead>
         <tr><th>Description</th><th>Heures</th><th>Taux</th><th>Total</th><th></th></tr>
