@@ -1662,6 +1662,58 @@ detail.innerHTML = `
     woRenderLines(wo);
     initWorkOrderSaveButton();
 
+    // ===== TIMER MAIN-D’ŒUVRE =====
+let WO_TIMER = window.WO_TIMER || {
+  running: false,
+  startTime: null
+};
+window.WO_TIMER = WO_TIMER;
+
+const timerBtn = document.getElementById("woTimerBtn");
+console.log("Timer bouton =", timerBtn);
+
+if (timerBtn) {
+  timerBtn.onclick = () => {
+
+    // ▶️ DÉMARRER
+    if (!WO_TIMER.running) {
+      WO_TIMER.running = true;
+      WO_TIMER.startTime = Date.now();
+
+      timerBtn.innerText = "⏹ Arrêter";
+      timerBtn.classList.add("danger");
+
+      console.log("Timer démarré");
+      return;
+    }
+
+    // ⏹ ARRÊTER
+    WO_TIMER.running = false;
+
+    const elapsedMs = Date.now() - WO_TIMER.startTime;
+    const hours = +(elapsedMs / 3600000).toFixed(2);
+
+    const rate = Number(prompt("Taux horaire :", 90)) || 90;
+
+    wo.labor.push({
+      description: "Main-d'œuvre (timer)",
+      hours,
+      rate
+    });
+
+    WO_TIMER.startTime = null;
+
+    timerBtn.innerText = "⏱ Démarrer";
+    timerBtn.classList.remove("danger");
+
+    woRenderLines(wo);
+    saveWorkOrders();
+    renderWorkOrders();
+
+    alert(`Main-d'œuvre ajoutée : ${hours} h`);
+  };
+}
+
     const saveBtn = $("woSaveBtn");
     if (saveBtn){
       saveBtn.onclick = () => {
