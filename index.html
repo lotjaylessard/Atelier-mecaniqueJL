@@ -1325,8 +1325,8 @@ if (timerBtn) {
 
       timerBtn.innerText = "⏸ Pause";
       timerBtn.classList.add("warning");
-      return;
       if (stopBtn) stopBtn.style.display = "inline-block";
+      return;
     }
 
     // ⏸ PAUSE
@@ -1394,11 +1394,7 @@ if (stopBtn) {
     alert(`Temps enregistré : ${hours} h`);
   };
 }
-
-      description: "Main-d'œuvre (timer)",
-      hours,
-      rate
-    });
+  
 
     // reset timer
     WO_TIMER.running = false;
