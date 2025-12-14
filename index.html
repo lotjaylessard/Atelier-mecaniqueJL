@@ -1292,6 +1292,8 @@ function woRenderLines(wo) {
 
 const timerBtn = document.getElementById("woTimerBtn");
 const timerDisplay = document.getElementById("woTimerDisplay");
+  const stopBtn = document.getElementById("woTimerStopBtn");
+  
 
 function formatTime(ms) {
   const totalSec = Math.floor(ms / 1000);
@@ -1324,6 +1326,7 @@ if (timerBtn) {
       timerBtn.innerText = "⏸ Pause";
       timerBtn.classList.add("warning");
       return;
+      if (stopBtn) stopBtn.style.display = "inline-block";
     }
 
     // ⏸ PAUSE
@@ -1336,6 +1339,8 @@ if (timerBtn) {
 
     timerBtn.innerText = "▶️ Reprendre";
     timerBtn.classList.remove("warning");
+    if (stopBtn) stopBtn.style.display = "inline-block";
+
   };
 }
 
@@ -1374,6 +1379,8 @@ if (stopBtn) {
     woRenderLines(wo);
     saveWorkOrders();
     renderWorkOrders();
+
+    if (stopBtn) stopBtn.style.display = "none";
 
     alert(`Temps enregistré : ${hours} h`);
   };
@@ -1681,7 +1688,9 @@ detail.innerHTML = `
   <div style="display:flex;gap:6px;">
     <button id="woAddLabor" class="ghost">➕ Ajouter</button>
     <button id="woTimerBtn" class="ghost">▶️ Démarrer</button>
-    <button id="woTimerStopBtn" class="ghost danger">⏹ Arrêter</button>
+    <button id="woTimerStopBtn" class="ghost danger" style="display:none;">
+  ⏹ Arrêter
+</button>
   </div>
 </div>
 
