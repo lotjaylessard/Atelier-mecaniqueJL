@@ -1396,30 +1396,6 @@ if (stopBtn) {
 }
   
 
-    // reset timer
-    WO_TIMER.running = false;
-    WO_TIMER.startTime = null;
-    WO_TIMER.elapsed = 0;
-    WO_TIMER.intervalId = null;
-
-    if (timerDisplay) timerDisplay.innerText = "⏱ 00:00:00";
-    if (timerBtn) {
-      timerBtn.innerText = "▶️ Démarrer";
-      timerBtn.classList.remove("warning");
-    }
-
-    woRenderLines(wo);
-    saveWorkOrders();
-    renderWorkOrders();
-
-    if (stopBtn) stopBtn.style.display = "none";
-
-    alert(`Temps enregistré : ${hours} h`);
-  };
-}
-
-
-
 function woEditLine(woId, type, index) {
   const wo = WORKORDERS.find(w => w.id == woId);
   if (!wo) return;
