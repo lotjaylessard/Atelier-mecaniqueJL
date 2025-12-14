@@ -287,25 +287,6 @@ button.danger:hover {
   background-color: rgba(220, 53, 69, 0.15);
 }
 
-    /* Couleur Description Work Order*/
-.wo-readonly {
-  /* 🎯 même fond que les autres cases */
-  background-color: #2b2b2b;
-
-  color: #fff;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 12px;
-
-  resize: none;
-  box-shadow: none;
-
-  /* 🔒 pas éditable */
-  cursor: text;
-
-  /* ✅ sélection / copie autorisée */
-  user-select: text;
-}
 
 
   </style>
@@ -1525,8 +1506,7 @@ $("woSearch").oninput = renderWorkOrders;
       </select>
 
       <label>Description</label>
-      <textarea id="woDescription" readonly></textarea>
-
+      <textarea id="woDescription" style="min-height:100px;"></textarea>
 
       <button id="btnSaveWO">💾 Sauvegarder</button>
     </div>
@@ -1601,12 +1581,7 @@ detail.innerHTML = `
   <!-- DESCRIPTION -->
   <div class="card">
     <label><b>Description du problème</b></label>
-    <textarea
-  id="woDescription"
-  readonly
-  tabindex="-1"
-  class="wo-readonly"
->${wo.description || ""}</textarea>
+    <textarea id="woDescription" style="width:100%;min-height:110px;margin-top:6px;">${wo.description || ""}</textarea>
   </div>
 
   <!-- PIÈCES -->
