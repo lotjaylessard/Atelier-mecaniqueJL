@@ -1582,7 +1582,7 @@ detail.innerHTML = `
   <!-- DESCRIPTION -->
   <div class="card">
     <label><b>Description du problème</b></label>
-    <textarea id="woDescription" readonly>${wo.description || ""}</textarea>
+    <textarea id="woDescription" readonly tabindex="-1" style="pointer-events:none;">${wo.description || ""}</textarea>
   </div>
 
   <!-- PIÈCES -->
