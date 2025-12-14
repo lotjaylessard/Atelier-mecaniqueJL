@@ -372,6 +372,11 @@ button.danger:hover {
     <div class="page" id="page-workorders">
       <h2>Bons de travail</h2>
 
+            <div class="card" id="woDetailCard">
+        <h3>Détail du bon de travail</h3>
+        <div id="woDetailContent"></div>
+      </div>
+
       <div class="card">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
           <button id="btnNewWorkOrder">➕ Nouveau bon de travail</button>
@@ -401,15 +406,6 @@ button.danger:hover {
           </thead>
           <tbody></tbody>
         </table>
-      </div>
-
-      <div class="card" id="woDetailCard">
-        <h3>Détail du bon de travail</h3>
-        <div class="muted">
-          Sélectionne un bon de travail dans la liste ci-dessus
-          ou clique sur <strong>“Nouveau bon de travail”</strong> pour en créer un.
-        </div>
-        <div id="woDetailContent"></div>
       </div>
     </div>
 
