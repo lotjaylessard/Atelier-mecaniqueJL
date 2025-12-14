@@ -1310,59 +1310,6 @@ function updateTimerDisplay() {
   timerDisplay.innerText = "⏱ " + formatTime(current);
 }
 
-
-if (stopBtn) {
-  stopBtn.onclick = () => {
-
-    // 1️⃣ Si le timer roulait, on ajoute le dernier segment
-    if (WO_TIMER.running && WO_TIMER.startTime) {
-      WO_TIMER.elapsed += Date.now() - WO_TIMER.startTime;
-    }
-
-    // 2️⃣ STOPPER l’interval (OBLIGATOIRE)
-    clearInterval(WO_TIMER.intervalId);
-    WO_TIMER.intervalId = null;
-
-    // 3️⃣ Calcul des heures finales
-    const hours = +(WO_TIMER.elapsed / 3600000).toFixed(2);
-    if (hours <= 0) {
-      alert("Aucun temps enregistré.");
-      return;
-    }
-
-    const rate = Number(prompt("Taux horaire :", 90)) || 90;
-
-    // 4️⃣ Ajouter la main-d'œuvre au WO
-    wo.labor.push({
-      description: "Main-d'œuvre (timer)",
-      hours,
-      rate,
-      total: hours * rate
-    });
-
-    // 5️⃣ RESET COMPLET DU TIMER
-    WO_TIMER.running = false;
-    WO_TIMER.startTime = null;
-    WO_TIMER.elapsed = 0;
-
-    // 6️⃣ Reset UI
-    if (timerDisplay) timerDisplay.innerText = "⏱ 00:00:00";
-    if (timerBtn) {
-      timerBtn.innerText = "▶️ Démarrer";
-      timerBtn.classList.remove("warning");
-    }
-    if (stopBtn) stopBtn.style.display = "none";
-
-    // 7️⃣ Sauvegarde + refresh
-    saveWorkOrders();
-    woRenderLines(wo);
-    renderWorkOrders();
-
-    alert(`Temps enregistré : ${hours} h`);
-  };
-}
-  
-
 function woEditLine(woId, type, index) {
   const wo = WORKORDERS.find(w => w.id == woId);
   if (!wo) return;
@@ -1712,6 +1659,49 @@ let WO_TIMER = {
 const timerBtn = document.getElementById("woTimerBtn");
 const timerDisplay = document.getElementById("woTimerDisplay");
 const stopBtn = document.getElementById("woTimerStopBtn");
+
+    
+if (stopBtn) {
+  stopBtn.onclick = () => {
+
+    // 1️⃣ Si le timer roulait, on ajoute le dernier segment
+    if (WO_TIMER.running && WO_TIMER.startTime) {
+      WO_TIMER.elapsed += Date.now() - WO_TIMER.startTime;
+    }
+
+    // 2️⃣ STOPPER l’interval (OBLIGATOIRE)
+    clearInterval(WO_TIMER.intervalId);
+    WO_TIMER.intervalId = null;
+
+    // 3️⃣ Calcul des heures finales
+    const hours = +(WO_TIMER.elapsed / 3600000).toFixed(2);
+    if (hours <= 0) {
+      alert("Aucun temps enregistré.");
+      return;
+    }
+
+    const rate = Number(prompt("Taux horaire :", 90)) || 90;
+
+    // 4️⃣ Ajouter la main-d'œuvre au WO
+    wo.labor.push({
+      description: "Main-d'œuvre (timer)",
+      hours,
+      rate,
+      total: hours * rate
+    });
+
+    // 5️⃣ RESET COMPLET DU TIMER
+    WO_TIMER.running = false;
+    WO_TIMER.startTime = null;
+    WO_TIMER.elapsed = 0;
+
+    // 6️⃣ Reset UI
+    if (timerDisplay) timerDisplay.innerText = "⏱ 00:00:00";
+    if (timerBtn) {
+      timerBtn.innerText = "▶️ Démarrer";
+      timerBtn.classList.remove("warning");
+    }
+  }
 
 function updateTimerDisplay(){
   if (!timerDisplay) return;
