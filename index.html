@@ -287,6 +287,15 @@ button.danger:hover {
   background-color: rgba(220, 53, 69, 0.15);
 }
 
+    /* Couleur Description Work Order*/
+.wo-readonly {
+  background: transparent;      /* même fond que le site */
+  color: inherit;               /* même couleur de texte */
+  border: none;                 /* enlève la bordure */
+  box-shadow: none;
+  resize: none;                 /* empêche le redimensionnement */
+  pointer-events: none;         /* empêche clic/sélection */
+}
 
 
   </style>
@@ -1582,7 +1591,12 @@ detail.innerHTML = `
   <!-- DESCRIPTION -->
   <div class="card">
     <label><b>Description du problème</b></label>
-    <textarea id="woDescription" readonly tabindex="-1" style="pointer-events:none;">${wo.description || ""}</textarea>
+    <textarea
+  id="woDescription"
+  readonly
+  tabindex="-1"
+  class="wo-readonly"
+>${wo.description || ""}</textarea>
   </div>
 
   <!-- PIÈCES -->
