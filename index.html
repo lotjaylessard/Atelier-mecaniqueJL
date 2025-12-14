@@ -1234,9 +1234,10 @@ function woAddLaborLine(wo) {
   });
 }
 
-  let WO_TIMER = {
+let WO_TIMER = {
   running: false,
   startTime: null,
+  elapsed: 0,
   intervalId: null
 };
 
@@ -1289,10 +1290,6 @@ function woRenderLines(wo) {
 
   saveWorkOrders();
 }
-
-const timerBtn = document.getElementById("woTimerBtn");
-const timerDisplay = document.getElementById("woTimerDisplay");
-  const stopBtn = document.getElementById("woTimerStopBtn");
   
 
 function formatTime(ms) {
@@ -1732,60 +1729,98 @@ detail.innerHTML = `
     woRenderLines(wo);
     initWorkOrderSaveButton();
 
-    // ===== TIMER MAIN-D’ŒUVRE =====
-let WO_TIMER = window.WO_TIMER || {
+    
+
+// ===== TIMER MAIN-D’ŒUVRE (VERSION STABLE) =====
+let WO_TIMER = {
   running: false,
-  startTime: null
+  startTime: null,
+  elapsed: 0,
+  intervalId: null
 };
-window.WO_TIMER = WO_TIMER;
 
 const timerBtn = document.getElementById("woTimerBtn");
-console.log("Timer bouton =", timerBtn);
+const timerDisplay = document.getElementById("woTimerDisplay");
+const stopBtn = document.getElementById("woTimerStopBtn");
 
-if (timerBtn) {
-  timerBtn.onclick = () => {
-
-    // ▶️ DÉMARRER
-if (!WO_TIMER.running) {
-WO_TIMER.running = true;
-WO_TIMER.startTime = Date.now();
-
-// 🔴 AJOUT IMPORTANT
-updateTimerDisplay(); // affichage immédiat
-WO_TIMER.intervalId = setInterval(updateTimerDisplay, 1000);
-  updateTimerDisplay(); // affichage immédiat
-
-  timerBtn.innerText = "⏹ Arrêter";
-  timerBtn.classList.add("danger");
-  return;
+function updateTimerDisplay(){
+  if (!timerDisplay) return;
+  const current = WO_TIMER.running
+    ? Date.now() - WO_TIMER.startTime + WO_TIMER.elapsed
+    : WO_TIMER.elapsed;
+  timerDisplay.innerText = "⏱ " + formatTime(current);
 }
 
-    // ⏹ ARRÊTER
-    WO_TIMER.running = false;
+if (timerBtn){
+  timerBtn.onclick = () => {
 
-    const elapsedMs = Date.now() - WO_TIMER.startTime;
-    const hours = +(elapsedMs / 3600000).toFixed(2);
+    // ▶️ DÉMARRER / REPRENDRE
+    if (!WO_TIMER.running){
+      WO_TIMER.running = true;
+      WO_TIMER.startTime = Date.now();
+
+      updateTimerDisplay();
+      WO_TIMER.intervalId = setInterval(updateTimerDisplay, 1000);
+
+      timerBtn.innerText = "⏸ Pause";
+      timerBtn.classList.add("warning");
+      if (stopBtn) stopBtn.style.display = "inline-block";
+      return;
+    }
+
+    // ⏸ PAUSE
+    WO_TIMER.running = false;
+    WO_TIMER.elapsed += Date.now() - WO_TIMER.startTime;
+    WO_TIMER.startTime = null;
+
+    clearInterval(WO_TIMER.intervalId);
+    WO_TIMER.intervalId = null;
+
+    timerBtn.innerText = "▶️ Reprendre";
+    timerBtn.classList.remove("warning");
+  };
+}
+
+if (stopBtn){
+  stopBtn.onclick = () => {
+
+    if (WO_TIMER.running && WO_TIMER.startTime){
+      WO_TIMER.elapsed += Date.now() - WO_TIMER.startTime;
+    }
+
+    clearInterval(WO_TIMER.intervalId);
+
+    const hours = +(WO_TIMER.elapsed / 3600000).toFixed(2);
+    if (hours <= 0){
+      alert("Aucun temps enregistré.");
+      return;
+    }
 
     const rate = Number(prompt("Taux horaire :", 90)) || 90;
 
     wo.labor.push({
       description: "Main-d'œuvre (timer)",
       hours,
-      rate
+      rate,
+      total: hours * rate
     });
 
+    WO_TIMER.running = false;
     WO_TIMER.startTime = null;
+    WO_TIMER.elapsed = 0;
+    WO_TIMER.intervalId = null;
 
-    timerBtn.innerText = "⏱ Démarrer";
-    timerBtn.classList.remove("danger");
+    timerDisplay.innerText = "⏱ 00:00:00";
+    timerBtn.innerText = "▶️ Démarrer";
+    timerBtn.classList.remove("warning");
+    stopBtn.style.display = "none";
 
     woRenderLines(wo);
     saveWorkOrders();
     renderWorkOrders();
-
-    alert(`Main-d'œuvre ajoutée : ${hours} h`);
   };
 }
+
 
     const saveBtn = $("woSaveBtn");
     if (saveBtn){
