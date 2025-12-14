@@ -353,6 +353,10 @@ button.danger:hover {
     <div class="stat-label">5 dernières factures</div>
     <div id="lastInvoicesBox" style="margin-top:6px;font-size:0.9rem;line-height:1.2rem;"></div>
 </div>
+        <div class="stat-card">
+  <div class="stat-label">5 derniers bons de travail</div>
+  <div id="lastWorkOrdersBox" style="margin-top:6px;font-size:0.9rem;line-height:1.2rem;"></div>
+</div>
       </div>
 
       <div class="card" style="margin-top:20px;">
@@ -3245,6 +3249,42 @@ if ($("lastInvoicesBox")) {
     $("lastInvoicesBox").innerHTML = html;
 }
 
+  
+  /* ===== 5 DERNIERS BONS DE TRAVAIL ===== */
+if ($("lastWorkOrdersBox")) {
+
+    const lastFiveWO = [...WORKORDERS]
+        .sort((a, b) => new Date(b.date) - new Date(a.date)) // plus récent → plus ancien
+        .slice(0, 5);
+
+    $("lastWorkOrdersBox").innerHTML = "";
+
+    let htmlWO = "";
+
+    if (lastFiveWO.length === 0) {
+        htmlWO = `<span style="color:var(--muted);">Aucun bon de travail enregistré.</span>`;
+    } else {
+        htmlWO += `<div style="display:flex;flex-direction:column;gap:6px;">`;
+
+        lastFiveWO.forEach(wo => {
+            htmlWO += `
+                <div 
+                    style="padding:6px; border:1px solid var(--border); border-radius:6px; cursor:pointer;"
+                    onclick="openWorkOrderFromDashboard('${wo.id}')"
+                >
+                    <b>#${wo.number}</b> — ${wo.clientName || "Client inconnu"}
+                    <br><span class="muted">${wo.vehicleLabel || ""} • ${wo.status}</span>
+                </div>
+            `;
+        });
+
+        htmlWO += `</div>`;
+    }
+
+    $("lastWorkOrdersBox").innerHTML = htmlWO;
+}
+
+
     /* === Mettre à jour les filtres (client & véhicule) === */
   if ($("filterClient")) {
       const selClient = $("filterClient");
@@ -3306,6 +3346,20 @@ if ($("lastInvoicesBox")) {
     const row = document.querySelector(`[data-invoice-number="${number}"]`);
     if(row) row.scrollIntoView({behavior:"smooth", block:"center"});
 }
+
+
+  /* ===================== Ouvrir WO a partir du Dashboard ===================== */
+  function openWorkOrderFromDashboard(id){
+  showPage("page-workorders");
+
+  setTimeout(() => {
+    const rowBtn = document.querySelector(
+      `#woTable tr[data-id="${id}"] button[data-action="open"]`
+    );
+    if (rowBtn) rowBtn.click();
+  }, 0);
+}
+
 
 /* ===================== EDIT EXISTING INVOICE ===================== */
 function openInvoiceEditModal(invoiceNumber){
