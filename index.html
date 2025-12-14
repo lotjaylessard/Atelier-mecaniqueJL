@@ -1577,9 +1577,10 @@ detail.innerHTML = `
       <h2 style="margin:0;">Bon de travail #${wo.number}</h2>
       <div class="muted">${wo.date || ""}</div>
       <div style="margin-top:6px;">
-        <b>Client :</b> ${wo.clientName || ""}<br>
-        <b>Véhicule :</b> ${wo.vehicleLabel || ""}
-      </div>
+  <b>Client :</b> ${wo.clientName || ""}<br>
+  <b>Véhicule :</b> ${wo.vehicleLabel || ""}<br>
+  <b>Problème :</b> ${wo.description || "—"}
+</div>
     </div>
 
     <span class="status-badge status-${wo.status}">
@@ -1587,11 +1588,6 @@ detail.innerHTML = `
     </span>
   </div>
 
-  <!-- DESCRIPTION -->
-  <div class="card">
-    <label><b>Description du problème</b></label>
-    <textarea id="woDescription" style="width:100%;min-height:110px;margin-top:6px;">${wo.description || ""}</textarea>
-  </div>
 
   <!-- PIÈCES -->
   <div class="card">
