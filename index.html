@@ -1123,7 +1123,7 @@ function woAddPartLine(wo) {
     const stock = Number(p.qty || 0);
     return `
       <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;">
-        <b>${p.name}</b> <span class="muted">#${p.number || ""}</span><br>
+        <b>${partIcon(p.category)} ${p.name}</b> <span class="muted">#${p.number || ""}</span><br>
         <span class="muted">Catégorie : ${p.category || "Divers"}</span><br>
         <span class="muted">Stock : ${stock}</span><br>
         <span class="muted">Prix : ${money(p.price || 0)} $</span><br>
@@ -2871,6 +2871,28 @@ const SERVICE_ICONS = {
   "Divers":"📦"
 };
 
+  
+  const PART_ICONS = {
+  "Moteur": "🧠",
+  "Transmission": "⚙️",
+  "Suspension": "🛞",
+  "Direction": "🧭",
+  "Freins": "🛑",
+  "Échappement": "💨",
+  "Électrique": "⚡",
+  "Tuning": "🔥",
+  "Fabrication": "🧰",
+  "Hybride": "🔋",
+  "Carrosserie": "🚗",
+  "Pneus": "🛞",
+  "Divers": "📦"
+};
+
+  function partIcon(cat){
+  return PART_ICONS[cat] || "📦";
+}
+
+  
 function addServiceToInvoice(s){
   let desc=s.name;
   if(s.desc) desc+=" — "+s.desc;
@@ -3077,7 +3099,7 @@ function renderPartPicker() {
     partsToShow.forEach(p => {
         html += `
     <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;">
-        <b>${p.name}</b> (#${p.number})<br>
+        <b>${partIcon(p.category)} ${p.name}</b> (#${p.number})<br>
         Catégorie : ${p.category}<br>
         Prix : ${money(p.price)} $<br>
         Stock : ${p.qty}<br>
