@@ -3749,23 +3749,18 @@ if (unlockBtn){
       <div>TVQ : <span id="editQST">0.00</span> $</div>
       <div style="font-weight:700;">Total : <span id="editTotal">0.00</span> $</div>
     `;
-    renderEditItems();
-  }
-
-  
-  /* 🔒 VERROUILLAGE FACTURE (LECTURE SEULE) */
+    /* 🔒 VERROUILLAGE FACTURE (LECTURE SEULE) */
 content.querySelectorAll(
   "input, select, textarea, button"
 ).forEach(el => {
 
-  // on laisse le bouton Modifier actif
   if (el.id === "unlockInvoiceBtn") return;
-
-  // on laisse fermer / imprimer
   if (["closeInvoiceEditModal","printInvoiceEditBtn","exportPdfEditBtn"].includes(el.id)) return;
 
   el.disabled = isLocked;
 });
+    renderEditItems();
+  }
 
 
   function renderEditItems(){
