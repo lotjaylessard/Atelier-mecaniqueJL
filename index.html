@@ -3777,23 +3777,6 @@ if (unlockBtn){
   $('editQST').innerText=money(qst);
   $('editTotal').innerText=money(total);
 }
-  
-
-  /* ✏️ DÉVERROUILLER FACTURE */
-const unlockBtn = document.getElementById("unlockInvoiceBtn");
-
-if (unlockBtn){
-  unlockBtn.style.display = isLocked ? "inline-block" : "none";
-
-  unlockBtn.onclick = () => {
-    if (!confirm("Déverrouiller cette facture pour modification ?")) return;
-
-    inv.locked = false;
-    localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
-
-    openInvoiceEditModal(inv.number); // 🔁 re-render en mode éditable
-  };
-}
 }
 
 
