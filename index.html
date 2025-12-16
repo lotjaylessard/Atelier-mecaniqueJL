@@ -3721,6 +3721,21 @@ window.editItems = editItems;
     <div style="font-weight:700;">Total : <span id="editTotal">0.00</span> $</div>
   `;
 
+
+    // === MENU AJOUT ARTICLE (FACTURE) ===
+const addBtn = $('addEditItemBtn');
+const menu = $('editItemMenu');
+
+if (addBtn && menu){
+  addBtn.onclick = () => {
+    menu.style.display =
+      (menu.style.display === 'none' || menu.style.display === '')
+        ? 'block'
+        : 'none';
+  };
+}
+
+
   /* 🔒 VERROUILLAGE FACTURE */
   content.querySelectorAll("input, select, textarea, button").forEach(el=>{
     if (el.id === "unlockInvoiceBtn") return;
@@ -3965,11 +3980,6 @@ $("exportPdfEditBtn").onclick = async () => {
 
 $('invoiceEditModal').style.display = 'flex';
   
-  // Ouvrir/fermer le menu
-$('addEditItemBtn').onclick = () => {
-  const menu = $('editItemMenu');
-  menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
-};
 
   $('editAddInventory').onclick = () => {
   if (!PARTS.length) {
