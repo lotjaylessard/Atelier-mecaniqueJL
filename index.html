@@ -2053,18 +2053,12 @@ function saveClients(){
   localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
 }
 
-
-
-
-/* ======== REMPLIR LE MENU DES VÉHICULES ======== */
-
-
-
+  
 /* ======== Quand on change de client => Raffraîchir les véhicules ======== */
 
   
   const name = prompt("Nom du nouveau client :");
-  if (!name) return;
+  if (!name)
 
   const phone = prompt("Téléphone (optionnel) :") || "";
   const email = prompt("Email (optionnel) :") || "";
