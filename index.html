@@ -3777,6 +3777,7 @@ if (unlockBtn){
   $('editQST').innerText=money(qst);
   $('editTotal').innerText=money(total);
 }
+  renderEditUI();
 }
 
 
@@ -3963,7 +3964,6 @@ $("exportPdfEditBtn").onclick = async () => {
   };
 
 $('invoiceEditModal').style.display = 'flex';
-  renderEditUI();
   
   // Ouvrir/fermer le menu
 $('addEditItemBtn').onclick = () => {
