@@ -302,12 +302,10 @@ button.danger:hover {
     <h2>Menu</h2>
     <button class="navBtn" data-page="page-dashboard">📊 Dashboard</button>
     <button class="navBtn" data-page="page-workorders">📋 Work Order</button>
-    <button class="navBtn" data-page="page-invoice-list">🧾 Factures</button>
     <button class="navBtn" data-page="page-clients">👤 Clients</button>
     <button class="navBtn" data-page="page-vehicles">🚗 Véhicules</button>
     <button class="navBtn" data-page="page-services">🛠️ Services</button>
     <button class="navBtn" data-page="page-parts">🔩 Pièces</button>
-    <button class="navBtn" data-page="page-history">📜 Historique</button>
     <button class="navBtn" data-page="page-notes">📝 Notes</button>
     <button class="navBtn" data-page="page-links">🔗 Liens Rapides</button>
     <button class="navBtn" data-page="page-settings">⚙️ Paramètres</button>
@@ -333,7 +331,6 @@ button.danger:hover {
       <h2>Tableau de bord</h2>
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-label">Factures totales</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Revenus totaux</div>
@@ -348,7 +345,6 @@ button.danger:hover {
           <div class="stat-value" id="statVehicles">0</div>
         </div>
         <div class="stat-card">
-    <div class="stat-label">5 dernières factures</div>
 </div>
         <div class="stat-card">
   <div class="stat-label">5 derniers bons de travail</div>
@@ -589,7 +585,6 @@ button.danger:hover {
   </div>
 
   <div class="card">
-    <h3>Historique des notes</h3>
 
     <input id="noteSearch" placeholder="Rechercher une note..." style="width:100%;margin-bottom:10px;padding:6px;">
 
@@ -670,7 +665,6 @@ button.danger:hover {
         <input id="settingQST" type="number" step="0.01" />
 
         <button id="saveSettings" style="margin-top:10px;">Enregistrer les paramètres</button>
-        <div class="muted" style="margin-top:6px;">Les nouvelles factures utiliseront ces taux de taxes.</div>
 
         <hr style="margin:20px 0; border-color:var(--border);">
 
@@ -681,7 +675,6 @@ button.danger:hover {
         <button id="btnImportData" class="ghost">📥 Importer un backup (.json)</button>
 
         <div class="muted" style="margin-top:10px;">
-          Sauvegarde toutes vos données (factures, clients, pièces, services, paramètres, etc.)
           dans un fichier .json que vous pouvez restaurer plus tard.
         </div>
       </div>
@@ -767,9 +760,7 @@ button.danger:hover {
 <script>
 /* ===================== HELPERS & STORAGE ===================== */
 const STORAGE = {
-  invoices:'ar_invoices_v2',
   settings:'ar_settings_v1',
-  invoiceCounter:'ar_invoice_counter_v1',
   clients:'ar_clients_v1',
   parts:'ar_parts_inventory_v1',
   services:'ar_services_v1',
@@ -983,7 +974,6 @@ function woAddPartLine(wo) {
     return;
   }
 
-  // On affiche toutes les pièces (on ne touche pas au module facture)
   listEl.innerHTML = PARTS.map((p, idx) => {
     const stock = Number(p.qty || 0);
     return `
@@ -1332,13 +1322,14 @@ function renderWorkOrders(){
 
 
  function finishWorkOrder(id){
-  const wo = WORKORDERS.find(w => String(w.id) === String(id));
-  if(!wo) return alert("Erreur : bon de travail introuvable.");
+  const wo = WORKORDERS.find(w => w.id == id);
+  if (!wo) return;
 
-wo.status = "termine";
-saveWorkOrders();
-renderWorkOrders();
-
+  // Marquer terminé (plus de factures dans cette version)
+  wo.status = "termine";
+  saveWorkOrders();
+  renderWorkOrders();
+  backToWorkOrdersList();
 }
 
   
@@ -1894,13 +1885,10 @@ function initSettings(){
 
 
   // Client
-  const c = CLIENTS.find(c => c.name === inv.customer);
   if (c) $("customerSelect").value = c.id;
 
-  $("jobDesc").value = inv.job;
 
   items = [];
-  inv.items.forEach(it => items.push({...it}));
 
   renderItems();
 
@@ -2011,7 +1999,6 @@ function removeItem(i){
 if($('clearItems')){
   $('clearItems').addEventListener('click',()=>{
     if(!items.length) return;
-    if(!confirm("Vider tous les articles de la facture ?")) return;
     items.forEach(it=>{
       if(it.invNumber){
         const qty = Number(it.qty)||1;
@@ -2066,55 +2053,16 @@ function saveClients(){
   localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
 }
 
-  /* ======== AJOUT POUR INVOICES : sélectionner un client ======== */
-function refreshInvoiceClientSelect() {
-  const select = $("customerSelect");
-  if (!select) return;
-  select.innerHTML = "";
 
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = "-- Sélectionner un client --";
-  select.appendChild(opt0);
 
-  CLIENTS.forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.name;
-    select.appendChild(opt);
-  });
-}
 
 /* ======== REMPLIR LE MENU DES VÉHICULES ======== */
-function refreshVehicleListForInvoice() {
-    const customerId = $("customerSelect").value;
-    const select = $("vehicleSelect");
-    select.innerHTML = "";
 
-    const opt0 = document.createElement("option");
-    opt0.value = "";
-    opt0.textContent = "-- Choisir un véhicule --";
-    select.appendChild(opt0);
 
-    if (!customerId) return;
-
-    const clientObj = CLIENTS.find(c => String(c.id) === String(customerId));
-    if (!clientObj || !Array.isArray(clientObj.vehicles)) return;
-
-    clientObj.vehicles.forEach(v => {
-        const opt = document.createElement("option");
-        opt.value = `${v.year} ${v.make} ${v.model} - ${v.plate}`;
-        opt.textContent = `${v.year} ${v.make} ${v.model} (${v.plate})`;
-        select.appendChild(opt);
-    });
-}
 
 /* ======== Quand on change de client => Raffraîchir les véhicules ======== */
-$("customerSelect").addEventListener("change", refreshVehicleListForInvoice);
 
   
-  /* ======== AJOUT : créer un client pendant une facture ======== */
-$("btnCreateCustomerFromInvoice").onclick = () => {
   const name = prompt("Nom du nouveau client :");
   if (!name) return;
 
@@ -2133,7 +2081,6 @@ $("btnCreateCustomerFromInvoice").onclick = () => {
 
   CLIENTS.push(newClient);
   saveClients();
-  refreshInvoiceClientSelect();
 
   $("customerSelect").value = newClient.id;
 
@@ -2226,8 +2173,6 @@ function renderClientModal(id){
       return;
     }
   }
-  const invoices=INVOICES;
-  const clientInvoices=invoices.filter(inv=>(inv.customer||'').toLowerCase()===(client.name||'').toLowerCase());
 
   content.innerHTML=`
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -2276,7 +2221,6 @@ function renderClientModal(id){
       </div>
 
       <div>
-        <h3 style="margin:10px 0 6px;color:var(--accent);">Historique (factures)</h3>
         <div id="clientHistory" class="small"></div>
       </div>
 
@@ -2316,14 +2260,8 @@ function renderClientModal(id){
 
   const histWrap=$('clientHistory');
   if(histWrap){
-    if(clientInvoices.length===0){
-      histWrap.innerHTML='<div class="muted">Aucune facture associée pour ce client pour le moment.</div>';
     }else{
-      histWrap.innerHTML=clientInvoices.map(inv=>`
         <div style="border-bottom:1px solid var(--border);padding:4px 0;">
-          <div><strong>#${inv.number}</strong> - ${inv.date}</div>
-          <div class="small">${inv.job||''}</div>
-          <div class="small">Total: ${money(inv.total||0)} $</div>
         </div>
       `).join('');
     }
@@ -2342,7 +2280,6 @@ function renderClientModal(id){
       if(idx===-1) CLIENTS.push(client);
       else CLIENTS[idx]=client;
       saveClients();
-      refreshInvoiceClientSelect();
       renderClientsTable();
       closeClientModal();
     });
@@ -2433,7 +2370,6 @@ function renderParts(){
         <button class="ghost" data-action="edit" data-id="${i}" style="flex:1;">Modifier</button>
         <button class="ghost" data-action="del" data-id="${i}" style="flex:1;">Supprimer</button>
       </div>
-      <button class="ghost" data-action="addToInvoice" data-id="${i}" style="margin-top:10px;width:100%;">➕ Ajouter à la facture</button>
     `;
     wrap.appendChild(card);
   });
@@ -2465,7 +2401,6 @@ function renderParts(){
       renderDashboard();
     });
   });
-  wrap.querySelectorAll('button[data-action="addToInvoice"]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const id=Number(btn.dataset.id);
       const p=PARTS[id];
@@ -2552,20 +2487,8 @@ const SERVICE_ICONS = {
 }
 
   
-function addServiceToInvoice(s){
-  let desc=s.name;
-  if(s.desc) desc+=" — "+s.desc;
-  let item;
-  if(s.priceFixed>0){
-    item={type:"Service",desc,qty:1,rate:s.priceFixed};
-  }else if(s.hours>0 && s.rate>0){
-    item={type:"Service (horaire)",desc,qty:s.hours,rate:s.rate};
-  }else{
-    item={type:"Service",desc,qty:1,rate:0};
-  }
-  items.push(item);
-  renderItems();
-}
+
+
 
 function renderServices(){
   const wrap=$('servicesList');
@@ -2599,7 +2522,6 @@ function renderServices(){
         <button class="ghost" data-action="edit-srv" data-id="${s.id}" style="flex:1;">Modifier</button>
         <button class="ghost" data-action="del-srv" data-id="${s.id}" style="flex:1;">Supprimer</button>
       </div>
-      <button class="ghost" data-action="add-to-invoice" data-id="${s.id}" style="margin-top:8px;width:100%;">➕ Ajouter à la facture</button>
     `;
     wrap.appendChild(card);
   });
@@ -2629,13 +2551,10 @@ function renderServices(){
       renderServices();
     });
   });
-  wrap.querySelectorAll('button[data-action="add-to-invoice"]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const id=btn.dataset.id;
       const s=SERVICES.find(x=>String(x.id)===String(id));
       if(!s) return;
-      addServiceToInvoice(s);
-      alert("Service ajouté à la facture en cours.");
     });
   });
 }
@@ -2703,7 +2622,6 @@ function initServicesModule(){
           <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;">
             <div><b>${label}</b></div>
             ${s.desc ? `<div class="small">${s.desc}</div>` : ""}
-            <button class="ghost" data-action="pick-service" data-id="${s.id}" style="margin-top:4px;">Ajouter à la facture</button>
           </div>
         `;
       });
@@ -2714,7 +2632,6 @@ function initServicesModule(){
         const id=btn.dataset.id;
         const s=SERVICES.find(x=>String(x.id)===String(id));
         if(!s) return;
-        addServiceToInvoice(s);
         modal.style.display='none';
       });
     });
@@ -2802,7 +2719,6 @@ saveParts();
 renderParts();
 renderDashboard();
 
-// Ajoute dans la facture
 items.push({
     type: "Pièce (Inventaire)",
     desc: `${part.name} (#${part.number})`,
@@ -2836,54 +2752,10 @@ if (btnClosePartPicker) {
 partPickerFilter.onchange = renderPartPicker;
 
   
-/* ===================== HISTORIQUE & DASHBOARD ===================== */
-function renderHistoryTable(){
-  const tbody = document.querySelector('#historyTable tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
 
-  const filterClient = $("filterClient")?.value || "";
-const filterVehicle = $("filterVehicle")?.value || "";
+/* removed function renderHistoryTable */
 
-INVOICES
-  .slice()
-  .sort((a, b) => Number(b.number) - Number(a.number))
-  .filter(inv => {
-      if (filterClient && inv.customer !== filterClient) return false;
-      if (filterVehicle) {
-    const job = (inv.job || "").toLowerCase();
-    const v = filterVehicle.toLowerCase();
 
-    // Essaye de trouver la marque, modèle ou année dans la description du job
-    if (!job.includes(v)) {
-        // Ex.: "Honda Civic 2014" devrait matcher même si la plaque est différente
-        const parts = v.split(" ").filter(x => x.trim().length > 0);
-        let allMatch = true;
-
-        parts.forEach(p => {
-            if (!job.includes(p)) allMatch = false;
-        });
-
-        if (!allMatch) return false;
-    }
-}
-
-      return true;
-  })
-  .forEach(inv => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><button class="ghost" onclick="openInvoiceEditModal(${inv.number})">#${inv.number}</button></td>
-        <td>${inv.date}</td>
-        <td>${inv.customer || ""}</td>
-        <td>${inv.job || ""}</td>
-        <td>${money(inv.total || 0)} $</td>
-      `;
-      tbody.appendChild(tr);
-  });
-}
-
-  // === Activation des filtres historique ===
 if ($("filterClient")) {
   $("filterClient").onchange = () => {
     renderDashboard();     // Met à jour la liste des véhicules selon le client
@@ -2899,14 +2771,11 @@ if ($("filterVehicle")) {
 function renderDashboard(){
   loadWorkOrders();
   if (!Array.isArray(WORKORDERS)) WORKORDERS = [];
-  const invoicesCount=INVOICES.length;
-  const revenue=INVOICES.reduce((s,inv)=>s+Number(inv.total||0),0);
   const clientsCount=CLIENTS.length;
   let vehiclesCount=0;
   CLIENTS.forEach(c=>vehiclesCount+=(c.vehicles||[]).length);
   const partsCount=PARTS.reduce((s,p)=>s+Number(p.qty||0),0);
   const lowStock=PARTS.filter(p=>Number(p.qty||0)<=2).length;
-  if($('statInvoices')) $('statInvoices').innerText=invoicesCount;
   if($('statRevenue')) $('statRevenue').innerText=money(revenue)+' $';
   if($('statClients')) $('statClients').innerText=clientsCount;
   if($('statVehicles')) $('statVehicles').innerText=vehiclesCount;
@@ -3018,7 +2887,6 @@ function openWorkOrderFromDashboard(id){
 function exportAllData(){
   const data={
     settings:SETTINGS,
-    invoices:INVOICES,
     clients:CLIENTS,
     parts:PARTS,
     services:SERVICES
