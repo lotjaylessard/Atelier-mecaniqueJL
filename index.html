@@ -857,7 +857,6 @@ function money(n){return Number(n||0).toFixed(2);}
   // empêcher double facture
   if (wo.invoiceId){
     showPage("page-invoice-editor");
-    loadInvoiceForEdit(wo.invoiceId);
     return;
   }
 
@@ -904,9 +903,10 @@ function money(n){return Number(n||0).toFixed(2);}
   // lier BT → facture
   wo.invoiceId = newInvoiceId;
   saveWorkOrders();
+    
+showPage("page-invoice-list");
+renderInvoiceList();
 
-  showPage("page-invoice-editor");
-  loadInvoiceForEdit(newInvoiceId);
 }
 
 
@@ -956,10 +956,6 @@ function showPage(id){
   switch(id){
     case "page-invoice-list":
       renderInvoiceList();
-      break;
-
-    case "page-invoice-editor":
-      resetInvoiceForm();
       break;
   }
 }
@@ -2118,7 +2114,6 @@ function initSettings(){
       <td>${money(inv.total)}</td>
       <td>${inv.status || "draft"}</td>
       <td>
-        <button class="ghost" onclick="openInvoiceEditor(${inv.number})">Ouvrir</button>
         <button class="ghost" style="margin-left:6px;color:#f55;" onclick="deleteInvoice(${inv.number})">
           Supprimer
         </button>
@@ -2445,7 +2440,6 @@ if (existingIndex !== -1) {
     INVOICES.push(inv);
     saveInvoices();
     alert("Facture enregistrée.");
-    resetInvoiceForm();
     renderInvoicesTable();
   });
 }
@@ -4006,7 +4000,6 @@ invoice.status = "pending";
   alert("Facture #" + number + " créée !");
   showPage("page-invoice-editor");
     $("btnNewInvoice").onclick = () => {
-  resetInvoiceForm();
 
       // Mode création : afficher les sections d'ajout
 document.querySelectorAll("h3").forEach(h => h.style.display = "");
