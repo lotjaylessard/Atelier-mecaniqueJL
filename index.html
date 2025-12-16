@@ -927,6 +927,7 @@ button.danger:hover {
 
       <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
         <button id="printInvoiceEditBtn" class="ghost">Imprimer</button>
+        <button id="unlockInvoiceBtn" class="ghost">✏️ Modifier</button>
         <button class="ghost" id="exportPdfEditBtn">Export PDF</button>
         <button id="deleteInvoiceBtn" class="ghost">Supprimer</button>
         <button id="saveInvoiceEditBtn">Enregistrer</button>
@@ -947,6 +948,14 @@ const STORAGE = {
   notes: 'ar_notes_v1',
   workorders: 'ar_workorders_v1'
 };
+
+  
+  function generateInvoiceNumber(){
+  let n = Number(localStorage.getItem(STORAGE.invoiceCounter) || 1);
+  localStorage.setItem(STORAGE.invoiceCounter, n + 1);
+  return "F-" + String(n).padStart(5,"0");
+}
+
 
 const $ = id => document.getElementById(id);
 function money(n){return Number(n||0).toFixed(2);}
@@ -1568,17 +1577,51 @@ function renderWorkOrders(){
   });
 }
 
-
- function finishWorkOrder(id){
+  
+function finishWorkOrder(id){
   const wo = WORKORDERS.find(w => String(w.id) === String(id));
-  if(!wo) return alert("Erreur : bon de travail introuvable.");
+  if (!wo) return alert("Bon de travail introuvable.");
 
-  wo.status = "termine"; // ✅ statut interne SANS accent
+  // 1️⃣ Marquer le WO comme terminé
+  wo.status = "termine";
 
+  // 2️⃣ Construire la facture depuis le WO
+  const invoice = {
+    id: Date.now(),
+    number: generateInvoiceNumber(),
+    date: new Date().toLocaleDateString("fr-CA"),
+    clientId: wo.clientId,
+    clientName: wo.clientName,
+    vehicle: wo.vehicleLabel,
+    items: [
+      ...wo.parts.map(p => ({
+        type: "Pièce",
+        desc: p.name,
+        qty: p.qty,
+        rate: p.rate,
+        total: p.qty * p.rate
+      })),
+      ...wo.labor.map(l => ({
+        type: "Main-d'œuvre",
+        desc: l.description,
+        qty: l.hours,
+        rate: l.rate,
+        total: l.hours * l.rate
+      }))
+    ],
+    status: "draft",
+    locked: true,          // 🔒 VERROUILLÉ
+    sourceWO: wo.id        // 🔗 lien au bon de travail
+  };
+
+  INVOICES.push(invoice);
+  localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
   saveWorkOrders();
-  renderWorkOrders();
 
-  alert("Bon de travail marqué comme terminé.");
+  renderWorkOrders();
+  showPage("page-invoice-list");
+
+  alert("Bon de travail terminé et transformé en facture.");
 }
 
   
@@ -3638,6 +3681,7 @@ function openInvoiceEditModal(invoiceNumber){
   const content=$('invoiceEditContent');
   if(!modal || !content) return;
   const inv=INVOICES.find(x=>String(x.number)===String(invoiceNumber));
+  const isLocked = inv.locked === true;
   if(!inv){
     alert("Facture introuvable.");
     return;
@@ -3645,6 +3689,24 @@ function openInvoiceEditModal(invoiceNumber){
   let editItems=JSON.parse(JSON.stringify(inv.items||[]));
   window.editInvoiceObj = inv;
 window.editItems = editItems;     // ← nécessaire pour afficher les items modifiés
+  
+
+  /* ✏️ DÉVERROUILLER FACTURE */
+const unlockBtn = document.getElementById("unlockInvoiceBtn");
+
+if (unlockBtn){
+  unlockBtn.style.display = isLocked ? "inline-block" : "none";
+
+  unlockBtn.onclick = () => {
+    if (!confirm("Déverrouiller cette facture pour modification ?")) return;
+
+    inv.locked = false;
+    localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
+
+    openInvoiceEditModal(inv.number); // 🔁 re-render en mode éditable
+  };
+}
+}
 
   function renderEditUI(){
     content.innerHTML=`
@@ -3689,6 +3751,22 @@ window.editItems = editItems;     // ← nécessaire pour afficher les items mod
     `;
     renderEditItems();
   }
+
+  
+  /* 🔒 VERROUILLAGE FACTURE (LECTURE SEULE) */
+content.querySelectorAll(
+  "input, select, textarea, button"
+).forEach(el => {
+
+  // on laisse le bouton Modifier actif
+  if (el.id === "unlockInvoiceBtn") return;
+
+  // on laisse fermer / imprimer
+  if (["closeInvoiceEditModal","printInvoiceEditBtn","exportPdfEditBtn"].includes(el.id)) return;
+
+  el.disabled = isLocked;
+});
+
 
   function renderEditItems(){
     const tbody=$('editItemsBody');
