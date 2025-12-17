@@ -3810,174 +3810,147 @@ function openInvoiceEditModal(invoiceNumber){
     if (elTot) elTot.innerText = money(total);
   }
 
-  function renderEditUI(){
-    const locked = inv.locked === true;
+  
+function renderEditUI(){
+  const locked = inv.locked === true;
 
-    content.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <h2 style="margin:0;">Facture #${inv.number}</h2>
-        <button id="unlockInvoiceBtn" class="ghost" style="${locked?'':'display:none;'}">✏️ Modifier</button>
-      </div>
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <h2 style="margin:0;">Facture #${inv.number}</h2>
+      <button id="unlockInvoiceBtn"
+              class="ghost"
+              style="${locked ? '' : 'display:none;'}">
+        ✏️ Modifier
+      </button>
+    </div>
 
-      <div class="muted" style="margin-top:6px;">Date : ${inv.date || ""}</div>
+    <div class="muted" style="margin-top:6px;">
+      Date : ${inv.date || ""}
+    </div>
 
-      <div style="margin-top:12px;">
-        <label>Client</label>
-        <input id="editInvCustomer" value="${inv.customer||inv.clientName||''}" ${locked?'disabled':''}/>
-        <label>Description / Véhicule</label>
-        <input id="editInvJob" value="${inv.job||inv.vehicle||''}" ${locked?'disabled':''}/>
-      </div>
+    <div style="margin-top:12px;">
+      <label>Client</label>
+      <input id="editInvCustomer"
+             value="${inv.customer || inv.clientName || ''}"
+             ${locked ? 'disabled' : ''}/>
 
-      <h3 style="margin-top:16px;">Articles</h3>
-      <table style="margin-top:10px;width:100%;">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Qté</th>
-            <th>Prix</th>
-            <th>Total</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="editItemsBody"></tbody>
-      </table>
+      <label>Description / Véhicule</label>
+      <input id="editInvJob"
+             value="${inv.job || inv.vehicle || ''}"
+             ${locked ? 'disabled' : ''}/>
+    </div>
 
-      <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
-        <button id="addEditItemBtn" class="ghost" ${locked?'disabled':''}>+ Ajouter un article</button>
-      </div>
-          `;
-}
+    <h3 style="margin-top:16px;">Articles</h3>
 
-      <h3 style="margin-top:20px;">Totaux</h3>
-      <div>Sous-total : <span id="editSubTotal">0.00</span> $</div>
-      <div>TPS : <span id="editGST">0.00</span> $</div>
-      <div>TVQ : <span id="editQST">0.00</span> $</div>
-      <div style="font-weight:700;">Total : <span id="editTotal">0.00</span> $</div>
+    <table style="margin-top:10px;width:100%;">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Qté</th>
+          <th>Prix</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="editItemsBody"></tbody>
+    </table>
 
-      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
-        <button id="printInvoiceEditBtn" class="ghost">🖨 Imprimer</button>
-        <button id="exportPdfEditBtn" class="ghost">📄 PDF</button>
-        <button id="deleteInvoiceBtn" class="ghost" style="color:#f55;" ${locked?'disabled':''}>Supprimer</button>
-        <button id="saveInvoiceEditBtn" ${locked?'disabled':''}>💾 Sauvegarder</button>
-        <button id="closeInvoiceEditModal" class="ghost">Fermer</button>
-      </div>
-    `;
+    <div style="margin-top:10px;display:flex;gap:10px;">
+      <button id="addEditItemBtn"
+              class="ghost"
+              ${locked ? 'disabled' : ''}>
+        + Ajouter un article
+      </button>
+    </div>
 
-    // Bind actions
-    const unlockBtn = $("unlockInvoiceBtn");
-    if (unlockBtn){
-      unlockBtn.onclick = () => {
-        if (!confirm("Passer la facture en mode modification ?")) return;
-        inv.locked = false;
-        saveInvoices();
-        renderEditUI();
-      };
-    }
+    <h3 style="margin-top:20px;">Totaux</h3>
+    <div>Sous-total : <span id="editSubTotal">0.00</span> $</div>
+    <div>TPS : <span id="editGST">0.00</span> $</div>
+    <div>TVQ : <span id="editQST">0.00</span> $</div>
+    <div style="font-weight:700;">
+      Total : <span id="editTotal">0.00</span> $
+    </div>
 
-    const addBtn = $("addEditItemBtn");
-    if (addBtn){
-      addBtn.onclick = () => {
-        editItems.push({type:"Autre", desc:"Nouvel article", qty:1, rate:0});
-        renderEditItems();
-        renderTotalsUI();
-      };
-    }
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+      <button id="printInvoiceEditBtn" class="ghost">🖨 Imprimer</button>
+      <button id="exportPdfEditBtn" class="ghost">📄 PDF</button>
+      <button id="deleteInvoiceBtn"
+              class="ghost"
+              style="color:#f55;"
+              ${locked ? 'disabled' : ''}>
+        Supprimer
+      </button>
+      <button id="saveInvoiceEditBtn"
+              ${locked ? 'disabled' : ''}>
+        💾 Sauvegarder
+      </button>
+      <button id="closeInvoiceEditModal" class="ghost">
+        Fermer
+      </button>
+    </div>
+  `;
 
-    const btnSave = $("saveInvoiceEditBtn");
-    if (btnSave){
-      btnSave.onclick = () => {
-        inv.customer = $("editInvCustomer")?.value?.trim() || inv.customer || "";
-        inv.job = $("editInvJob")?.value?.trim() || inv.job || "";
-        inv.items = editItems;
+  /* ===== BINDS ===== */
 
-        const {sub,gst,qst,total} = computeTotals();
-        inv.subTotal = sub;
-        inv.gst = gst;
-        inv.qst = qst;
-        inv.total = total;
-
-        saveInvoices();
-        alert("Facture mise à jour!");
-        modal.style.display = "none";
-        if (typeof renderInvoiceList === "function") renderInvoiceList();
-        if (typeof renderHistoryTable === "function") renderHistoryTable();
-        if (typeof renderDashboard === "function") renderDashboard();
-      };
-    }
-
-    const btnDel = $("deleteInvoiceBtn");
-    if (btnDel){
-      btnDel.onclick = () => {
-        if (!confirm("Supprimer cette facture ?")) return;
-        INVOICES = INVOICES.filter(x => String(x.number) !== String(inv.number));
-        saveInvoices();
-        modal.style.display = "none";
-        if (typeof renderInvoiceList === "function") renderInvoiceList();
-        if (typeof renderHistoryTable === "function") renderHistoryTable();
-        if (typeof renderDashboard === "function") renderDashboard();
-      };
-    }
-
-    const btnClose = $("closeInvoiceEditModal");
-    if (btnClose) btnClose.onclick = () => modal.style.display = "none";
-
-    const btnPrint = $("printInvoiceEditBtn");
-    if (btnPrint){
-      btnPrint.onclick = () => {
-        const area = $("printArea");
-        if (area){
-          const {sub,gst,qst,total} = computeTotals();
-          area.innerHTML = `
-            <h2 style="color:black;">Facture #${inv.number}</h2>
-            <p><strong>Date :</strong> ${inv.date||""}</p>
-            <p><strong>Client :</strong> ${inv.customer||""}</p>
-            <p><strong>Description :</strong> ${inv.job||""}</p>
-            <h3>Articles</h3>
-            <table style="width:100%;border-collapse:collapse;">
-              <thead><tr>
-                <th>Type</th><th>Description</th><th>Qté</th><th>Prix</th><th>Total</th>
-              </tr></thead>
-              <tbody>
-                ${editItems.map(it=>`
-                  <tr>
-                    <td>${it.type||""}</td>
-                    <td>${it.desc||""}</td>
-                    <td>${it.qty||0}</td>
-                    <td>${money(it.rate||0)} $</td>
-                    <td>${money((Number(it.qty)||0)*(Number(it.rate)||0))} $</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-            <h3>Totaux</h3>
-            <p><strong>Sous-total :</strong> ${money(sub)} $</p>
-            <p><strong>TPS :</strong> ${money(gst)} $</p>
-            <p><strong>TVQ :</strong> ${money(qst)} $</p>
-            <p><strong>Total :</strong> ${money(total)} $</p>
-          `;
-          window.print();
-        }else{
-          // fallback: imprime le contenu du modal
-          window.print();
-        }
-      };
-    }
-
-    const btnPdf = $("exportPdfEditBtn");
-    if (btnPdf){
-      btnPdf.onclick = () => alert("Export PDF : ta version précédente (html2canvas/jsPDF) peut être remise ici si tu veux — présentement: impression + 'Enregistrer en PDF' dans le navigateur.");
-    }
-
-    // (Imprimer / PDF) — garde ton implémentation existante si elle est ailleurs
-    // Si ces boutons existent déjà dans ton code, ces onclick seront écrasés ici.
-
-    renderEditItems();
-    renderTotalsUI();
+  const unlockBtn = $("unlockInvoiceBtn");
+  if (unlockBtn){
+    unlockBtn.onclick = () => {
+      if (!confirm("Passer la facture en mode modification ?")) return;
+      inv.locked = false;
+      saveInvoices();
+      renderEditUI();
+    };
   }
 
-  modal.style.display = "flex";
-  renderEditUI();
+  const addBtn = $("addEditItemBtn");
+  if (addBtn){
+    addBtn.onclick = () => {
+      editItems.push({type:"Autre", desc:"Nouvel article", qty:1, rate:0});
+      renderEditItems();
+      renderTotalsUI();
+    };
+  }
+
+  const btnSave = $("saveInvoiceEditBtn");
+  if (btnSave){
+    btnSave.onclick = () => {
+      inv.customer = $("editInvCustomer")?.value?.trim() || inv.customer || "";
+      inv.job = $("editInvJob")?.value?.trim() || inv.job || "";
+      inv.items = editItems;
+
+      const {sub,gst,qst,total} = computeTotals();
+      inv.subTotal = sub;
+      inv.gst = gst;
+      inv.qst = qst;
+      inv.total = total;
+
+      saveInvoices();
+      alert("Facture mise à jour !");
+      modal.style.display = "none";
+      renderInvoiceList?.();
+      renderHistoryTable?.();
+      renderDashboard?.();
+    };
+  }
+
+  const btnDel = $("deleteInvoiceBtn");
+  if (btnDel){
+    btnDel.onclick = () => {
+      if (!confirm("Supprimer cette facture ?")) return;
+      INVOICES = INVOICES.filter(x => String(x.number) !== String(inv.number));
+      saveInvoices();
+      modal.style.display = "none";
+      renderInvoiceList?.();
+      renderHistoryTable?.();
+      renderDashboard?.();
+    };
+  }
+
+  $("closeInvoiceEditModal")?.onclick = () => modal.style.display = "none";
+
+  renderEditItems();
+  renderTotalsUI();
 }
 
 
