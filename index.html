@@ -1034,8 +1034,9 @@ function showPage(id){
   // === ROUTAGE LOGIQUE DES PAGES ===
   switch(id){
     case "page-invoice-list":
-      renderInvoiceList();
-      break;
+  loadInvoices();
+  renderInvoiceList();
+  break;
 
     case "page-invoice-editor":
       resetInvoiceForm();
@@ -1055,6 +1056,20 @@ let items = [];
 let CLIENTS = [];
 let PARTS = [];
 let SERVICES = [];
+
+
+  function loadInvoices(){
+  try{
+    INVOICES = JSON.parse(localStorage.getItem(STORAGE.invoices) || "[]");
+    if (!Array.isArray(INVOICES)) INVOICES = [];
+  }catch(e){
+    INVOICES = [];
+  }
+}
+
+function saveInvoices(){
+  localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
+}
 
 
   /* ===================== PART ICONS ===================== */
