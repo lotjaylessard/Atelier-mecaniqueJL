@@ -4486,6 +4486,12 @@ function initLinksModule() {
     qst: 0,
     total: 0
   };
+    
+      INVOICES.push(invoice);
+  saveInvoices();
+  renderInvoicesTable();
+}
+
 
     invoice.status = "pending";
     
