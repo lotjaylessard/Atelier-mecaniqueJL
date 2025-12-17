@@ -4472,7 +4472,8 @@ function initLinksModule() {
     $("importLinksFile").onchange = importLinks;
 }
 
-  function woConvertToInvoice(wo) {
+  
+function woConvertToInvoice(wo) {
   const number = nextInvoiceNumber();
 
   const invoice = {
@@ -4484,17 +4485,12 @@ function initLinksModule() {
     subTotal: 0,
     gst: 0,
     qst: 0,
-    total: 0
+    total: 0,
+    status: "pending",
+    locked: true
   };
-    
-      INVOICES.push(invoice);
-  saveInvoices();
-  renderInvoicesTable();
-}
 
-
-    invoice.status = "pending";
-    
+  // === PIÈCES ===
   wo.parts.forEach(p => {
     invoice.items.push({
       type: "Pièce",
@@ -4504,6 +4500,7 @@ function initLinksModule() {
     });
   });
 
+  // === MAIN-D’ŒUVRE ===
   wo.labor.forEach(l => {
     invoice.items.push({
       type: "Main-d'œuvre",
@@ -4513,49 +4510,26 @@ function initLinksModule() {
     });
   });
 
-  invoice.subTotal = invoice.items.reduce((s,it)=>s+it.qty*it.rate,0);
-  invoice.gst = invoice.subTotal * (SETTINGS.gst/100);
-  invoice.qst = (invoice.subTotal + invoice.gst) * (SETTINGS.qst/100);
+  // === TOTAUX ===
+  invoice.subTotal = invoice.items.reduce((s,it)=>s + it.qty * it.rate, 0);
+  invoice.gst = invoice.subTotal * (SETTINGS.gst / 100);
+  invoice.qst = (invoice.subTotal + invoice.gst) * (SETTINGS.qst / 100);
   invoice.total = invoice.subTotal + invoice.gst + invoice.qst;
 
-    // === Statut par défaut d'une facture générée depuis un WO ===
-invoice.status = "pending";
-
+  // === SAUVEGARDE ===
   INVOICES.push(invoice);
   saveInvoices();
+  renderInvoicesTable();
 
+  // === STATUT WO ===
   wo.status = "billed";
   saveWorkOrders();
   renderWorkOrders();
 
-  alert("Facture #" + number + " créée !");
-  showPage("page-invoice-editor");
-    $("btnNewInvoice").onclick = () => {
-  resetInvoiceForm();
-
-      // Mode création : afficher les sections d'ajout
-document.querySelectorAll("h3").forEach(h => h.style.display = "");
-$("partName").parentElement.style.display = "";
-$("laborDesc").parentElement.style.display = "";
-
-$("addPart").style.display = "";
-$("openPartPicker").style.display = "";
-$("addLabor").style.display = "";
-$("openServicePicker").style.display = "";
-      
-      // Mode création : tout est actif
-$("customerSelect").disabled = false;
-$("vehicleSelect").disabled = false;
-
-$("addPart").style.display = "";
-$("openPartPicker").style.display = "";
-$("addLabor").style.display = "";
-$("openServicePicker").style.display = "";
-
-  showPage("page-invoice-editor");
-};
-
+  // === OUVRIR LA FACTURE ===
+  openInvoiceEditModal(invoice.number);
 }
+
   
 /* ===================== INIT ALL ===================== */
 window.addEventListener('load',()=>{
