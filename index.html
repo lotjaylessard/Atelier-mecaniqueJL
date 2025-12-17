@@ -2395,9 +2395,6 @@ function saveInvoices(){
   }
 }
 
-  // === FILTRES DE RECHERCHE ET STATUT (3D) ===
-$("invoiceSearch").oninput = renderInvoiceList;
-$("invoiceStatusFilter").onchange = renderInvoiceList;
 
   function openInvoiceEditor(number) {
   const inv = INVOICES.find(i => i.number == number);
@@ -4565,6 +4562,14 @@ window.addEventListener('load',()=>{
   initLinksModule();
   loadWorkOrders();
   renderDashboard();
+
+  if ($("invoiceSearch")) {
+    $("invoiceSearch").oninput = renderInvoiceList;
+  }
+  if ($("invoiceStatusFilter")) {
+    $("invoiceStatusFilter").onchange = renderInvoiceList;
+  }
+  
 });
 }
 }
