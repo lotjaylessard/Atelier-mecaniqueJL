@@ -2367,14 +2367,19 @@ function saveInvoices(){
       <td>${money(inv.total)}</td>
       <td>${inv.status || "draft"}</td>
       <td>
-        <button class="ghost" onclick="openInvoiceEditModal(inv.number)">Ouvrir</button>
+        <button class="ghost open-invoice-btn">Ouvrir</button>
         <button class="ghost" style="margin-left:6px;color:#f55;" onclick="deleteInvoice(${inv.number})">
           Supprimer
         </button>
       </td>
     `;
 
-  tbody.appendChild(row);
+tbody.appendChild(row);
+
+row.querySelector(".open-invoice-btn")
+  .addEventListener("click", () => {
+    openInvoiceEditModal(inv.number);
+  });
 });
 }
 
