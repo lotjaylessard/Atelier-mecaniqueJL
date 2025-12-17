@@ -3960,7 +3960,14 @@ if (btnSave){
     };
   }
 
-  $("closeInvoiceEditModal")?.onclick = () => modal.style.display = "none";
+  
+const btnClose = $("closeInvoiceEditModal");
+if (btnClose){
+  btnClose.onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
 
   renderEditItems();
   renderTotalsUI();
