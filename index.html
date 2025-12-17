@@ -1336,6 +1336,11 @@ function backToWorkOrdersList(){
   $("woListCard").style.display = "block";
   $("woDetailContent").innerHTML = "";
 }
+
+
+function bindWOTimerUI(){
+  // temporaire : évite le crash global
+}
   
   
   /* Rendu des lignes d’un WO */
@@ -1434,9 +1439,6 @@ if (manualLaborCancel){
   if ($("woEstimateTotal")) $("woEstimateTotal").innerText = money(total) + " $";
 
   saveWorkOrders();
-
-  // Timer UI (boutons / affichage)
-  bindWOTimerUI();
 }
 
 
