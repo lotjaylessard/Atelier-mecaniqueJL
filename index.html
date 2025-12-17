@@ -1136,6 +1136,8 @@ function saveInvoices(){
 
 
 window.openInvoiceEditModal = function(number){
+  console.log("OPEN INVOICE", number, "INVOICES =", INVOICES);
+  
   const inv = INVOICES.find(i => String(i.number) === String(number));
   if (!inv) {
     alert("Facture introuvable : " + number);
