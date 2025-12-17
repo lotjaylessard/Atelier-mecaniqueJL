@@ -3912,27 +3912,40 @@ function renderEditUI(){
     };
   }
 
-  const btnSave = $("saveInvoiceEditBtn");
-  if (btnSave){
-    btnSave.onclick = () => {
-      inv.customer = $("editInvCustomer")?.value?.trim() || inv.customer || "";
-      inv.job = $("editInvJob")?.value?.trim() || inv.job || "";
-      inv.items = editItems;
+      
+const btnSave = $("saveInvoiceEditBtn");
+if (btnSave){
+  btnSave.onclick = () => {
 
-      const {sub,gst,qst,total} = computeTotals();
-      inv.subTotal = sub;
-      inv.gst = gst;
-      inv.qst = qst;
-      inv.total = total;
+    const custInput = $("editInvCustomer");
+    const jobInput  = $("editInvJob");
 
-      saveInvoices();
-      alert("Facture mise à jour !");
-      modal.style.display = "none";
-      renderInvoiceList?.();
-      renderHistoryTable?.();
-      renderDashboard?.();
-    };
-  }
+    if (custInput) {
+      inv.customer = custInput.value.trim();
+    }
+
+    if (jobInput) {
+      inv.job = jobInput.value.trim();
+    }
+
+    inv.items = editItems;
+
+    const {sub, gst, qst, total} = computeTotals();
+    inv.subTotal = sub;
+    inv.gst = gst;
+    inv.qst = qst;
+    inv.total = total;
+
+    saveInvoices();
+    alert("Facture mise à jour !");
+    modal.style.display = "none";
+
+    if (typeof renderInvoiceList === "function") renderInvoiceList();
+    if (typeof renderHistoryTable === "function") renderHistoryTable();
+    if (typeof renderDashboard === "function") renderDashboard();
+  };
+}
+
 
   const btnDel = $("deleteInvoiceBtn");
   if (btnDel){
