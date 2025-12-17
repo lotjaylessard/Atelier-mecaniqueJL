@@ -990,6 +990,50 @@ const $ = id => document.getElementById(id);
 function money(n){return Number(n||0).toFixed(2);}
 
 
+  /* ===================== FACTURES – RENDU UNIQUE ===================== */
+function renderInvoiceSummary(inv){
+  if (!inv) return '<div class="muted">Facture introuvable.</div>';
+
+  return `
+    <h3>Facture #${inv.number}</h3>
+    <div class="muted">${inv.date || ''}</div>
+
+    <p><b>Client :</b> ${inv.customer || ''}</p>
+    <p><b>Véhicule / Job :</b> ${inv.job || ''}</p>
+
+    <table style="width:100%;margin-top:10px;">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Qté</th>
+          <th>Prix</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${(inv.items || []).map(it=>`
+          <tr>
+            <td>${it.type}</td>
+            <td>${it.desc}</td>
+            <td>${it.qty}</td>
+            <td>${money(it.rate)} $</td>
+            <td>${money(it.qty * it.rate)} $</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <div style="text-align:right;margin-top:12px;">
+      <div>Sous-total : ${money(inv.subTotal)} $</div>
+      <div>TPS : ${money(inv.gst)} $</div>
+      <div>TVQ : ${money(inv.qst)} $</div>
+      <h3>Total : ${money(inv.total)} $</h3>
+    </div>
+  `;
+}
+
+
   /* ===================== # BT dans Work order ===================== */
   function generateWorkOrderNumber(clientName){
   if (!clientName) return "BT-UNKNOWN";
@@ -1106,46 +1150,7 @@ function openInvoiceEditModal(number){
     return;
   }
 
-  // CONTENU SIMPLE (lecture seule pour l’instant)
-  box.innerHTML = `
-    <div class="card">
-      <h3>Facture #${inv.number}</h3>
-      <div class="muted">${inv.date}</div>
-
-      <p><b>Client :</b> ${inv.customer}</p>
-      <p><b>Véhicule / Job :</b> ${inv.job}</p>
-
-      <table style="width:100%;margin-top:10px;">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Qté</th>
-            <th>Prix</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${(inv.items || []).map(it => `
-            <tr>
-              <td>${it.type}</td>
-              <td>${it.desc}</td>
-              <td>${it.qty}</td>
-              <td>${money(it.rate)} $</td>
-              <td>${money(it.qty * it.rate)} $</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>
-
-      <div style="text-align:right;margin-top:10px;">
-        <div>Sous-total : ${money(inv.subTotal)} $</div>
-        <div>TPS : ${money(inv.gst)} $</div>
-        <div>TVQ : ${money(inv.qst)} $</div>
-        <h3>Total : ${money(inv.total)} $</h3>
-      </div>
-    </div>
-  `;
+box.innerHTML = renderInvoiceSummary(inv);
 
   modal.style.display = "flex";
 }
