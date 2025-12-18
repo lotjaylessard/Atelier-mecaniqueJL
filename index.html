@@ -2906,6 +2906,8 @@ function openClientModal(id){
   if(!modal) return;
   modal.style.display='flex';
   renderClientModal(id);
+  let vehEditIndex = null;
+
 }
 function closeClientModal(){
   const modal=$('clientModal');
@@ -2992,6 +2994,7 @@ function renderClientModal(id){
     </div>
   `;
 
+
   function renderVehiclesList(){
     const wrap=$('clientVehiclesList');
     if(!wrap) return;
@@ -3006,7 +3009,8 @@ function renderClientModal(id){
           <div class="small">Plaque: ${v.plate||''} | VIN: ${v.vin||''} | KM: ${v.km||''}</div>
           <div class="small">${v.notes||''}</div>
         </div>
-        <button class="ghost" data-index="${idx}" data-role="del-veh">Suppr</button>
+        <button class="ghost" data-role="edit-veh" data-index="${i}">Modifier</button>
+        <button class="ghost" data-index="${idx}" data-role="del-veh">Supprimer</button>
       </div>
     `).join('');
     wrap.querySelectorAll('button[data-role="del-veh"]').forEach(btn=>{
@@ -3016,6 +3020,29 @@ function renderClientModal(id){
         renderVehiclesList();
       });
     });
+
+    
+    wrap.querySelectorAll('button[data-role="edit-veh"]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const idx = Number(btn.dataset.index);
+    const v = client.vehicles?.[idx];
+    if(!v) return;
+
+    vehEditIndex = idx;
+
+    // Remplir les champs du formulaire véhicule
+    $('vehMake').value  = v.make  || '';
+    $('vehModel').value = v.model || '';
+    $('vehYear').value  = v.year  || '';
+    $('vehPlate').value = v.plate || '';
+    $('vehVin').value   = v.vin   || '';
+    $('vehKm').value    = v.km    || '';
+    $('vehNotes').value = v.notes || '';
+
+    // Visuel: le bouton "Ajouter véhicule" devient "Enregistrer modifications"
+    if($('clientAddVehicleBtn')) $('clientAddVehicleBtn').textContent = "💾 Enregistrer véhicule";
+  });
+});
   }
   renderVehiclesList();
 
@@ -3072,7 +3099,20 @@ function renderClientModal(id){
         notes:$('vehNotes').value.trim()
       };
       if(!Array.isArray(client.vehicles)) client.vehicles=[];
-      client.vehicles.push(v);
+
+if (vehEditIndex !== null && client.vehicles[vehEditIndex]) {
+  // ✏️ MODIFICATION
+  client.vehicles[vehEditIndex] = {
+    ...client.vehicles[vehEditIndex],
+    ...v
+  };
+  vehEditIndex = null;
+  $('clientAddVehicleBtn').textContent = '➕ Ajouter véhicule';
+} else {
+  // ➕ AJOUT
+  client.vehicles.push(v);
+}
+
       $('vehMake').value='';
       $('vehModel').value='';
       $('vehYear').value='';
@@ -3083,6 +3123,8 @@ function renderClientModal(id){
       renderVehiclesList();
     });
   }
+
+    
   if($('clientDeleteBtn') && !isNew){
     $('clientDeleteBtn').addEventListener('click',()=>{
       if(!confirm('Supprimer ce client ?')) return;
