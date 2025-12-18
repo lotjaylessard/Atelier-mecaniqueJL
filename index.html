@@ -563,16 +563,16 @@ button.danger:hover {
       <div class="card">
         <table id="vehiclesTable">
           <thead>
-            <tr>
-              <th>Client</th>
-              <th>Marque</th>
-              <th>Modèle</th>
-              <th>Année</th>
-              <th>Plaque</th>
-              <th>VIN</th>
-              <th>KM</th>
-            </tr>
-          </thead>
+  <tr>
+    <th><button id="sortVehClient" class="ghost">Client ⬍</button></th>
+    <th><button id="sortVehMake" class="ghost">Marque ⬍</button></th>
+    <th><button id="sortVehModel" class="ghost">Modèle ⬍</button></th>
+    <th><button id="sortVehYear" class="ghost">Année ⬍</button></th>
+    <th>Plaque</th>
+    <th>VIN</th>
+    <th>KM</th>
+  </tr>
+</thead>
           <tbody></tbody>
         </table>
       </div>
@@ -1101,6 +1101,8 @@ let items = [];
 let CLIENTS = [];
 let PARTS = [];
 let SERVICES = [];
+let VEHICLES_SORT = {key: "client", dir: 1 // 1 = asc, -1 = desc};
+
 
 
   function loadInvoices(){
@@ -2899,23 +2901,73 @@ $("btnCreateCustomerFromInvoice").onclick = () => {
 
 function renderVehiclesPage(){
   const tbody = document.querySelector('#vehiclesTable tbody');
+  
   if(!tbody) return;
   tbody.innerHTML='';
-  CLIENTS.forEach(c=>{
-    (c.vehicles||[]).forEach(v=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`
-        <td>${c.name||''}</td>
-        <td>${v.make||''}</td>
-        <td>${v.model||''}</td>
-        <td>${v.year||''}</td>
-        <td>${v.plate||''}</td>
-        <td>${v.vin||''}</td>
-        <td>${v.km||''}</td>
-      `;
-      tbody.appendChild(tr);
+
+
+  // 1️⃣ Aplatir les véhicules
+const vehiclesFlat = [];
+
+CLIENTS.forEach(c => {
+  (c.vehicles || []).forEach(v => {
+    vehiclesFlat.push({
+      clientName: c.name || "",
+      make: v.make || "",
+      model: v.model || "",
+      year: Number(v.year || 0),
+      plate: v.plate || "",
+      vin: v.vin || "",
+      km: v.km || ""
     });
   });
+});
+
+// 2️⃣ Trier
+vehiclesFlat.sort((a, b) => {
+  let va = "";
+  let vb = "";
+
+  switch (VEHICLES_SORT.key) {
+    case "client":
+      va = a.clientName;
+      vb = b.clientName;
+      break;
+    case "make":
+      va = a.make;
+      vb = b.make;
+      break;
+    case "model":
+      va = a.model;
+      vb = b.model;
+      break;
+    case "year":
+      va = a.year;
+      vb = b.year;
+      break;
+  }
+
+  if (typeof va === "number") {
+    return (va - vb) * VEHICLES_SORT.dir;
+  }
+
+  return va.localeCompare(vb, "fr", { sensitivity: "base" }) * VEHICLES_SORT.dir;
+});
+
+// 3️⃣ Afficher
+vehiclesFlat.forEach(v => {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${v.clientName}</td>
+    <td>${v.make}</td>
+    <td>${v.model}</td>
+    <td>${v.year || ""}</td>
+    <td>${v.plate}</td>
+    <td>${v.vin}</td>
+    <td>${v.km}</td>
+  `;
+  tbody.appendChild(tr);
+});
 }
 
 
