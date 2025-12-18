@@ -376,24 +376,19 @@ button.danger:hover {
     <div class="page" id="page-workorders">
       <h2>Bons de travail</h2>
 
-            <div class="card" id="woDetailCard">
-        <h3>Détail du bon de travail</h3>
-        <div id="woDetailContent"></div>
-      </div>
-
       <div class="card" id="woListCard">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
           <button id="btnNewWorkOrder">➕ Nouveau bon de travail</button>
 
+         <input id="woSearch"
+                 placeholder="Rechercher (client, véhicule, # BT...)"
+                 style="flex:1;min-width:200px;">
+          
 <select id="woStatusFilter">
   <option value="">-- Tous --</option>
   <option value="en_cours">En cours</option>
   <option value="termine">Terminé</option>
 </select>
-
-          <input id="woSearch"
-                 placeholder="Rechercher (client, véhicule, # BT...)"
-                 style="flex:1;min-width:200px;">
         </div>
 
         <table id="woTable">
