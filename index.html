@@ -2650,7 +2650,9 @@ function renderInvoiceList(){
         <td>${money(inv.total)} $</td>
         <td>${inv.status || ""}</td>
         <td>
-          <button class="ghost btn-open-invoice">Ouvrir</button>
+          <button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">
+  Ouvrir
+</button>
           <button class="ghost danger btn-delete-invoice">Supprimer</button>
         </td>
       `;
