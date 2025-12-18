@@ -1161,6 +1161,29 @@ box.innerHTML = renderInvoiceSummary(inv);
   
   /* ===================== WORK ORDERS (Bons de travail) ===================== */
 
+function woRenderDetail(id){
+  const detail = $("woDetailContent");
+  if(!detail){
+    console.warn("woDetailContent absent (page non active)");
+    return;
+  }
+
+  const wo = WORKORDERS.find(w=>String(w.id)===String(id));
+  if(!wo){
+    alert("Bon de travail introuvable");
+    return;
+  }
+
+  detail.innerHTML = `
+    <div class="card">
+      <h2>Bon de travail #${wo.id}</h2>
+      <p><b>Statut :</b> ${wo.status || ''}</p>
+      <p><b>Description :</b> ${wo.desc || ''}</p>
+    </div>
+  `;
+}
+
+  
 function loadWorkOrders(){
   try{
     WORKORDERS = JSON.parse(localStorage.getItem(STORAGE.workorders) || '[]');
@@ -1894,7 +1917,7 @@ if(!detail){
   showPage('workorders'); // <- mets ici l’ID EXACT de ta page (ex: 'page-workorders' ou 'workorders' selon ton showPage)
 
   // 2) Re-tente le rendu dès que la page est active dans le DOM
-  setTimeout(()=>woRenderDetail(idWO), 0);
+  setTimeout(()=>woEditLine(woId, type, index), 0);
   return;
 }
 
@@ -2427,6 +2450,8 @@ function initWorkOrderSaveButton(){
   };
 }
 
+
+  
 
 /* ===================== SETTINGS ===================== */
 function loadSettings(){
