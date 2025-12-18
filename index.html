@@ -2761,6 +2761,8 @@ function initInvoices(){
 }
 
 /* ===================== CLIENTS ===================== */
+  let vehEditIndex = null;
+  
 function loadClients(){
   try{
     CLIENTS = JSON.parse(localStorage.getItem(STORAGE.clients) || '[]');
