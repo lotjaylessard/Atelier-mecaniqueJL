@@ -784,9 +784,6 @@ button.danger:hover {
       <option value="general">📎 Général</option>
     </select>
 
-    <label>Icône :</label>
-    <input id="linkIcon" placeholder="Ex: 🔧">
-
     <button id="addLinkBtn" style="margin-top:8px;">Ajouter le lien</button>
   </div>
 
@@ -4737,7 +4734,6 @@ function initLinksModule() {
         const name = $("linkName").value.trim();
         const url = $("linkURL").value.trim();
         const cat = $("linkCategory").value;
-        const icon = $("linkIcon").value.trim() || "🔗";
 
         if (!name || !url) return alert("Nom et URL obligatoires.");
 
@@ -4745,7 +4741,6 @@ function initLinksModule() {
 
         $("linkName").value = "";
         $("linkURL").value = "";
-        $("linkIcon").value = "";
     };
 
     $("linkSearch").oninput = renderLinks;
