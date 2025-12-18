@@ -1212,6 +1212,48 @@ function addServiceToCurrentWO(serviceId){
   alert(`Service "${srv.name}" ajouté au bon de travail.`);
 }
 
+  function addPartToCurrentWO(partIndex){
+  // 1️⃣ Identifier le WO actuellement ouvert
+  const woId = $("woEditId")?.value;
+  if (!woId){
+    alert("Aucun bon de travail ouvert.");
+    return;
+  }
+
+  const wo = WORKORDERS.find(w => String(w.id) === String(woId));
+  if (!wo){
+    alert("Bon de travail introuvable.");
+    return;
+  }
+
+  // 2️⃣ Récupérer la pièce
+  const part = PARTS[partIndex];
+  if (!part) return;
+
+  // 3️⃣ Demander la quantité
+  const qty = Number(prompt(
+    `Quantité pour "${part.name}" :`,
+    "1"
+  ));
+
+  if (!qty || qty <= 0) return;
+
+  // 4️⃣ Ajouter au WO (PAS à la facture)
+  wo.parts.push({
+    name: part.name,
+    number: part.number,
+    qty,
+    rate: Number(part.price || 0),
+    total: qty * Number(part.price || 0)
+  });
+
+  // 5️⃣ Sauvegarde + rafraîchissement
+  saveWorkOrders();
+  woRenderLines(wo);
+
+  alert(`Pièce "${part.name}" ajoutée au bon de travail.`);
+}
+
   
 function woRenderDetail(id){
   const detail = $("woDetailContent");
@@ -3446,7 +3488,9 @@ function renderParts(){
         <button class="ghost" data-action="edit" data-id="${i}" style="flex:1;">Modifier</button>
         <button class="ghost" data-action="del" data-id="${i}" style="flex:1;">Supprimer</button>
       </div>
-      <button class="ghost" data-action="addToInvoice" data-id="${i}" style="margin-top:10px;width:100%;">➕ Ajouter à la facture</button>
+      <button class="ghost" onclick="addPartToCurrentWO(${i})">
+  ➕ Ajouter au bon de travail
+</button>
     `;
     wrap.appendChild(card);
   });
