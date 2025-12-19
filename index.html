@@ -2659,10 +2659,11 @@ function renderInvoiceList(){
     });
 }
 
-  
+
   // === OUVRIR FACTURE (event delegation) ===
-if (invoiceTable){
-  invoiceTable.onclick = (e)=>{
+const invoiceTableEl = $("invoiceListTable");
+if (invoiceTableEl){
+  invoiceTableEl.addEventListener("click", (e)=>{
     const openBtn = e.target.closest(".btn-open-invoice");
     if (!openBtn) return;
 
@@ -2671,7 +2672,7 @@ if (invoiceTable){
     if (!number) return;
 
     openInvoiceEditModal(number);
-  };
+  });
 }
 
 
@@ -4964,34 +4965,6 @@ function woConvertToInvoice(wo) {
 
   // === OUVRIR LA FACTURE ===
   openInvoiceEditModal(invoice.number);
-}
-
-  
-const invoiceTable = $("invoiceListTable");
-if (invoiceTable){
-  invoiceTable.addEventListener("click", (e) => {
-    const btn = e.target.closest("button");   // ✅ important
-    if (!btn) return;
-
-    const tr = btn.closest("tr");
-    if (!tr) return;
-
-    const number = tr.dataset.number;
-
-    if (btn.classList.contains("btn-open-invoice")){
-      loadInvoices();
-      openInvoiceEditModal(number);
-      return;
-    }
-
-    if (btn.classList.contains("btn-delete-invoice")){
-      if (!confirm("Supprimer la facture " + number + " ?")) return;
-      INVOICES = INVOICES.filter(i => String(i.number) !== String(number));
-      saveInvoices();
-      renderInvoiceList();
-      return;
-    }
-  });
 }
 
   
