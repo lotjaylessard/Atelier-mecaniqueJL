@@ -447,17 +447,39 @@ button.danger:hover {
     <div class="page" id="page-invoice-editor">
       <div class="card">
         <h2>Créer Devis / Travail</h2>
-        <label>Client</label>
-<select id="customerSelect"></select>
-<button id="btnCreateCustomerFromInvoice" class="ghost" style="margin-top:6px;">➕ Nouveau client</button>
+        
+        <!-- CLIENT (CRÉATION) -->
+<div id="invoiceClientSelectBlock">
+  <label>Client</label>
+  <select id="customerSelect"></select>
+  <button id="btnCreateCustomerFromInvoice" class="ghost" style="margin-top:6px;">
+    ➕ Nouveau client
+  </button>
+</div>
 
-        <label>Numéro de facture</label>
-        <input id="invoiceNumber" disabled />
+<!-- CLIENT (LECTURE SEULE - MODIFICATION) -->
+<div id="invoiceClientReadonly" style="display:none;">
+  <label>Client</label>
+  <div class="readonly-field" id="invoiceClientText"></div>
+</div>
 
-        <label>Description / Véhicule</label>
-<select id="vehicleSelect" style="width:100%; padding:5px;">
+<label>Numéro de facture</label>
+<input id="invoiceNumber" disabled />
+
+<!-- VÉHICULE (CRÉATION) -->
+<div id="invoiceVehicleSelectBlock">
+  <label>Description / Véhicule</label>
+  <select id="vehicleSelect" style="width:100%; padding:5px;">
     <option value="">-- Choisir un véhicule --</option>
-</select>
+  </select>
+</div>
+
+<!-- VÉHICULE (LECTURE SEULE - MODIFICATION) -->
+<div id="invoiceVehicleReadonly" style="display:none;">
+  <label>Description / Véhicule</label>
+  <div class="readonly-field" id="invoiceVehicleText"></div>
+</div>
+
 
 <!-- ON GARDE jobDesc CACHÉ pour compatibilité interne -->
 <input id="jobDesc" style="display:none;" />
@@ -4463,6 +4485,17 @@ function openInvoiceEdit(number){
     setTimeout(() => {
       elVehicle.value = inv.vehicle || "";
     }, 0);
+
+    // 🔁 MODE MODIFICATION : afficher lecture seule client / véhicule
+$("invoiceClientSelectBlock").style.display = "none";
+$("invoiceVehicleSelectBlock").style.display = "none";
+
+$("invoiceClientReadonly").style.display = "block";
+$("invoiceVehicleReadonly").style.display = "block";
+
+$("invoiceClientText").textContent = inv.customer || "";
+$("invoiceVehicleText").textContent = inv.vehicle || "";
+
 
     // 🔒 Verrouiller client & véhicule (lecture seule)
 elCustomer.disabled = true;
