@@ -361,12 +361,10 @@ button.danger:hover {
       <div class="card" style="margin-top:20px;">
         <h3>Raccourcis</h3>
         <div style="display:flex;flex-wrap:wrap;gap:10px;">
-          <button class="ghost" onclick="showPage('page-invoice-editor')">+ Nouvelle facture</button>
           <button class="ghost" onclick="openNewWorkOrderFromDashboard()">+ Nouveau Work Order</button>
           <button class="ghost" onclick="showPage('page-clients')">+ Nouveau client</button>
           <button class="ghost" onclick="showPage('page-services')">Configurer services</button>
           <button class="ghost" onclick="showPage('page-parts')">Gérer inventaire</button>
-          <button onclick="document.getElementById('invoiceEditModal').style.display='flex'">
         </div>
       </div>
     </div>
@@ -446,7 +444,8 @@ button.danger:hover {
     <!-- FACTURES (création seulement) -->
     <div class="page" id="page-invoice-editor">
       <div class="card">
-        <h2>Créer Devis / Travail</h2>
+        <h2>✏️ Modifier facture</h2>
+<p class="muted">La création de facture est désactivée.</p>
         
         <!-- CLIENT (CRÉATION) -->
 <div id="invoiceClientSelectBlock">
@@ -1066,11 +1065,17 @@ function renderInvoiceSummary(inv){
 
 /* ===================== NAVIGATION ===================== */
 function showPage(id){
+  // ❌ INTERDICTION D'OUVRIR L'ÉDITEUR SANS FACTURE
+  if (id === "page-invoice-editor" && !window.currentEditingInvoice){
+    alert("La création de facture est désactivée. Ouvre une facture existante.");
+    return;
+  }
+
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   
   const pg = $(id);
-  
   if(pg) pg.style.display='block';
+
 
   if (id === "page-dashboard") {
   loadWorkOrders();
@@ -2952,7 +2957,15 @@ function renderInvoicesTable(){
   
 if($('saveInvoice')){
   $('saveInvoice').addEventListener('click',()=>{
-    if(!items.length) return alert("Aucun article dans la facture.");
+
+  // 🚫 INTERDICTION CRÉATION MANUELLE DE FACTURE
+  if (!window.currentEditingInvoice){
+    alert("La création de facture est désactivée.\nVeuillez passer par un bon de travail.");
+    return;
+  }
+
+  if(!items.length) return alert("Aucun article dans la facture.");
+
 
     let customerId = $("customerSelect").value;
     let job = $("vehicleSelect").value || "";
