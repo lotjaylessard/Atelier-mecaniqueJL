@@ -4199,7 +4199,10 @@ function openWorkOrderFromDashboard(id){
 function openInvoiceEditModal(invoiceNumber){
   const modal = $("invoiceEditModal");
   const content = $("invoiceEditContent");
-  if(!modal || !content) return;
+  if(!modal || !content){
+    alert("Interface facture introuvable.");
+    return;
+  }
 
   const inv = INVOICES.find(x => String(x.number) === String(invoiceNumber));
   if(!inv){
@@ -4207,14 +4210,70 @@ function openInvoiceEditModal(invoiceNumber){
     return;
   }
 
-  // Mode lecture seule par défaut
-  if (typeof inv.locked !== "boolean") inv.locked = true;
+  // Lecture seule
+  inv.locked = true;
 
-  // Clone items pour édition
-  let editItems = JSON.parse(JSON.stringify(inv.items || []));
-  window.editInvoiceObj = inv;
-  window.editItems = editItems;
-  }
+  // === RENDU FACTURE (résumé propre) ===
+  let rows = "";
+
+  (inv.items || []).forEach(it=>{
+    rows += `
+      <tr>
+        <td>${it.type || ""}</td>
+        <td>${it.desc || ""}</td>
+        <td style="text-align:right;">${Number(it.qty).toFixed(2)}</td>
+        <td style="text-align:right;">${money(it.rate)} $</td>
+        <td style="text-align:right;">${money((it.qty||0)*(it.rate||0))} $</td>
+      </tr>
+    `;
+  });
+
+  content.innerHTML = `
+    <h2>Facture #${inv.number}</h2>
+
+    <div class="muted" style="margin-bottom:10px;">
+      Date : ${inv.date || ""}<br>
+      Client : ${inv.customer || ""}<br>
+      Véhicule : ${inv.vehicle || ""}<br>
+      ${inv.referenceWO ? "Bon de travail : "+inv.referenceWO+"<br>" : ""}
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Qté</th>
+          <th>Prix</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+
+    <div style="text-align:right; margin-top:10px;">
+      <div>Sous-total : <b>${money(inv.subTotal)} $</b></div>
+      <div>TPS : <b>${money(inv.gst)} $</b></div>
+      <div>TVQ : <b>${money(inv.qst)} $</b></div>
+      <div style="font-size:1.2em;">TOTAL : <b>${money(inv.total)} $</b></div>
+    </div>
+
+    <div style="margin-top:15px; text-align:right;">
+      <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
+    </div>
+  `;
+
+  // === AFFICHER LA MODAL ===
+  modal.style.display = "block";
+}
+
+  function closeInvoiceModal(){
+  const modal = $("invoiceEditModal");
+  if(modal) modal.style.display = "none";
+}
+
 
   function computeTotals(){
     const sub = editItems.reduce((s,it)=> s + (Number(it.qty)||0) * (Number(it.rate)||0), 0);
