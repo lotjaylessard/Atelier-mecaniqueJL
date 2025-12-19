@@ -2659,19 +2659,41 @@ function renderInvoiceList(){
     });
 }
 
-
-  // === OUVRIR FACTURE (event delegation) ===
+  
+/* ===================== FACTURES – ACTIONS ===================== */
 const invoiceTableEl = $("invoiceListTable");
+
 if (invoiceTableEl){
   invoiceTableEl.addEventListener("click", (e)=>{
+
+    // 🔓 OUVRIR FACTURE
     const openBtn = e.target.closest(".btn-open-invoice");
-    if (!openBtn) return;
+    if (openBtn){
+      const tr = openBtn.closest("tr");
+      const number = tr?.dataset.number;
+      if (number){
+        openInvoiceEditModal(number);
+      }
+      return;
+    }
 
-    const tr = openBtn.closest("tr");
-    const number = tr?.dataset.number;
-    if (!number) return;
+    // 🗑 SUPPRIMER FACTURE
+    const deleteBtn = e.target.closest(".btn-delete-invoice");
+    if (deleteBtn){
+      const tr = deleteBtn.closest("tr");
+      const number = tr?.dataset.number;
+      if (!number) return;
 
-    openInvoiceEditModal(number);
+      const idx = INVOICES.findIndex(i => String(i.number) === String(number));
+      if (idx === -1) return;
+
+      if (!confirm(`Supprimer la facture #${number} ?`)) return;
+
+      INVOICES.splice(idx, 1);
+      saveInvoices();
+      renderInvoiceList();
+      return;
+    }
   });
 }
 
