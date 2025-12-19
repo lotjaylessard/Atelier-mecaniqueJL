@@ -4212,6 +4212,10 @@ function openInvoiceEditModal(invoiceNumber){
   }
 
   const inv = INVOICES.find(x => String(x.number) === String(invoiceNumber));
+  const clientObj = CLIENTS.find(c =>
+  String(c.name) === String(inv.customer)
+);
+
   if(!inv){
     alert("Facture introuvable.");
     return;
@@ -4278,10 +4282,33 @@ content.innerHTML = `
     <span style="color:#aaa;">Client :</span>
     <b style="color:#fff;">${inv.customer || ""}</b>
   </div>
+  
+  ${clientObj ? `
+  <div style="margin-left:12px; font-size:0.9em; color:#ccc;">
+    ${clientObj.address || ""}<br>
+    ${clientObj.phone || ""}
+  </div>
+` : ""}
+
+let vehicleObj = null;
+if (clientObj && clientObj.vehicles){
+  vehicleObj = clientObj.vehicles.find(v =>
+    `${v.year} ${v.make} ${v.model}` === inv.vehicle
+  );
+}
+
   <div>
     <span style="color:#aaa;">Véhicule :</span>
     <b style="color:#fff;">${inv.vehicle || ""}</b>
   </div>
+  
+  ${vehicleObj ? `
+  <div style="margin-left:12px; font-size:0.9em; color:#ccc;">
+    ${vehicleObj.vin ? "VIN : " + vehicleObj.vin + "<br>" : ""}
+    ${vehicleObj.plate ? "Plaque : " + vehicleObj.plate : ""}
+  </div>
+` : ""}
+
 </div>
 
   <!-- DÉTAILS -->
@@ -5178,13 +5205,36 @@ function woConvertToInvoice(wo) {
     <head>
       <title>Facture</title>
       <style>
-        body { font-family: Arial; padding: 20px; }
-        h2 { margin-top: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ccc; padding: 6px; }
-        th { background: #f0f0f0; }
-        .muted { color: #666; font-size: 0.9em; }
-      </style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 25px;
+    color: #000;
+  }
+  h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #000;
+    padding-bottom: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid #000;
+    padding: 6px;
+  }
+  th {
+    background: #eee;
+  }
+  .muted {
+    color: #555;
+  }
+  button {
+    display: none;
+  }
+</style>
     </head>
     <body>
       ${content.innerHTML}
