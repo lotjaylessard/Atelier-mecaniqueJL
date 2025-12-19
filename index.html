@@ -2967,8 +2967,18 @@ if($('saveInvoice')){
   if(!items.length) return alert("Aucun article dans la facture.");
 
 
-    let customerId = $("customerSelect").value;
-    let job = $("vehicleSelect").value || "";
+    let customerId, job;
+
+// 🔒 MODE MODIFICATION : reprendre les valeurs existantes
+if (window.currentEditingInvoice){
+  customerId = CLIENTS.find(c => c.name === window.currentEditingInvoice.customer)?.id || "";
+  job = window.currentEditingInvoice.vehicle || "";
+} else {
+  // (normalement plus utilisé, mais sécurisé)
+  customerId = $("customerSelect").value;
+  job = $("vehicleSelect").value || "";
+}
+
 
     // 🔒 ANTI-CONTOURNEMENT ABSOLU
     if (window.currentEditingInvoice){
