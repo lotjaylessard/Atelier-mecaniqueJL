@@ -4219,6 +4219,9 @@ function openInvoiceEditModal(invoiceNumber){
   // Lecture seule
   inv.locked = true;
 
+  // Calcul Balance paiement partiel
+  const balance = Math.max(0, (inv.total || 0) - (inv.paidAmount || 0));
+
   // === RENDU FACTURE (résumé propre) ===
   let rows = "";
 
@@ -4275,14 +4278,28 @@ const isLocked = inv.status === "paid";
       <div style="font-size:1.2em;">TOTAL : <b>${money(inv.total)} $</b></div>
     </div>
 
+    ${inv.status !== "unpaid" ? `
+  <div style="
+    margin-top:12px;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    background:#f9f9f9;
+  ">
+    <div><b>Montant payé :</b> ${money(inv.paidAmount)} $</div>
+    <div><b>Solde restant :</b> ${money(balance)} $</div>
+    ${inv.paidDate ? `<div class="muted">Dernier paiement : ${inv.paidDate}</div>` : ""}
+  </div>
+` : ""}
+
     <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
   <div>
     <span class="muted">Paiement :</span>
     <b>${
-      inv.status === "paid" ? "Payée" :
-      inv.status === "partial" ? "Partielle" :
-      "Impayée"
-    }</b>
+  inv.status === "paid" ? "Payée" :
+  inv.status === "partial" ? "Partielle (solde dû)" :
+  "Impayée"
+}</b>
   </div>
 
   <div>
