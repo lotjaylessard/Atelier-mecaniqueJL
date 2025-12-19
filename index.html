@@ -1835,6 +1835,7 @@ const invoice = {
   status: "unpaid",     // unpaid | partial | paid
   paidAmount: 0,
   paidDate: null,
+  payments: [],
   locked: true
 };
   // 🔩 PIÈCES
@@ -4222,6 +4223,17 @@ function openInvoiceEditModal(invoiceNumber){
   // Calcul Balance paiement partiel
   const balance = Math.max(0, (inv.total || 0) - (inv.paidAmount || 0));
 
+  let paymentsHtml = "";
+(inv.payments || []).forEach((p,i)=>{
+  paymentsHtml += `
+    <tr>
+      <td>${i+1}</td>
+      <td>${p.date}</td>
+      <td style="text-align:right;">${money(p.amount)} $</td>
+    </tr>
+  `;
+});
+
   // === RENDU FACTURE (résumé propre) ===
   let rows = "";
 
@@ -4277,6 +4289,31 @@ const isLocked = inv.status === "paid";
       <div>TVQ : <b>${money(inv.qst)} $</b></div>
       <div style="font-size:1.2em;">TOTAL : <b>${money(inv.total)} $</b></div>
     </div>
+
+    ${(inv.payments && inv.payments.length) ? `
+  <h3 style="margin-top:20px;">Historique des paiements</h3>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Date</th>
+        <th>Montant</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${paymentsHtml}
+    </tbody>
+  </table>
+
+  <div style="text-align:right; margin-top:10px;">
+    <div><b>Total facture :</b> ${money(inv.total)} $</div>
+    <div><b>Total payé :</b> ${money(inv.paidAmount)} $</div>
+    <div style="font-size:1.1em;">
+      <b>Solde restant :</b> ${money(balance)} $
+    </div>
+  </div>
+` : ""}
 
     ${inv.status !== "unpaid" ? `
   <div style="
@@ -5141,18 +5178,36 @@ function markInvoicePartial(number){
   const inv = INVOICES.find(i => String(i.number) === String(number));
   if (!inv) return;
 
-  const amt = Number(prompt("Montant payé :", inv.paidAmount || ""));
-  if (!amt || amt <= 0 || amt > inv.total) return;
+  if (!Array.isArray(inv.payments)) inv.payments = [];
 
-  inv.paidAmount = amt;
-  inv.status = amt >= inv.total ? "paid" : "partial";
+  const remaining = Math.max(0, inv.total - (inv.paidAmount || 0));
+
+  const amt = Number(
+    prompt(
+      `Montant payé (reste ${money(remaining)} $) :`,
+      remaining
+    )
+  );
+
+  if (!amt || amt <= 0 || amt > remaining) return;
+
+  // Ajouter le paiement à l'historique
+  inv.payments.push({
+    date: new Date().toLocaleDateString("fr-CA"),
+    amount: amt
+  });
+
+  // Recalculer le total payé
+  inv.paidAmount = inv.payments.reduce((s,p)=>s + p.amount, 0);
+
+  // Mettre à jour le statut
+  inv.status = inv.paidAmount >= inv.total ? "paid" : "partial";
   inv.paidDate = new Date().toLocaleDateString("fr-CA");
 
   saveInvoices();
   renderInvoiceList();
   openInvoiceEditModal(number);
 }
-
 
   
 console.log("openInvoiceEditModal =", typeof openInvoiceEditModal);
