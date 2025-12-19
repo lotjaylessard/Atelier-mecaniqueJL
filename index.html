@@ -4250,103 +4250,132 @@ function openInvoiceEditModal(invoiceNumber){
   });
 
 const isLocked = inv.status === "paid";
-  
-  content.innerHTML = `
-    <h2>Facture #${inv.number}</h2>
-    <div class="muted" style="margin-bottom:6px;">
-  Statut : <b>${
-    inv.status === "paid" ? "Payée" :
-    inv.status === "partial" ? "Partielle" :
-    "Impayée"
-  }</b>
-</div>
 
-    <div class="muted" style="margin-bottom:10px;">
-      Date : ${inv.date || ""}<br>
-      Client : ${inv.customer || ""}<br>
-      Véhicule : ${inv.vehicle || ""}<br>
-      ${inv.referenceWO ? "Bon de travail : "+inv.referenceWO+"<br>" : ""}
+  
+content.innerHTML = `
+  <!-- EN-TÊTE -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+    <div>
+      <h2 style="margin:0;">Facture #${inv.number}</h2>
+      <div class="muted">Date : ${inv.date || ""}</div>
     </div>
+    <div style="text-align:right;">
+      <div style="font-weight:bold;">${SETTINGS.garageName || ""}</div>
+      <div class="muted">Bon de travail : ${inv.referenceWO || "-"}</div>
+    </div>
+  </div>
+
+  <!-- CLIENT / VÉHICULE -->
+  <div style="
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:15px;
+    background:#fafafa;
+  ">
+    <div><b>Client :</b> ${inv.customer || ""}</div>
+    <div><b>Véhicule :</b> ${inv.vehicle || ""}</div>
+  </div>
+
+  <!-- DÉTAILS -->
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+        <th style="text-align:right;">Qté</th>
+        <th style="text-align:right;">Prix</th>
+        <th style="text-align:right;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  <!-- TOTAUX -->
+  <div style="
+    display:flex;
+    justify-content:flex-end;
+    margin-top:15px;
+  ">
+    <div style="min-width:280px;">
+      <div style="display:flex; justify-content:space-between;">
+        <span>Sous-total</span>
+        <b>${money(inv.subTotal)} $</b>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>TPS</span>
+        <b>${money(inv.gst)} $</b>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>TVQ</span>
+        <b>${money(inv.qst)} $</b>
+      </div>
+      <hr>
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        font-size:1.3em;
+      ">
+        <span>TOTAL</span>
+        <b>${money(inv.total)} $</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAIEMENTS -->
+  ${(inv.payments && inv.payments.length) ? `
+    <h3 style="margin-top:25px;">Historique des paiements</h3>
 
     <table class="table">
       <thead>
         <tr>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Qté</th>
-          <th>Prix</th>
-          <th>Total</th>
+          <th>#</th>
+          <th>Date</th>
+          <th style="text-align:right;">Montant</th>
         </tr>
       </thead>
       <tbody>
-        ${rows}
+        ${paymentsHtml}
       </tbody>
     </table>
 
-    <div style="text-align:right; margin-top:10px;">
-      <div>Sous-total : <b>${money(inv.subTotal)} $</b></div>
-      <div>TPS : <b>${money(inv.gst)} $</b></div>
-      <div>TVQ : <b>${money(inv.qst)} $</b></div>
-      <div style="font-size:1.2em;">TOTAL : <b>${money(inv.total)} $</b></div>
+    <div style="
+      margin-top:10px;
+      text-align:right;
+      font-size:1.1em;
+    ">
+      <div>Total payé : <b>${money(inv.paidAmount)} $</b></div>
+      <div>Solde restant : <b>${money(balance)} $</b></div>
     </div>
+  ` : ""}
 
-    ${(inv.payments && inv.payments.length) ? `
-  <h3 style="margin-top:20px;">Historique des paiements</h3>
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Date</th>
-        <th>Montant</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${paymentsHtml}
-    </tbody>
-  </table>
-
-  <div style="text-align:right; margin-top:10px;">
-    <div><b>Total facture :</b> ${money(inv.total)} $</div>
-    <div><b>Total payé :</b> ${money(inv.paidAmount)} $</div>
-    <div style="font-size:1.1em;">
-      <b>Solde restant :</b> ${money(balance)} $
-    </div>
-  </div>
-` : ""}
-
-    ${inv.status !== "unpaid" ? `
+  <!-- ACTIONS -->
   <div style="
-    margin-top:12px;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:6px;
-    background:#f9f9f9;
+    margin-top:20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
   ">
-    <div><b>Montant payé :</b> ${money(inv.paidAmount)} $</div>
-    <div><b>Solde restant :</b> ${money(balance)} $</div>
-    ${inv.paidDate ? `<div class="muted">Dernier paiement : ${inv.paidDate}</div>` : ""}
-  </div>
-` : ""}
+    <div class="muted">
+      Statut :
+      <b>${
+        inv.status === "paid" ? "Payée" :
+        inv.status === "partial" ? "Partielle" :
+        "Impayée"
+      }</b>
+    </div>
 
-    <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
-  <div>
-    <span class="muted">Paiement :</span>
-    <b>${
-  inv.status === "paid" ? "Payée" :
-  inv.status === "partial" ? "Partielle (solde dû)" :
-  "Impayée"
-}</b>
+    <div>
+      <button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePaid('${inv.number}')">✔ Payée</button>
+      <button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePartial('${inv.number}')">➗ Partielle</button>
+      <button class="ghost" onclick="printInvoice()">🖨 Imprimer</button>
+      <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
+    </div>
   </div>
+`;
 
-  <div>
-    <button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePaid('${inv.number}')">✔ Payée</button>
-<button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePartial('${inv.number}')">➗ Partielle</button>
-    <button class="ghost" onclick="printInvoice()">🖨 Imprimer</button>
-    <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
-  </div>
-</div>
-  `;
 
   // === AFFICHER LA MODAL ===
   modal.style.display = "block";
