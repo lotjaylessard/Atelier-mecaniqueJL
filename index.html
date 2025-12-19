@@ -4216,6 +4216,14 @@ function openInvoiceEditModal(invoiceNumber){
   String(c.name) === String(inv.customer)
 );
 
+  let vehicleObj = null;
+if (clientObj && clientObj.vehicles){
+  vehicleObj = clientObj.vehicles.find(v =>
+    `${v.year} ${v.make} ${v.model}` === inv.vehicle
+  );
+}
+
+  
   if(!inv){
     alert("Facture introuvable.");
     return;
@@ -4269,8 +4277,9 @@ content.innerHTML = `
     </div>
   </div>
 
-  <!-- CLIENT / VÉHICULE -->
-  <div style="
+
+<!-- CLIENT / VÉHICULE -->
+<div style="
   border:1px solid #444;
   border-radius:8px;
   padding:12px;
@@ -4282,34 +4291,27 @@ content.innerHTML = `
     <span style="color:#aaa;">Client :</span>
     <b style="color:#fff;">${inv.customer || ""}</b>
   </div>
-  
+
   ${clientObj ? `
-  <div style="margin-left:12px; font-size:0.9em; color:#ccc;">
-    ${clientObj.address || ""}<br>
-    ${clientObj.phone || ""}
-  </div>
-` : ""}
+    <div style="margin-left:12px; font-size:0.9em; color:#ccc;">
+      ${clientObj.address || ""}<br>
+      ${clientObj.phone || ""}
+    </div>
+  ` : ""}
 
-let vehicleObj = null;
-if (clientObj && clientObj.vehicles){
-  vehicleObj = clientObj.vehicles.find(v =>
-    `${v.year} ${v.make} ${v.model}` === inv.vehicle
-  );
-}
-
-  <div>
+  <div style="margin-top:6px;">
     <span style="color:#aaa;">Véhicule :</span>
     <b style="color:#fff;">${inv.vehicle || ""}</b>
   </div>
-  
-  ${vehicleObj ? `
-  <div style="margin-left:12px; font-size:0.9em; color:#ccc;">
-    ${vehicleObj.vin ? "VIN : " + vehicleObj.vin + "<br>" : ""}
-    ${vehicleObj.plate ? "Plaque : " + vehicleObj.plate : ""}
-  </div>
-` : ""}
 
+  ${vehicleObj ? `
+    <div style="margin-left:12px; font-size:0.9em; color:#ccc;">
+      ${vehicleObj.vin ? "VIN : " + vehicleObj.vin + "<br>" : ""}
+      ${vehicleObj.plate ? "Plaque : " + vehicleObj.plate : ""}
+    </div>
+  ` : ""}
 </div>
+
 
   <!-- DÉTAILS -->
   <table class="table">
