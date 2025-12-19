@@ -2661,7 +2661,6 @@ function renderInvoiceList(){
 
   
   // === OUVRIR FACTURE (event delegation) ===
-const invoiceTable = $("invoiceListTable");
 if (invoiceTable){
   invoiceTable.onclick = (e)=>{
     const openBtn = e.target.closest(".btn-open-invoice");
