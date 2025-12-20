@@ -4747,12 +4747,19 @@ function openInvoiceEdit(number){
 
   
 function editInvoiceFromModal(number){
-  // Ferme la modal (si ta fonction existe)
+  // sécurité facture payée (si tu veux la garder)
+  loadInvoices();
+  const inv = INVOICES.find(i => String(i.number) === String(number));
+  if (!inv) return alert("Facture introuvable.");
+  if (inv.status === "paid") return alert("Cette facture est payée et ne peut plus être modifiée.");
+
+  // fermer la modal
   if (typeof closeInvoiceModal === "function") closeInvoiceModal();
 
-  // ✅ Ouvre la facture dans l'UI identique au WO
+  // ✅ OUVRIR EN MODE WO (UI identique)
   window.openInvoiceEditModal(number);
 }
+
 
 
   function closeInvoiceModal(){
@@ -5660,7 +5667,6 @@ updateVehicleSortLabels();
     $("invoiceStatusFilter").onchange = renderInvoiceList;
   }
 });
-  }
 
   
   
