@@ -4300,7 +4300,7 @@ INVOICES
   .forEach(inv => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><button class="ghost" onclick="openInvoiceEditModal(${inv.number})">#${inv.number}</button></td>
+        <td><button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">#${inv.number}</button></td>
         <td>${inv.date}</td>
         <td>${inv.customer || ""}</td>
         <td>${inv.job || ""}</td>
@@ -4709,6 +4709,7 @@ content.innerHTML = `
 function openInvoiceEdit(number){
   // ✅ Au lieu d'ouvrir page-invoice-editor, on ouvre l'UI identique au WO
   openInvoiceEditModal(number);
+  loadInvoices();
 }
 
   
