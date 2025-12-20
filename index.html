@@ -1160,11 +1160,11 @@ window.openInvoiceEditModal = function(number){
   // transformer facture → WO temporaire
   const tempWO = invoiceToTempWO(inv);
 
-  // 🔁 UTILISER EXACTEMENT LE MÊME UI
-  openWorkOrderDetail(tempWO);
+  // mémoriser le WO temporaire (OBLIGATOIRE)
+  window.__currentTempWO = tempWO;
 
-  // flag facture
-  tempWO.__fromInvoice = true;
+  // ouvrir avec le UI WO
+  openWorkOrderDetail(tempWO);
 };
 
 
@@ -1186,7 +1186,7 @@ function addServiceToCurrentWO(serviceId){
     return;
   }
 
-  const wo = WORKORDERS.find(w => String(w.id) === String(woId));
+  const wo = getActiveWOById(woId);
   if (!wo) {
     alert("Bon de travail introuvable.");
     return;
@@ -1219,7 +1219,7 @@ function addServiceToCurrentWO(serviceId){
   });
 
   // 5️⃣ Sauvegarde + rafraîchissement
-  saveWorkOrders();
+  persistActiveWO(wo);
   woRenderLines(wo);
 
   alert(`Service "${srv.name}" ajouté au bon de travail.`);
@@ -1233,7 +1233,7 @@ function addServiceToCurrentWO(serviceId){
     return;
   }
 
-  const wo = WORKORDERS.find(w => String(w.id) === String(woId));
+  const wo = getActiveWOById(woId);
   if (!wo){
     alert("Bon de travail introuvable.");
     return;
@@ -1261,7 +1261,7 @@ function addServiceToCurrentWO(serviceId){
   });
 
   // 5️⃣ Sauvegarde + rafraîchissement
-  saveWorkOrders();
+  persistActiveWO(wo);
   woRenderLines(wo);
 
   alert(`Pièce "${part.name}" ajoutée au bon de travail.`);
@@ -1323,6 +1323,97 @@ function woRenderDetail(id){
 
     estimateTotal: invoice.total || 0
   };
+}
+
+    /* =========================================================
+   PONT: FACTURE (INVOICES) <-> WO UI (WORKORDERS)
+   ========================================================= */
+
+/* 1) Trouver le "WO actif" : vrai WO OU facture en mode WO */
+function getActiveWOById(woId){
+  // vrai WO
+  const real = WORKORDERS.find(w => String(w.id) === String(woId));
+  if (real) return real;
+
+  // facture ouverte comme WO temporaire
+  if (window.__currentTempWO && String(window.__currentTempWO.id) === String(woId)){
+    return window.__currentTempWO;
+  }
+
+  // fallback (au cas où)
+  if (window.__currentWO && String(window.__currentWO.id) === String(woId)){
+    return window.__currentWO;
+  }
+
+  return null;
+}
+
+/* 2) Sauver: si c'est une facture -> INVOICES, sinon -> WORKORDERS */
+function persistActiveWO(wo){
+  if (!wo) return;
+
+  if (wo.__fromInvoice){
+    saveTempWOToInvoice(wo);
+  } else {
+    saveWorkOrders();
+  }
+}
+
+  
+/* 3) Sauver le WO temporaire dans la facture (remplace items, recalcule totaux) */
+function saveTempWOToInvoice(tempWO){
+  if (!tempWO?.__fromInvoice) return;
+
+  loadInvoices();
+
+  const invNumber = tempWO.__invoiceNumber || String(tempWO.id || "").replace("INV-","");
+  const inv = INVOICES.find(i => String(i.number) === String(invNumber));
+  if (!inv){
+    alert("Facture introuvable pour sauvegarde.");
+    return;
+  }
+
+  // mettre à jour infos visibles
+  inv.customer = tempWO.clientName || inv.customer;
+  inv.vehicle  = tempWO.vehicleLabel || inv.vehicle;
+
+  // RECONSTRUIRE items (IMPORTANT: remplace, n'ajoute pas -> évite doublons)
+  const items = [];
+
+  (tempWO.parts || []).forEach(p=>{
+    items.push({
+      type: "Pièce",
+      desc: `${p.name || ""}${p.number ? " (#"+p.number+")" : ""}`.trim(),
+      qty: Number(p.qty) || 0,
+      rate: Number(p.rate) || 0,
+      total: (Number(p.qty) || 0) * (Number(p.rate) || 0)
+    });
+  });
+
+  (tempWO.labor || []).forEach(l=>{
+    items.push({
+      type: "Main-d'œuvre",
+      desc: l.description || "",
+      qty: Number(l.hours) || 0,
+      rate: Number(l.rate) || 0,
+      total: (Number(l.hours) || 0) * (Number(l.rate) || 0)
+    });
+  });
+
+  inv.items = items;
+
+  // Totaux
+  inv.subTotal = items.reduce((s,it)=> s + ((it.qty || 0) * (it.rate || 0)), 0);
+  inv.gst = inv.subTotal * (SETTINGS.gst / 100);
+  inv.qst = (inv.subTotal + inv.gst) * (SETTINGS.qst / 100);
+  inv.total = inv.subTotal + inv.gst + inv.qst;
+
+  saveInvoices();
+
+  // refresh UI
+  if (typeof renderInvoiceList === "function") renderInvoiceList();
+  if (typeof renderHistoryTable === "function") renderHistoryTable();
+  if (typeof renderDashboard === "function") renderDashboard();
 }
 
 
@@ -1524,7 +1615,7 @@ function woAddPartLine(wo) {
         total: qty * Number(part.price || 0)
       });
 
-      saveWorkOrders();
+      persistActiveWO(wo);
       woRenderLines(wo);
 
       modal.style.display = "none";
@@ -1598,7 +1689,7 @@ function woAddLaborLine(wo) {
         total: hours * rate
       });
 
-      saveWorkOrders();
+      persistActiveWO(wo);
       woRenderLines(wo);
 
       modal.style.display = "none";
@@ -1757,7 +1848,7 @@ function updateTimerDisplay() {
 }
 
 function woEditLine(woId, type, index) {
-  const wo = WORKORDERS.find(w => w.id == woId);
+  const wo = getActiveWOById(woId);
   if (!wo) return;
 
   const modal = $("woEditModal");
@@ -1806,7 +1897,7 @@ function woEditLine(woId, type, index) {
       line.total = line.hours * line.rate;
     }
 
-    saveWorkOrders();
+    persistActiveWO(wo);
     woRenderLines(wo);
 
     modal.style.display = "none";
@@ -1814,19 +1905,19 @@ function woEditLine(woId, type, index) {
 }
 
   
-  function woRemovePart(woId,index){
-  const wo = WORKORDERS.find(w=>w.id==woId);
+function woRemovePart(woId,index){
+  const wo = getActiveWOById(woId);
   if(!wo) return;
   wo.parts.splice(index,1);
-  saveWorkOrders();
+  persistActiveWO(wo);
   woRenderLines(wo);
 }
 
 function woRemoveLabor(woId,index){
-  const wo = WORKORDERS.find(w=>w.id==woId);
+  const wo = getActiveWOById(woId);
   if(!wo) return;
   wo.labor.splice(index,1);
-  saveWorkOrders();
+  persistActiveWO(wo);
   woRenderLines(wo);
 }
 
@@ -2010,7 +2101,7 @@ function deleteWorkOrder(id){
   // 🔥 ICI : UI EXACTE du WO (celle que tu connais)
   detail.innerHTML += `
     <div class="card">
-      <h2>Bon de travail #${wo.number}</h2>
+      <h2>${wo.__fromInvoice ? "Facture" : "Bon de travail"} #${wo.number}</h2>
       <p><b>Client :</b> ${wo.clientName}</p>
       <p><b>Véhicule :</b> ${wo.vehicleLabel}</p>
     </div>
@@ -2057,7 +2148,12 @@ function deleteWorkOrder(id){
 
     <div class="card" style="text-align:right;">
       <h3>Total estimé : <span id="woEstimateTotal">0.00 $</span></h3>
-      <button class="ghost" onclick="backToWorkOrdersList()">⬅ Retour</button>
+      ${wo.__fromInvoice ? `
+  <button class="ghost" onclick="saveTempWOToInvoice(window.__currentWO); alert('Facture enregistrée !');">💾 Enregistrer facture</button>
+  <button class="ghost" onclick="showPage('page-invoice-list')">⬅ Retour</button>
+` : `
+  <button class="ghost" onclick="backToWorkOrdersList()">⬅ Retour</button>
+`}
     </div>
   `;
 
