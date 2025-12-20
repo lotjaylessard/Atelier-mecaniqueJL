@@ -4707,90 +4707,17 @@ content.innerHTML = `
 
 
 function openInvoiceEdit(number){
-  const inv = INVOICES.find(i => String(i.number) === String(number));
-  if (!inv) return;
-
-  // 🔒 Sécurité : facture payée = non modifiable
-  if (inv.status === "paid"){
-    alert("Facture payée — modification interdite.");
-    return;
-  }
-
-  // 1️⃣ Aller sur LA BONNE page
-  showPage("page-invoice-editor");
-
-  // 2️⃣ Attendre que le DOM soit visible
-  setTimeout(() => {
-
-    // ✅ IDS RÉELS DE TON HTML
-    const elCustomer = $("customerSelect");
-    const elVehicle  = $("vehicleSelect");
-    const elNumber   = $("invoiceNumber");
-
-    if (!elCustomer || !elVehicle || !elNumber){
-      alert("Champs facture introuvables (IDs incorrects).");
-      return;
-    }
-
-    // 3️⃣ Remplir les champs
-    elNumber.value = inv.number || "";
-    elCustomer.value = inv.customer || "";
-    elCustomer.dispatchEvent(new Event("change"));
-
-    // Sélectionner le véhicule après chargement
-    setTimeout(() => {
-      elVehicle.value = inv.vehicle || "";
-    }, 0);
-
-    // 🔁 MODE MODIFICATION : afficher lecture seule client / véhicule
-$("invoiceClientSelectBlock").style.display = "none";
-$("invoiceVehicleSelectBlock").style.display = "none";
-
-$("invoiceClientReadonly").style.display = "block";
-$("invoiceVehicleReadonly").style.display = "block";
-
-$("invoiceClientText").textContent = inv.customer || "";
-$("invoiceVehicleText").textContent = inv.vehicle || "";
-
-
-    // 🔒 Verrouiller client & véhicule (lecture seule)
-elCustomer.disabled = true;
-elVehicle.disabled = true;
-
-    // 4️⃣ Charger les items
-    items = JSON.parse(JSON.stringify(inv.items || []));
-    renderItems();
-
-    // 5️⃣ Marquer comme facture en édition
-    window.currentEditingInvoice = inv;
-
-  }, 0);
+  // ✅ Au lieu d'ouvrir page-invoice-editor, on ouvre l'UI identique au WO
+  openInvoiceEditModal(number);
 }
 
   
-  function editInvoiceFromModal(number){
-  const inv = INVOICES.find(i => String(i.number) === String(number));
-  if (!inv) return;
+function editInvoiceFromModal(number){
+  // Ferme la modal (si ta fonction existe)
+  if (typeof closeInvoiceModal === "function") closeInvoiceModal();
 
-  // Sécurité absolue
-  if (inv.status === "paid"){
-    alert("Cette facture est payée et ne peut plus être modifiée.");
-    return;
-  }
-
-  // Fermer la modal
-  closeInvoiceModal();
-
-  // Ouvrir la facture en mode édition
-  // (adapte si ton nom de page est différent)
-  showPage("page-invoice");
-
-  // Charger la facture dans l’éditeur existant
-  if (typeof openInvoiceEdit === "function"){
-    openInvoiceEdit(number);
-  } else {
-    alert("Fonction d’édition de facture introuvable.");
-  }
+  // ✅ Ouvre la facture dans l'UI identique au WO
+  openInvoiceEditModal(number);
 }
 
 
