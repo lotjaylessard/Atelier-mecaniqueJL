@@ -442,114 +442,6 @@ button.danger:hover {
 </div>
 
 
-    <!-- FACTURES (création seulement) -->
-    <div class="page" id="page-invoice-editor">
-      <div class="card">
-        <h2>✏️ Modifier facture</h2>
-<p class="muted">La création de facture est désactivée.</p>
-        
-        <!-- CLIENT (CRÉATION) -->
-<div id="invoiceClientSelectBlock">
-  <label>Client</label>
-  <select id="customerSelect"></select>
-  <button id="btnCreateCustomerFromInvoice" class="ghost" style="margin-top:6px;">
-    ➕ Nouveau client
-  </button>
-</div>
-
-<!-- CLIENT (LECTURE SEULE - MODIFICATION) -->
-<div id="invoiceClientReadonly" style="display:none;">
-  <label>Client</label>
-  <div class="readonly-field" id="invoiceClientText"></div>
-</div>
-
-<label>Numéro de facture</label>
-<input id="invoiceNumber" disabled />
-
-<!-- VÉHICULE (CRÉATION) -->
-<div id="invoiceVehicleSelectBlock">
-  <label>Description / Véhicule</label>
-  <select id="vehicleSelect" style="width:100%; padding:5px;">
-    <option value="">-- Choisir un véhicule --</option>
-  </select>
-</div>
-
-<!-- VÉHICULE (LECTURE SEULE - MODIFICATION) -->
-<div id="invoiceVehicleReadonly" style="display:none;">
-  <label>Description / Véhicule</label>
-  <div class="readonly-field" id="invoiceVehicleText"></div>
-</div>
-
-
-<!-- ON GARDE jobDesc CACHÉ pour compatibilité interne -->
-<input id="jobDesc" style="display:none;" />
-
-        <h3>Ajouter une pièce</h3>
-        <label>Nom pièce / description</label>
-        <input id="partName" />
-        <label>Quantité</label>
-        <input id="partQty" type="number" value="1" />
-        <label>Prix unitaire</label>
-        <input id="partPrice" type="number" />
-        <button id="addPart">Ajouter pièce</button>
-        <button id="openPartPicker" class="ghost">
-    ➕ Ajouter une pièce enregistrée
-  </button>
-
-        <h3>Ajouter main-d'œuvre</h3>
-        <label>Description</label>
-        <input id="laborDesc" />
-        <label>Heures</label>
-        <input id="laborHours" type="number" step="0.1" />
-        <label>Taux / h</label>
-        <input id="laborRate" type="number" step="0.01" />
-        <button id="addLabor">Ajouter main-d'œuvre</button>
-
-        <button id="openServicePicker" class="ghost" style="margin-top:8px;">
-          ➕ Ajouter un service enregistré
-        </button>
-
-        <h3>Articles</h3>
-        <table id="itemsTable">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Description</th>
-              <th>Qté/hrs</th>
-              <th>Prix</th>
-              <th>Total</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-
-        <h3>Totaux</h3>
-        <div>Sous-total: <span id="subTotal">0.00</span> $</div>
-        <div>TPS: <span id="gstAmount">0.00</span> $</div>
-        <div>TVQ: <span id="qstAmount">0.00</span> $</div>
-        <div><strong>Total: <span id="totalAmount">0.00</span> $</strong></div>
-
-        <h3>Statut de la facture</h3>
-<select id="invoiceStatus">
-  <option value="draft">Brouillon</option>
-  <option value="pending">En attente de paiement</option>
-  <option value="paid">Payée</option>
-</select>
-
-<button id="markInvoicePaid" class="ghost" style="margin-top:10px;">
-  ✔ Marquer comme payée
-</button>
-
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button id="saveInvoice">Enregistrer facture</button>
-          <button id="clearItems" class="ghost">Vider</button>
-        </div>
-      </div>
-
-      <div id="printArea" style="display:none"></div>
-    </div>
-
     <!-- CLIENTS -->
     <div class="page" id="page-clients">
       <h2>Gestion des clients</h2>
@@ -1076,14 +968,6 @@ function loadInvoiceIntoEditor(inv){
   if (typeof renderItems === "function") renderItems();
 }
   
-  
-/* ===================== NAVIGATION ===================== */
-function showPage(id){
-  // ❌ INTERDICTION D'OUVRIR L'ÉDITEUR SANS FACTURE
-  if (id === "page-invoice-editor" && !window.currentEditingInvoice){
-    alert("La création de facture est désactivée. Ouvre une facture existante.");
-    return;
-  }
 
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   
@@ -1109,17 +993,8 @@ function showPage(id){
   loadInvoices();
   renderInvoiceList();
   break;
-
-  case "page-invoice-editor":
-  if (window.currentEditingInvoice){
-    loadInvoiceIntoEditor(window.currentEditingInvoice);
-  } else {
-    resetInvoiceForm();
-  }
-  break;
-
-  }
 }
+
 
 document.querySelectorAll('.navBtn').forEach(btn=>{
   btn.addEventListener('click',()=>showPage(btn.dataset.page));
@@ -5036,7 +4911,7 @@ function openInvoiceAsWO(number){
 
 
 function openInvoiceEdit(number){
-  // ✅ Au lieu d'ouvrir page-invoice-editor, on ouvre l'UI identique au WO
+  // ✅ On ouvre l'UI identique au WO
   openInvoiceEditModal(number);
   loadInvoices();
 }
@@ -5061,9 +4936,6 @@ if ($("invoiceEditModal")) {
 
  // 🔒 Forcer TOUTES les pages à se fermer visuellement
 document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-
-// 👉 Ouvrir l’éditeur de facture AU PREMIER PLAN
-showPage("page-invoice-editor");
 
 // 🔝 Sécurité : scroll en haut
 window.scrollTo(0, 0);
