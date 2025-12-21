@@ -1151,23 +1151,6 @@ function saveInvoices(){
 };
 
 
-window.openInvoiceEditModal = function(number){
-  loadInvoices();
-
-  const inv = INVOICES.find(i => String(i.number) === String(number));
-  if (!inv) return alert("Facture introuvable.");
-
-  // transformer facture → WO temporaire
-  const tempWO = invoiceToTempWO(inv);
-
-  // mémoriser le WO temporaire (OBLIGATOIRE)
-  window.__currentTempWO = tempWO;
-
-  // ouvrir avec le UI WO
-  openWorkOrderDetail(tempWO);
-};
-
-
   if ($("closeInvoiceEditModal")){
   $("closeInvoiceEditModal").onclick = () => {
     $("invoiceEditModal").style.display = "none";
