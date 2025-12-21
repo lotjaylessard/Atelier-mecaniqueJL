@@ -4743,17 +4743,19 @@ function openInvoiceEdit(number){
 
   
 function editInvoiceFromModal(number){
-  // sécurité facture payée (si tu veux la garder)
   loadInvoices();
+
   const inv = INVOICES.find(i => String(i.number) === String(number));
-  if (!inv) return alert("Facture introuvable.");
-  if (inv.status === "paid") return alert("Cette facture est payée et ne peut plus être modifiée.");
+  if (!inv){
+    alert("Facture introuvable : " + number);
+    return;
+  }
 
-  // fermer la modal
-  if (typeof closeInvoiceModal === "function") closeInvoiceModal();
+  // 🔐 DÉBLOCAGE LOGIQUE CRITIQUE
+  window.currentEditingInvoice = inv;
 
-  // ✅ OUVRIR EN MODE WO (UI identique)
-  window.openInvoiceEditModal(number);
+  // Navigation autorisée
+  showPage("page-invoice-editor");
 }
 
 
