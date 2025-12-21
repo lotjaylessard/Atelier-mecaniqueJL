@@ -1461,12 +1461,11 @@ function saveTempWOToInvoice(tempWO){
 }
 
 
-  function renderInvoiceAsWO(wo){
-    
+function renderInvoiceAsWO(wo){
   const detail = $("woDetailContent");
   if (!detail) return;
 
-  // 🔁 titre adapté
+  // 🔁 titre adapté + boutons
   detail.innerHTML = `
     <div class="card">
       <h2>Facture #${wo.number}</h2>
@@ -1474,14 +1473,11 @@ function saveTempWOToInvoice(tempWO){
       <p><b>Client :</b> ${wo.clientName}</p>
       <p><b>Véhicule :</b> ${wo.vehicleLabel}</p>
     </div>
-    
-    detail.innerHTML += `
-  <div class="card">
-    <button class="ghost" onclick="woAddPartLine(window.__currentTempWO)">➕ Ajouter une pièce</button>
-    <button class="ghost" onclick="woAddLaborLine(window.__currentTempWO)">➕ Ajouter main-d'œuvre</button>
-  </div>
-`;
 
+    <div class="card">
+      <button class="ghost" onclick="woAddPartLine(window.__currentTempWO)">➕ Ajouter une pièce</button>
+      <button class="ghost" onclick="woAddLaborLine(window.__currentTempWO)">➕ Ajouter main-d'œuvre</button>
+    </div>
   `;
 
   // ⚠️ on réutilise EXACTEMENT le moteur WO
