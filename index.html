@@ -4814,8 +4814,12 @@ if(!inv){
   return;
 }
 
-  let vehicleObj = null;
-if (clientObj && clientObj.vehicles){
+  // ✅ clientObj manquant (corrige: clientObj is not defined)
+const clientObj = CLIENTS.find(c => String(c.name) === String(inv.customer));
+
+// ✅ véhicule du client (si présent)
+let vehicleObj = null;
+if (clientObj && Array.isArray(clientObj.vehicles)){
   vehicleObj = clientObj.vehicles.find(v =>
     `${v.year} ${v.make} ${v.model}` === inv.vehicle
   );
@@ -5017,6 +5021,12 @@ content.innerHTML = `
 
   // === AFFICHER LA MODAL ===
   modal.style.display = "block";
+}
+
+
+  // ✅ Alias pour compatibilité (le tableau appelle openInvoiceAsWO)
+function openInvoiceAsWO(number){
+  return openInvoiceEditModal(number);
 }
 
 
