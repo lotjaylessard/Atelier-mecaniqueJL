@@ -1427,6 +1427,7 @@ function persistActiveWO(wo){
   }
 }
 
+  
   function saveInvoiceFromWO(){
   const wo = window.__currentTempWO;
   if (!wo){
@@ -1434,13 +1435,30 @@ function persistActiveWO(wo){
     return;
   }
 
-  // 🔒 Sauvegarde vers la facture
+  // 🔒 1) Sauvegarder les modifications dans la facture
   persistActiveWO(wo);
 
-  alert("Modifications enregistrées.");
+  const invoiceNumber = wo.number; // garder le numéro AVANT nettoyage
 
-  // optionnel : rafraîchir totaux / listes
+  // 🔄 2) Recharger les factures
   loadInvoices();
+
+  // 🧹 3) Nettoyer l’état Work Order / Facture
+  window.__currentTempWO = null;
+  window.__currentWO = null;
+  window.currentEditingInvoice = null;
+
+  if ($("woDetailCard")) $("woDetailCard").style.display = "none";
+  if ($("woListCard")) $("woListCard").style.display = "block";
+  if ($("woDetailContent")) $("woDetailContent").innerHTML = "";
+
+  // 🧭 4) Retour à la page Factures
+  showPage("page-invoice-list");
+
+  // 🪟 5) Rouvrir le MODAL de la facture modifiée
+  setTimeout(()=>{
+    openInvoiceEditModal(invoiceNumber);
+  }, 50);
 }
 
   
