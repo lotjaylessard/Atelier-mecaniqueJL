@@ -1351,6 +1351,8 @@ window.openInvoiceAsWorkOrder = function(number){
   // 2) Aller sur la page Work Orders (UI identique)
   showPage("page-workorders");
 
+  initWorkOrdersModule(); // 🔑 charge l’UI complète du Work Order
+
   // 3) Masquer la liste et afficher le détail
   if ($("woListCard")) $("woListCard").style.display = "none";
   if ($("woDetailCard")) $("woDetailCard").style.display = "block";
@@ -1460,6 +1462,7 @@ function saveTempWOToInvoice(tempWO){
 
 
   function renderInvoiceAsWO(wo){
+    
   const detail = $("woDetailContent");
   if (!detail) return;
 
@@ -1467,10 +1470,18 @@ function saveTempWOToInvoice(tempWO){
   detail.innerHTML = `
     <div class="card">
       <h2>Facture #${wo.number}</h2>
-      <p class="muted">Modification de facture (UI bon de travail)</p>
+      <p class="muted">Modification de facture</p>
       <p><b>Client :</b> ${wo.clientName}</p>
       <p><b>Véhicule :</b> ${wo.vehicleLabel}</p>
     </div>
+    
+    detail.innerHTML += `
+  <div class="card">
+    <button class="ghost" onclick="woAddPartLine(window.__currentTempWO)">➕ Ajouter une pièce</button>
+    <button class="ghost" onclick="woAddLaborLine(window.__currentTempWO)">➕ Ajouter main-d'œuvre</button>
+  </div>
+`;
+
   `;
 
   // ⚠️ on réutilise EXACTEMENT le moteur WO
