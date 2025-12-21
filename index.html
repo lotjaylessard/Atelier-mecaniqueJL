@@ -2919,6 +2919,7 @@ function renderInvoiceList(){
         <td>${inv.status || ""}</td>
         <td>
         <button class="ghost btn-open-invoice">Ouvrir</button>
+        <button class="ghost btn-edit-invoice">Modifier</button>
         <button class="ghost danger btn-delete-invoice">Supprimer</button>
         </td>
       `;
@@ -2944,6 +2945,18 @@ if (invoiceTableEl){
       }
       return;
     }
+
+    // MODIFIER FACTURE
+    const btnEdit = e.target.closest(".btn-edit-invoice");
+if (btnEdit){
+  const tr = btnEdit.closest("tr");
+  const number = tr?.dataset?.number;
+  if (!number) return;
+
+  // IMPORTANT: ouvre l'UI WO-like (pas l'ancien editor)
+  openInvoiceAsWO(number);
+  return;
+}
 
     // 🗑 SUPPRIMER FACTURE
     const deleteBtn = e.target.closest(".btn-delete-invoice");
