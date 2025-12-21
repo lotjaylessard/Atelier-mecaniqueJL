@@ -4745,7 +4745,7 @@ content.innerHTML = `
 
   <button class="ghost"
   ${isLocked ? "disabled title='Facture payée — modification verrouillée'" : ""}
-  onclick="editInvoiceFromModal('${inv.number}')">
+  onclick="openInvoiceAsWorkOrder('${inv.number}')">
   ✏️ Modifier
 </button>
 
