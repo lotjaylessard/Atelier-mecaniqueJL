@@ -4898,6 +4898,15 @@ content.innerHTML = `
 }
 
 
+  function preventLegacyInvoiceEditor(){
+  const legacy = $("page-invoice-editor");
+  if (legacy){
+    legacy.remove();
+    console.warn("page-invoice-editor supprimée (sécurité)");
+  }
+}
+
+
   // ✅ Alias pour compatibilité (le tableau appelle openInvoiceAsWO)
 function openInvoiceAsWO(number){
   // 🔥 fermer le modal facture
@@ -4918,9 +4927,7 @@ function openInvoiceEdit(number){
 
   
 function editInvoiceFromModal(number){
-  // 🔥 FERMER LE MODAL FACTURE AVANT NAVIGATION
-if ($("invoiceEditModal")) {
-  $("invoiceEditModal").style.display = "none";
+  openInvoiceAsWO(number);
 }
 
   loadInvoices();
@@ -5829,6 +5836,7 @@ console.log("openInvoiceEditModal =", typeof openInvoiceEditModal);
   
 /* ===================== INIT ALL ===================== */
 window.addEventListener('load',()=>{
+  preventLegacyInvoiceEditor();
   initSettings();
   initInvoices();
   initClientsModule();
