@@ -1465,25 +1465,68 @@ function renderInvoiceAsWO(wo){
   const detail = $("woDetailContent");
   if (!detail) return;
 
-  // 🔁 titre adapté + boutons
+  // 🔑 Réutiliser EXACTEMENT le layout du Work Order
   detail.innerHTML = `
     <div class="card">
       <h2>Facture #${wo.number}</h2>
-      <p class="muted">Modification de facture</p>
+      <p class="muted">Modification de facture (UI bon de travail)</p>
       <p><b>Client :</b> ${wo.clientName}</p>
       <p><b>Véhicule :</b> ${wo.vehicleLabel}</p>
     </div>
 
+    <!-- BOUTONS D’AJOUT -->
     <div class="card">
       <button class="ghost" onclick="woAddPartLine(window.__currentTempWO)">➕ Ajouter une pièce</button>
       <button class="ghost" onclick="woAddLaborLine(window.__currentTempWO)">➕ Ajouter main-d'œuvre</button>
     </div>
+
+    <!-- PIÈCES -->
+    <div class="card">
+      <h3>Pièces</h3>
+      <table id="woPartsTable">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Qté</th>
+            <th>Prix</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="muted">Total pièces : <span id="woPartsTotal">0.00 $</span></div>
+    </div>
+
+    <!-- MAIN-D’ŒUVRE -->
+    <div class="card">
+      <h3>Main-d'œuvre</h3>
+      <table id="woLaborTable">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Heures</th>
+            <th>Taux</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="muted">Total main-d'œuvre : <span id="woLaborTotal">0.00 $</span></div>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="card">
+      <h3>Total estimé</h3>
+      <div><strong id="woEstimateTotal">0.00 $</strong></div>
+    </div>
   `;
 
-  // ⚠️ on réutilise EXACTEMENT le moteur WO
+  // 🔁 RENDRE LES LIGNES EXISTANTES (CRITIQUE)
   woRenderLines(wo);
 
-  // 🔒 bloquer actions interdites
+  // 🔒 Bloquer actions interdites pour facture
   lockInvoiceUI();
 }
 
