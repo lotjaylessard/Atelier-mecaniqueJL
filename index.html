@@ -5010,7 +5010,7 @@ content.innerHTML = `
 
   <button class="ghost"
   ${isLocked ? "disabled title='Facture payée — modification verrouillée'" : ""}
-  onclick="editInvoiceFromModal('${inv.number}')">✏️ Modifier</button>
+  onclick="openInvoiceAsWO('${inv.number}')">✏️ Modifier</button>
   <button class="ghost" onclick="printInvoice()">🖨 Imprimer</button>
   <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
 </div>
@@ -5025,7 +5025,13 @@ content.innerHTML = `
 
   // ✅ Alias pour compatibilité (le tableau appelle openInvoiceAsWO)
 function openInvoiceAsWO(number){
-  return openInvoiceEditModal(number);
+  // 🔥 fermer le modal facture
+  if ($("invoiceEditModal")) {
+    $("invoiceEditModal").style.display = "none";
+  }
+
+  // 🔁 ouvrir la facture en mode Work Order
+  openInvoiceAsWorkOrder(number);
 }
 
 
