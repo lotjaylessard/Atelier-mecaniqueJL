@@ -1820,8 +1820,8 @@ function woRenderLines(wo) {
       <td>${money(p.rate)}$</td>
       <td>${money(p.qty*p.rate)}$</td>
       <td>
-        <button class="ghost" onclick="woEditLine(${wo.id},'part',${i})">✏️</button>
-        <button class="ghost" onclick="woRemovePart(${wo.id},${i})">🗑</button>
+        <button class="ghost" onclick="woEditLine('${wo.id}','part',${i})">✏️</button>
+<button class="ghost" onclick="woRemovePart('${wo.id}',${i})">🗑</button>
       </td>
     </tr>
   `).join("");
@@ -1884,8 +1884,8 @@ if (manualLaborCancel){
       <td>${money(l.rate)}$</td>
       <td>${money(l.hours*l.rate)}$</td>
       <td>
-        <button class="ghost" onclick="woEditLine(${wo.id},'labor',${i})">✏️</button>
-        <button class="ghost" onclick="woRemoveLabor(${wo.id},${i})">🗑</button>
+        <button class="ghost" onclick="woEditLine('${wo.id}','labor',${i})">✏️</button>
+<button class="ghost" onclick="woRemoveLabor('${wo.id}',${i})">🗑</button>
       </td>
     </tr>
   `).join("");
