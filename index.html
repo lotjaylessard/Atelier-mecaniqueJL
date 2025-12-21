@@ -4899,7 +4899,7 @@ content.innerHTML = `
 
 
   function preventLegacyInvoiceEditor(){
-  const legacy = $("page-invoice-editor");
+  const legacy = document.getElementById("page-invoice-editor");
   if (legacy){
     legacy.remove();
     console.warn("page-invoice-editor supprimée (sécurité)");
