@@ -1394,11 +1394,19 @@ function getActiveWOById(woId){
 
   
   function backToInvoiceList(){
-  // nettoyer l’état temporaire
+  // 🧹 1) NETTOYER LE MODE FACTURE
   window.__currentTempWO = null;
   window.__currentWO = null;
+  window.currentEditingInvoice = null;
 
-  // réafficher la liste des factures
+  // 🧹 2) RÉTABLIR L’UI WORK ORDERS
+  if ($("woDetailCard")) $("woDetailCard").style.display = "none";
+  if ($("woListCard")) $("woListCard").style.display = "block";
+
+  // 🧹 3) VIDER LE CONTENU DÉTAIL
+  if ($("woDetailContent")) $("woDetailContent").innerHTML = "";
+
+  // 🧭 4) RETOUR À LA LISTE DES FACTURES
   showPage("page-invoice-list");
 }
 
