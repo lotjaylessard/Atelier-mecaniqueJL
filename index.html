@@ -3500,59 +3500,73 @@ function refreshInvoiceClientSelect() {
 
 /* ======== REMPLIR LE MENU DES VÉHICULES ======== */
 function refreshVehicleListForInvoice() {
-    const customerId = $("customerSelect").value;
-    const select = $("vehicleSelect");
-    select.innerHTML = "";
+  const cs = $("customerSelect");
+  const select = $("vehicleSelect");
 
-    const opt0 = document.createElement("option");
-    opt0.value = "";
-    opt0.textContent = "-- Choisir un véhicule --";
-    select.appendChild(opt0);
+  if (!cs || !select) return;
 
-    if (!customerId) return;
+  const customerId = cs.value;
+  select.innerHTML = "";
 
-    const clientObj = CLIENTS.find(c => String(c.id) === String(customerId));
-    if (!clientObj || !Array.isArray(clientObj.vehicles)) return;
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "-- Choisir un véhicule --";
+  select.appendChild(opt0);
 
-    clientObj.vehicles.forEach(v => {
-        const opt = document.createElement("option");
-        opt.value = `${v.year} ${v.make} ${v.model} - ${v.plate}`;
-        opt.textContent = `${v.year} ${v.make} ${v.model} (${v.plate})`;
-        select.appendChild(opt);
-    });
+  if (!customerId) return;
+
+  const clientObj = CLIENTS.find(c => String(c.id) === String(customerId));
+  if (!clientObj || !Array.isArray(clientObj.vehicles)) return;
+
+  clientObj.vehicles.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = `${v.year} ${v.make} ${v.model} - ${v.plate}`;
+    opt.textContent = `${v.year} ${v.make} ${v.model} (${v.plate})`;
+    select.appendChild(opt);
+  });
 }
 
+
 /* ======== Quand on change de client => Raffraîchir les véhicules ======== */
-$("customerSelect").addEventListener("change", refreshVehicleListForInvoice);
+const cs = $("customerSelect");
+if (cs) {
+  cs.addEventListener("change", refreshVehicleListForInvoice);
+}
 
   
-  /* ======== AJOUT : créer un client pendant une facture ======== */
-$("btnCreateCustomerFromInvoice").onclick = () => {
-  const name = prompt("Nom du nouveau client :");
-  if (!name) return;
+/* ======== AJOUT : créer un client pendant une facture ======== */
+const btnNewClient = $("btnCreateCustomerFromInvoice");
+if (btnNewClient) {
+  btnNewClient.onclick = () => {
+    const name = prompt("Nom du nouveau client :");
+    if (!name) return;
 
-  const phone = prompt("Téléphone (optionnel) :") || "";
-  const email = prompt("Email (optionnel) :") || "";
-  const address = prompt("Adresse (optionnel) :") || "";
+    const phone = prompt("Téléphone (optionnel) :") || "";
+    const email = prompt("Email (optionnel) :") || "";
+    const address = prompt("Adresse (optionnel) :") || "";
 
-  const newClient = {
-    id: Date.now(),
-    name,
-    phone,
-    email,
-    address,
-    vehicles: []
+    const newClient = {
+      id: Date.now(),
+      name,
+      phone,
+      email,
+      address,
+      vehicles: []
+    };
+
+    CLIENTS.push(newClient);
+    saveClients();
+    refreshInvoiceClientSelect();
+
+    if ($("customerSelect")) {
+      $("customerSelect").value = newClient.id;
+    }
+
+    alert("Client ajouté !");
+    renderClientsTable();
   };
+}
 
-  CLIENTS.push(newClient);
-  saveClients();
-  refreshInvoiceClientSelect();
-
-  $("customerSelect").value = newClient.id;
-
-  alert("Client ajouté !");
-  renderClientsTable();
-};
 
 function renderVehiclesPage(){
   const tbody = document.querySelector('#vehiclesTable tbody');
