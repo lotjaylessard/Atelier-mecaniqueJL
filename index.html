@@ -5917,9 +5917,9 @@ function saveVehicleEdit(){
   v.vin  = $("vehEditVin").value.trim();
   v.km   = Number($("vehEditKm").value) || 0;
 
-  saveClients();              // 🔒 CRITIQUE
-  renderVehiclesTable();      // refresh vue
-  closeVehicleEdit();
+  saveClients();                 // 🔒 sauvegarde réelle
+  closeVehicleEdit();            // ferme le modal
+  showPage("page-vehicles");     // 🔁 refresh CORRECT
 } 
   
   
