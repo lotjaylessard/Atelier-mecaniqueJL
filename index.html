@@ -124,11 +124,20 @@
       padding:10px 20px;
       z-index:9;
     }
+    
     #appPages{
-      margin-left:220px;
-      margin-top:70px;
-      padding:20px;
-    }
+  position: relative;
+  margin-left: 220px;
+  margin-top: 70px;
+
+  width: calc(100vw - 220px);
+  min-height: calc(100vh - 70px);
+
+  padding: 20px;
+
+  overflow-x: hidden;
+}
+
     .page{display:none;}
 
     /* Dashboard cards */
