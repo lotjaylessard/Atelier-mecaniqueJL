@@ -906,6 +906,15 @@ const $ = id => document.getElementById(id);
 function money(n){return Number(n||0).toFixed(2);}
 
 
+  function formatVehicleLabel(v){
+  if (!v) return "";
+  const y = v.year || "";
+  const m = v.make || "";
+  const md = v.model || "";
+  return `${y} ${m} ${md}`.trim();
+}
+
+
   /* ===================== FACTURES – RENDU UNIQUE ===================== */
 function renderInvoiceSummary(inv){
   if (!inv) return '<div class="muted">Facture introuvable.</div>';
@@ -2519,7 +2528,7 @@ const statusLabel =
       <div style="margin-top:6px;">
   <b>Client :</b> ${wo.clientName || ""}<br>
   <b>Véhicule :</b> ${wo.vehicleLabel || ""}<br>
-  <b>Problème :</b>
+  <b>Description Problème/Travail :</b>
 <span style="
   background: #ffeb3b;
   color: #000;
@@ -3609,9 +3618,9 @@ CLIENTS.forEach(c => {
       vehicleId: v.id,
       
       clientName: c.name || "",
+      year: Number(v.year || 0),
       make: v.make || "",
       model: v.model || "",
-      year: Number(v.year || 0),
       plate: v.plate || "",
       vin: v.vin || "",
       km: v.km || ""
@@ -3660,9 +3669,9 @@ vehiclesFlat.forEach(v => {
     ${v.clientName}
   </button>
 </td>
+    <td>${v.year || ""}</td>
     <td>${v.make}</td>
     <td>${v.model}</td>
-    <td>${v.year || ""}</td>
     <td>${v.plate}</td>
     <td>${v.vin}</td>
     <td>${v.km}</td>
