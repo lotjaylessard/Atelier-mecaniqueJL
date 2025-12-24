@@ -5420,6 +5420,7 @@ function addNote(text, category) {
     NOTES.sort((a, b) => b.id - a.id);
     saveNotes();
     renderNotes();
+    renderDashboard();
 }
 
 /* Modifier */
