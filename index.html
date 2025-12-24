@@ -4581,11 +4581,35 @@ function renderDashboard(){
   if($('statVehicles')) $('statVehicles').innerText=vehiclesCount;
 
 
-  /* ===== 5 DERNIÈRES NOTES ===== */
+/* ===== 5 DERNIÈRES NOTES ===== */
 if ($("lastNotesBox")) {
 
+  const NOTE_CATEGORY_PRIORITY = {
+    urgent: 1,   // 🔴 en haut
+    afaire: 2,   // 🟡 ensuite
+    todo:   2,   // alias
+    general:3    // 🔵 en bas
+  };
+
+  const NOTE_CATEGORY_COLORS = {
+    urgent: "#ff4d4d",     // 🔴 Urgent
+    afaire: "#f5c542",     // 🟡 À faire
+    todo:   "#f5c542",     // alias
+    general:"#4da6ff"      // 🔵 Général
+  };
+
   const lastFiveNotes = [...(NOTES || [])]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .sort((a, b) => {
+
+      const pa = NOTE_CATEGORY_PRIORITY[(a.category || "").toLowerCase()] || 99;
+      const pb = NOTE_CATEGORY_PRIORITY[(b.category || "").toLowerCase()] || 99;
+
+      // 1️⃣ priorité catégorie
+      if (pa !== pb) return pa - pb;
+
+      // 2️⃣ sinon → plus récente d'abord
+      return new Date(b.date) - new Date(a.date);
+    })
     .slice(0, 5);
 
   let html = "";
@@ -4595,52 +4619,43 @@ if ($("lastNotesBox")) {
   } else {
     html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
 
-const NOTE_CATEGORY_COLORS = {
-  urgent: "#ff4d4d",     // 🔴 Urgent
-  afaire: "#f5c542",     // 🟡 À faire
-  todo:   "#f5c542",     // alias
-  general:"#4da6ff"      // 🔵 Général
-};
-    
     lastFiveNotes.forEach(n => {
 
-  const preview = (n.text || n.description || "")
-    .replace(/\n+/g, " ")
-    .slice(0, 100);
+      const preview = (n.text || n.description || "")
+        .replace(/\n+/g, " ")
+        .slice(0, 100);
 
-  // 🎨 couleur de la note (fallback sécurisé)
-  const color =
-  NOTE_CATEGORY_COLORS[(n.category || "").toLowerCase()] ||
-  "var(--accent)";
+      const color =
+        NOTE_CATEGORY_COLORS[(n.category || "").toLowerCase()] ||
+        "var(--accent)";
 
-  html += `
-    <div
-      style="
-        padding:6px 6px 6px 10px;
-        border:1px solid var(--border);
-        border-left:6px solid ${color};
-        border-radius:6px;
-        cursor:pointer;
-      "
-      onclick="openNoteFromDashboard('${n.id}')"
-    >
-      <div style="font-weight:600;">
-        ${(n.title || "Note").slice(0, 40)}
-      </div>
+      html += `
+        <div
+          style="
+            padding:6px 6px 6px 10px;
+            border:1px solid var(--border);
+            border-left:6px solid ${color};
+            border-radius:6px;
+            cursor:pointer;
+          "
+          onclick="openNoteFromDashboard('${n.id}')"
+        >
+          <div style="font-weight:600;">
+            ${(n.title || "Note").slice(0, 40)}
+          </div>
 
-      <div class="muted" style="font-size:0.8rem; margin:2px 0;">
-        ${n.date || ""}
-      </div>
+          <div class="muted" style="font-size:0.8rem; margin:2px 0;">
+            ${n.date || ""}
+          </div>
 
-      ${preview ? `
-        <div style="font-size:0.85rem; line-height:1.2;">
-          ${preview}${preview.length >= 100 ? "…" : ""}
+          ${preview ? `
+            <div style="font-size:0.85rem; line-height:1.2;">
+              ${preview}${preview.length >= 100 ? "…" : ""}
+            </div>
+          ` : ""}
         </div>
-      ` : ""}
-    </div>
-  `;
-});
-
+      `;
+    });
 
     html += `</div>`;
   }
