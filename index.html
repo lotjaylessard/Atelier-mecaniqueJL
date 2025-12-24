@@ -4596,13 +4596,26 @@ if ($("lastNotesBox")) {
     html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
 
     lastFiveNotes.forEach(n => {
+
   const preview = (n.text || n.description || "")
     .replace(/\n+/g, " ")
     .slice(0, 100);
 
+  // 🎨 couleur de la note (fallback sécurisé)
+  const color =
+    n.color ||
+    (NOTES_CATEGORIES?.[n.category]?.color) ||
+    "var(--accent)";
+
   html += `
     <div
-      style="padding:6px;border:1px solid var(--border);border-radius:6px;cursor:pointer;"
+      style="
+        padding:6px 6px 6px 10px;
+        border:1px solid var(--border);
+        border-left:6px solid ${color};
+        border-radius:6px;
+        cursor:pointer;
+      "
       onclick="openNoteFromDashboard('${n.id}')"
     >
       <div style="font-weight:600;">
@@ -4621,6 +4634,7 @@ if ($("lastNotesBox")) {
     </div>
   `;
 });
+
 
     html += `</div>`;
   }
