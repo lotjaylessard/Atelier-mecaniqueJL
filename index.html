@@ -4716,17 +4716,38 @@ if ($("lastWorkOrdersBox")) {
     html += `<div style="display:flex;flex-direction:column;gap:6px;">`;
 
     activeWO.forEach(wo => {
-      html += `
-        <div
-          style="padding:6px;border:1px solid var(--border);border-radius:6px;cursor:pointer;"
-          onclick="openWorkOrderFromDashboard(${wo.id})"
-        >
-          <b>${wo.number}</b><br>
-          <span class="muted">${wo.clientName || ""}</span><br>
-          <span class="muted">${wo.vehicleLabel || ""}</span>
+
+  const descPreview = (wo.description || wo.problem || "")
+    .replace(/\n+/g, " ")
+    .slice(0, 100);
+
+  html += `
+    <div
+      style="
+        padding:6px;
+        border:1px solid var(--border);
+        border-radius:6px;
+        cursor:pointer;
+      "
+      onclick="openWorkOrderFromDashboard(${wo.id})"
+    >
+      <div style="font-weight:600;">
+        ${wo.number}
+      </div>
+
+      <div class="muted" style="font-size:0.85rem;">
+        ${wo.clientName || ""}
+        ${wo.vehicleLabel ? "• " + wo.vehicleLabel : ""}
+      </div>
+
+      ${descPreview ? `
+        <div style="font-size:0.85rem; margin-top:4px; line-height:1.2;">
+          ${descPreview}${descPreview.length >= 100 ? "…" : ""}
         </div>
-      `;
-    });
+      ` : ""}
+    </div>
+  `;
+});
 
     html += `</div>`;
   }
