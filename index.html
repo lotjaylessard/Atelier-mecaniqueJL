@@ -341,6 +341,27 @@ button.link:hover{
     margin-top: 15px;
   }
 
+    /* ===== FACTURE PAYÉE ===== */
+.invoice-paid-badge{
+  display:inline-block;
+  margin-left:12px;
+  padding:6px 14px;
+  background:#28a745;
+  color:white;
+  font-weight:800;
+  font-size:1.1rem;
+  border-radius:8px;
+  letter-spacing:1px;
+}
+
+@media print{
+  .invoice-paid-badge{
+    background:#28a745 !important;
+    color:white !important;
+    border:2px solid #1e7e34;
+  }
+}
+
     
   </style>
 
@@ -1519,11 +1540,23 @@ function renderInvoiceAsWO(wo){
 </div>
 
     <div class="card">
-      <h2>Facture #${wo.number}</h2>
-      <p class="muted">Modification de facture (UI bon de travail)</p>
-      <p><b>Client :</b> ${wo.clientName}</p>
-      <p><b>Véhicule :</b> ${wo.vehicleLabel}</p>
-    </div>
+  <h2>
+    Facture #${wo.number}
+    ${wo.status === "paid"
+      ? `<span class="invoice-paid-badge">PAYÉ</span>`
+      : ``}
+  </h2>
+
+  <p class="muted">Modification de facture (UI bon de travail)</p>
+
+  <p>
+    <b>Client :</b> ${wo.clientName}
+  </p>
+
+  <p>
+    <b>Véhicule :</b> ${wo.vehicleLabel}
+  </p>
+</div>
 
     <!-- PIÈCES -->
     <div class="card">
