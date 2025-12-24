@@ -898,6 +898,40 @@ button.link:hover{
     </div>
   </div>
 
+<!-- MODAL AJOUT VÉHICULE -->
+<div id="addVehicleModal" class="modal-backdrop" style="display:none;">
+  <div class="modal-panel" style="max-width:520px;">
+    <h2>Ajouter un véhicule</h2>
+
+    <label>Client</label>
+    <select id="vehClientSelect"></select>
+
+    <label>Année</label>
+    <input id="vehYear" type="number">
+
+    <label>Marque</label>
+    <input id="vehMake">
+
+    <label>Modèle</label>
+    <input id="vehModel">
+
+    <label>Plaque</label>
+    <input id="vehPlate">
+
+    <label>VIN</label>
+    <input id="vehVin">
+
+    <label>Kilométrage</label>
+    <input id="vehKm" type="number">
+
+    <div class="modal-actions">
+      <button class="ghost" onclick="closeAddVehicleModal()">Annuler</button>
+      <button class="primary" onclick="saveNewVehicle()">💾 Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+  
 <script>
 
   
@@ -3747,6 +3781,11 @@ vehiclesFlat.forEach(v => {
 }
 
 
+  if ($("btnAddVehicle")){
+  $("btnAddVehicle").onclick = openAddVehicleModal;
+}
+
+
   function openAddVehicleModal(){
   const sel = $("vehClientSelect");
   sel.innerHTML = `<option value="">— Sélectionner un client —</option>`;
@@ -3763,16 +3802,6 @@ vehiclesFlat.forEach(v => {
 
 function closeAddVehicleModal(){
   $("addVehicleModal").style.display = "none";
-}
-
-
-function closeAddVehicleModal(){
-  $("addVehicleModal").style.display = "none";
-}
-  
-
-  if ($("btnAddVehicle")){
-  $("btnAddVehicle").onclick = openAddVehicleModal;
 }
 
 
@@ -6263,41 +6292,6 @@ function saveVehicleEdit(){
       <button class="ghost" onclick="closeVehicleEdit()">Annuler</button>
       <button onclick="saveVehicleEdit()">💾 Enregistrer</button>
     </div>
-  </div>
-</div>
-
-  
-  <div class="modal" id="addVehicleModal">
-  <div class="modal-box" style="max-width:520px;">
-
-    <h2>Ajouter un véhicule</h2>
-
-    <label>Client</label>
-    <select id="vehClientSelect"></select>
-
-    <label>Année</label>
-    <input id="vehYear" type="number">
-
-    <label>Marque</label>
-    <input id="vehMake">
-
-    <label>Modèle</label>
-    <input id="vehModel">
-
-    <label>Plaque</label>
-    <input id="vehPlate">
-
-    <label>VIN</label>
-    <input id="vehVin">
-
-    <label>Kilométrage</label>
-    <input id="vehKm" type="number">
-
-    <div class="modal-actions">
-      <button class="primary" onclick="saveNewVehicle()">💾 Sauvegarder</button>
-      <button class="ghost" onclick="closeAddVehicleModal()">Annuler</button>
-    </div>
-
   </div>
 </div>
   
