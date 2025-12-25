@@ -1760,13 +1760,9 @@ function saveManualLabor(){
 
   
 function loadWorkOrders(){
-  try{
-    WORKORDERS = JSON.parse(localStorage.getItem(STORAGE.workorders) || '[]');
-    if (!Array.isArray(WORKORDERS)) WORKORDERS = [];
-  }catch(e){
-    WORKORDERS = [];
-  }
+  WORKORDERS = loadArrayFromStorage(STORAGE.workorders);
 }
+
 
 function saveWorkOrders(){
   localStorage.setItem(STORAGE.workorders, JSON.stringify(WORKORDERS));
@@ -3310,14 +3306,15 @@ if (btnEdit){
 
 /* STOCK & INVENTAIRE */
 function loadParts(){
-  try{
-    PARTS = JSON.parse(localStorage.getItem(STORAGE.parts) || '[]');
-    if(!Array.isArray(PARTS)) PARTS=[];
-  }catch(e){PARTS=[];}
+  PARTS = loadArrayFromStorage(STORAGE.parts);
 }
+
+  
 function saveParts(){
   localStorage.setItem(STORAGE.parts, JSON.stringify(PARTS));
 }
+
+  
 function findInventoryPartFromText(text){
   text = (text||'').toLowerCase();
   for(const p of PARTS){
@@ -3326,6 +3323,8 @@ function findInventoryPartFromText(text){
   }
   return null;
 }
+
+  
 function adjustStockForLinkedItem(item, deltaQty){
   if(!item || !item.invNumber) return;
   const num = String(item.invNumber);
@@ -3338,6 +3337,8 @@ function adjustStockForLinkedItem(item, deltaQty){
   renderParts();
   renderDashboard();
 }
+
+  
 function linkNewItemToInventory(item){
   if(!item || !item.desc || !item.type || !item.type.toLowerCase().includes('pièce')) return;
   const part = findInventoryPartFromText(item.desc);
@@ -3355,6 +3356,7 @@ function linkNewItemToInventory(item){
   renderDashboard();
   return true;
 }
+  
 
 /* RENDER ITEMS & TOTALS */
 function renderTotals(subTotalOverride){
@@ -3598,15 +3600,15 @@ function initInvoices(){
   let vehEditIndex = null;
   
 function loadClients(){
-  try{
-    CLIENTS = JSON.parse(localStorage.getItem(STORAGE.clients) || '[]');
-    if(!Array.isArray(CLIENTS)) CLIENTS=[];
-  }catch(e){CLIENTS=[];}
+  CLIENTS = loadArrayFromStorage(STORAGE.clients);
 }
+
+  
 function saveClients(){
   localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
 }
 
+  
   /* ======== AJOUT POUR INVOICES : sélectionner un client ======== */
 function refreshInvoiceClientSelect() {
   const select = $("customerSelect");
@@ -4363,14 +4365,15 @@ function initPartsModule(){
 
 /* ===================== SERVICES ===================== */
 function loadServices(){
-  try{
-    SERVICES = JSON.parse(localStorage.getItem(STORAGE.services) || '[]');
-    if(!Array.isArray(SERVICES)) SERVICES=[];
-  }catch(e){SERVICES=[];}
+  SERVICES = loadArrayFromStorage(STORAGE.services);
 }
+
+  
 function saveServices(){
   localStorage.setItem(STORAGE.services, JSON.stringify(SERVICES));
 }
+
+  
 const SERVICE_ICONS = {
   "Entretien":"🛢️",
   "Mécanique générale":"🧰",
@@ -5604,12 +5607,10 @@ if($("importBackupFile")){
 let NOTES = [];
 
 /* Charger */
-function loadNotes() {
-    try {
-        NOTES = JSON.parse(localStorage.getItem(STORAGE.notes) || '[]');
-        if (!Array.isArray(NOTES)) NOTES = [];
-    } catch (e) { NOTES = []; }
+function loadNotes(){
+  NOTES = loadArrayFromStorage(STORAGE.notes);
 }
+
 
 /* Sauver */
 function saveNotes() {
