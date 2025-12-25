@@ -3229,13 +3229,42 @@ function renderInvoiceList(){
         <td>${money(inv.total)} $</td>
         <td>${inv.status || ""}</td>
         <td>
-        <button class="ghost btn-open-invoice">Ouvrir</button>
+        <button class="ghost" onclick="openInvoiceView(${inv.number})">Ouvrir</button>
         <button class="ghost danger btn-delete-invoice">Supprimer</button>
         </td>
       `;
 
       tbody.appendChild(tr);
     });
+}
+
+
+  function openInvoiceView(number){
+  loadInvoices();
+
+  const inv = INVOICES.find(i => String(i.number) === String(number));
+  if (!inv){
+    alert("Facture introuvable.");
+    return;
+  }
+
+  // Aller sur une page simple d’affichage
+  showPage("page-workorders"); // page neutre déjà utilisée
+
+  // Masquer la liste WO
+  if ($("woListCard")) $("woListCard").style.display = "none";
+  if ($("woDetailCard")) $("woDetailCard").style.display = "block";
+
+  // Affichage LECTURE SEULE
+  $("woDetailContent").innerHTML = `
+    <div class="card">
+      <button class="ghost" onclick="backToInvoiceList()">⬅ Retour aux factures</button>
+    </div>
+
+    <div class="card">
+      ${renderInvoiceSummary(inv)}
+    </div>
+  `;
 }
 
   
