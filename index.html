@@ -341,22 +341,19 @@ button.link:hover{
 
     /* ===== FACTURE PAYÉE ===== */
 .invoice-paid-badge{
-  display:inline-block;
-  margin-left:12px;
-  padding:6px 14px;
-  background:#28a745;
-  color:white;
-  font-weight:800;
-  font-size:1.1rem;
+  padding:6px 16px;
+  border:3px solid #2ecc71;
+  color:#2ecc71;
+  font-weight:900;
+  font-size:1.4rem;
   border-radius:8px;
-  letter-spacing:1px;
+  letter-spacing:2px;
 }
 
 @media print{
   .invoice-paid-badge{
-    background:#28a745 !important;
-    color:white !important;
-    border:2px solid #1e7e34;
+    color:#2ecc71 !important;
+    border-color:#2ecc71 !important;
   }
 }
 
@@ -1037,13 +1034,11 @@ function renderInvoiceTotals(items){
 }
 
 
-
-
-  /* ===================== FACTURES – RENDU UNIQUE ===================== */
+/* ===================== FACTURES – RENDU UNIQUE ===================== */
 function renderInvoiceSummary(inv){
   if (!inv) return '<div class="muted">Facture introuvable.</div>';
 
-    // ===== CALCUL FACTURE PAYÉE =====
+  // ===== CALCUL FACTURE PAYÉE =====
   let totalPaid = 0;
   if (Array.isArray(inv.payments)){
     inv.payments.forEach(p=>{
@@ -1051,17 +1046,16 @@ function renderInvoiceSummary(inv){
     });
   }
   const isPaid = totalPaid >= Number(inv.total || 0);
-  
- return `
-  <h3 style="display:flex;align-items:center;gap:12px;">
-    Facture #${inv.number}
-    ${isPaid ? `<span class="invoice-paid-badge">PAYÉ</span>` : ``}
-  </h3>
 
-  <div class="muted">${inv.date || ''}</div>
+  return `
+    <h3 style="display:flex;align-items:center;gap:14px;">
+      Facture #${inv.number}
+      ${isPaid ? `<span class="invoice-paid-badge">PAYÉ</span>` : ``}
+    </h3>
 
-  <p><b>Client :</b> ${inv.customer || ''}</p>
+    <div class="muted">${inv.date || ''}</div>
 
+    <p><b>Client :</b> ${inv.customer || ''}</p>
     <p><b>Véhicule / Job :</b> ${inv.job || ''}</p>
 
     <table style="width:100%;margin-top:10px;">
@@ -1087,8 +1081,12 @@ function renderInvoiceSummary(inv){
       </tbody>
     </table>
 
-    ${renderInvoiceTotals(inv.items)}
-
+    <div style="text-align:right;margin-top:12px;">
+      <div>Sous-total : ${money(inv.subTotal)} $</div>
+      <div>TPS : ${money(inv.gst)} $</div>
+      <div>TVQ : ${money(inv.qst)} $</div>
+      <h3>Total : ${money(inv.total)} $</h3>
+    </div>
   `;
 }
 
