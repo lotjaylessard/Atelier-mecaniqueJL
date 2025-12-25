@@ -996,6 +996,17 @@ const STORAGE = {
 const $ = id => document.getElementById(id);
 function money(n){return Number(n||0).toFixed(2);}
 
+  
+  /* ===================== SAFE STORAGE HELPERS ===================== */
+function loadArrayFromStorage(key){
+  try{
+    const data = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(data) ? data : [];
+  }catch(e){
+    return [];
+  }
+}
+
 
   /* ===================== FACTURES – RENDU UNIQUE ===================== */
 function renderInvoiceSummary(inv){
@@ -1144,19 +1155,14 @@ let CLIENTS = [];
 let PARTS = [];
 let SERVICES = [];
 let VEHICLES_SORT = {key: "client", dir: 1 // 1 = asc, -1 = desc 
-  }; // utilisé par renderVehiclesPage()
+  }; // ⚠️ utilisé implicitement par renderVehiclesPage() pour le tri
 
 
 
-
-  function loadInvoices(){
-  try{
-    INVOICES = JSON.parse(localStorage.getItem(STORAGE.invoices) || "[]");
-    if (!Array.isArray(INVOICES)) INVOICES = [];
-  }catch(e){
-    INVOICES = [];
-  }
+function loadInvoices(){
+  INVOICES = loadArrayFromStorage(STORAGE.invoices);
 }
+
 
 function saveInvoices(){
   localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
