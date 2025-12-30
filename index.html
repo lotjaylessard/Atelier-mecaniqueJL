@@ -963,6 +963,17 @@ const STORAGE = {
   workorders:'ar_workorders_v1'
 };
 
+
+  function escapeHTML(str){
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
 /* ===== MIGRATION LOCALSTORAGE (TEMPORAIRE) ===== */
 (function migrateOldStorage(){
   const map = {
@@ -1055,8 +1066,8 @@ function renderInvoiceSummary(inv){
 
     <div class="muted">${inv.date || ''}</div>
 
-    <p><b>Client :</b> ${inv.customer || ''}</p>
-    <p><b>Véhicule / Job :</b> ${inv.job || ''}</p>
+    <p><b>Client :</b> ${escapeHTML(inv.customer)}</p>
+<p><b>Véhicule / Job :</b> ${escapeHTML(inv.job)}</p>
 
     <table style="width:100%;margin-top:10px;">
       <thead>
