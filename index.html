@@ -1097,17 +1097,13 @@ function renderInvoiceSummary(inv){
   const total = Number(inv.total || 0);
 const paidAmount = Number(inv.paidAmount || 0);
 
+// ✅ On prend la meilleure source: payments OU paidAmount
 const paid = Math.max(totalPaid, paidAmount);
 
-const isPaid = paid >= total;
-const isPartialPaid = paid > 0 && paid < total;
+// ✅ Statuts robustes
+const isPaid = (total > 0) && (paid >= total);
+const isPartialPaid = (paid > 0) && (paid < total);
 
-  const isPartial =
-  !isPaid &&
-  (
-    totalPaid > 0 ||
-    paidAmount > 0
-  );
 
   return `
   
