@@ -1070,12 +1070,26 @@ const isPaid =
   (paidAmount >= total) ||
   (totalPaid >= total);
 
+  const isPartial =
+  !isPaid &&
+  (
+    totalPaid > 0 ||
+    paidAmount > 0
+  );
+
 
   return `
+  
     <h3 style="display:flex;align-items:center;gap:14px;">
-      Facture #${inv.number}
-      ${isPaid ? `<span class="invoice-paid-badge">PAYÉ</span>` : ``}
-    </h3>
+  Facture #${inv.number}
+
+  ${isPaid ? `
+    <span class="invoice-paid-badge">PAYÉ</span>
+  ` : isPartial ? `
+    <span class="invoice-partial-badge">PARTIELLEMENT PAYÉ</span>
+  ` : ``}
+</h3>
+
 
     <div class="muted">${inv.date || ''}</div>
 
@@ -6242,6 +6256,23 @@ function woConvertToInvoice(wo) {
     display: none;
   }
 
+
+  .invoice-partial-badge{
+  padding:6px 14px;
+  border:3px solid #f39c12;
+  color:#f39c12;
+  font-weight:900;
+  font-size:1.1rem;
+  border-radius:8px;
+  letter-spacing:1px;
+}
+
+@media print{
+  .invoice-partial-badge{
+    color:#f39c12 !important;
+    border-color:#f39c12 !important;
+  }
+}
 
   
 </style>
