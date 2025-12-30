@@ -3229,7 +3229,7 @@ function renderInvoiceList(){
         <td>${money(inv.total)} $</td>
         <td>${inv.status || ""}</td>
         <td>
-        <button class="ghost" onclick="openInvoiceView(${inv.number})">Ouvrir</button>
+        <button class="ghost" onclick="openInvoiceAsWorkOrder(${inv.number})">Ouvrir</button>
         <button class="ghost danger btn-delete-invoice">Supprimer</button>
         </td>
       `;
