@@ -5414,63 +5414,74 @@ content.innerHTML = `
     </div>
   ` : ""}
 
-  <!-- ACTIONS -->
-  <div style="
-    margin-top:20px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-  ">
-    <div class="muted">
-      Statut :
-      <b>${
-  inv.status === "paid"
-    ? (inv.paymentMethod === "cash"
-        ? "Payée (Comptant)"
-        : inv.paymentMethod === "transfer"
-          ? "Payée (Virement)"
-          : "Payée")
-    : inv.status === "partial"
-      ? "Partielle"
-      : "Impayée"
-}</b>
+<!-- ACTIONS -->
+<div style="
+  margin-top:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+">
+  <div class="muted">
+    Statut :
+    <b>${
+      inv.status === "paid"
+        ? (inv.paymentMethod === "cash"
+            ? "Payée (Comptant)"
+            : inv.paymentMethod === "transfer"
+              ? "Payée (Virement)"
+              : "Payée")
+        : inv.status === "partial"
+          ? "Partielle"
+          : "Impayée"
+    }</b>
+  </div>
+
+  <div class="no-print">
+
+    <!-- ✔ Payée + menu -->
+    <div style="position:relative; display:inline-block;">
+      <button class="ghost" ${isLocked ? "disabled" : ""} onclick="toggleInvoicePaymentMenu('${inv.number}')">
+        ✔ Payée
+      </button>
+
+      <div id="invoicePayMenu-${inv.number}"
+           style="
+             display:none;
+             position:absolute;
+             right:0;
+             bottom:100%;
+             margin-bottom:6px;
+             background:#111;
+             border:1px solid #444;
+             border-radius:6px;
+             z-index:50;
+             overflow:hidden;
+             min-width:160px;
+           ">
+        <button class="ghost"
+                style="width:100%;text-align:left;"
+                onclick="payInvoiceWithMethod('${inv.number}','cash')">
+          💵 Comptant
+        </button>
+
+        <button class="ghost"
+                style="width:100%;text-align:left;"
+                onclick="payInvoiceWithMethod('${inv.number}','transfer')">
+          🔁 Virement
+        </button>
+      </div>
     </div>
 
-    <div class="no-print">
-  <button class="ghost" ${isLocked ? "disabled" : ""} onclick="toggleInvoicePaymentMenu('${inv.number}')">✔ Payée</button>
-  <div id="invoicePayMenu-${inv.number}"
-     style="
-       display:none;
-       position:absolute;
-       right:0;
-       top:40px;
-       background:#111;
-       border:1px solid #444;
-       border-radius:6px;
-       z-index:50;
-       overflow:hidden;
-     ">
+    <!-- autres boutons -->
+    <button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePartial('${inv.number}')">➗ Partielle</button>
+    <button class="ghost"
+      ${isLocked ? "disabled title='Facture payée — modification verrouillée'" : ""}
+      onclick="openInvoiceAsWO('${inv.number}')">✏️ Modifier</button>
+    <button class="ghost" onclick="printInvoice()">🖨 Imprimer</button>
+    <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
 
-  <button class="ghost"
-          style="width:100%;text-align:left;"
-          onclick="payInvoiceWithMethod('${inv.number}','cash')">
-    💵 Comptant
-  </button>
-
-  <button class="ghost"
-          style="width:100%;text-align:left;"
-          onclick="payInvoiceWithMethod('${inv.number}','transfer')">
-    🔁 Virement
-  </button>
-</div>
-  <button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePartial('${inv.number}')">➗ Partielle</button>
-  <button class="ghost"
-  ${isLocked ? "disabled title='Facture payée — modification verrouillée'" : ""}
-  onclick="openInvoiceAsWO('${inv.number}')">✏️ Modifier</button>
-  <button class="ghost" onclick="printInvoice()">🖨 Imprimer</button>
-  <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
-</div>
   </div>
+</div>
 `;
 
 
