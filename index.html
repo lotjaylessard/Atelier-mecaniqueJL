@@ -1088,6 +1088,14 @@ function renderInvoiceTotals(items){
 function renderInvoiceSummary(inv){
   if (!inv) return '<div class="muted">Facture introuvable.</div>';
 
+  if (!inv.workOrderNumber) {
+  console.warn(
+    "Facture sans bon de travail détectée :",
+    inv.number,
+    inv
+  );
+}
+
   // ===== CALCUL FACTURE PAYÉE =====
   let totalPaid = 0;
   if (Array.isArray(inv.payments)){
@@ -5326,6 +5334,15 @@ if(!inv){
   return;
 }
 
+  // 🔒 VERROU ABSOLU : une facture DOIT être liée à un bon de travail
+if (!inv.workOrderId || !inv.workOrderNumber){
+  alert(
+    "Erreur critique : cette facture n’est liée à aucun bon de travail.\n\n" +
+    "L’édition est bloquée pour éviter une incohérence."
+  );
+  return;
+}
+
   // ✅ clientObj manquant (corrige: clientObj is not defined)
 const clientObj = CLIENTS.find(c => String(c.name) === String(inv.customer));
 
@@ -6375,6 +6392,9 @@ function woConvertToInvoice(wo) {
     status: "pending",
     locked: true
   };
+
+invoice.workOrderNumber = wo.number;
+invoice.workOrderId     = wo.id;
 
   // === PIÈCES ===
   wo.parts.forEach(p => {
