@@ -2427,7 +2427,21 @@ function renderWorkOrders(){
     if (selectedStatus && wo.status !== selectedStatus) return false;
 
     if (search) {
-      const hay = `${wo.clientName} ${wo.vehicleLabel} ${wo.number}`.toLowerCase();
+      const clientObj = CLIENTS.find(c =>
+  c.id === wo.clientId ||
+  c.name === wo.clientName
+);
+
+const clientNameSearch = clientObj
+  ? `${clientObj.lastName || ""} ${clientObj.firstName || ""}`
+  : (wo.clientName || "");
+
+const hay = `
+  ${clientNameSearch}
+  ${wo.vehicleLabel || ""}
+  ${wo.number || ""}
+`.toLowerCase();
+
       if (!hay.includes(search)) return false;
     }
 
@@ -2438,6 +2452,17 @@ function renderWorkOrders(){
     const tr = document.createElement("tr");
     tr.dataset.id = wo.id;
 
+    // 🔎 Résoudre le client depuis CLIENTS (source fiable)
+const clientObj = CLIENTS.find(c =>
+  c.id === wo.clientId ||
+  c.name === wo.clientName
+);
+
+// Format Nom, Prénom (cohérent avec Clients / Véhicules / Factures)
+const clientNameDisplay = clientObj
+  ? `${clientObj.lastName || ""}${clientObj.firstName ? ", " + clientObj.firstName : ""}`.trim()
+  : (wo.clientName || "");
+
     const statusLabel =
       wo.status === "en_cours" ? "En cours" :
       wo.status === "termine"  ? "Terminé"  :
@@ -2446,7 +2471,7 @@ function renderWorkOrders(){
     tr.innerHTML = `
       <td>${wo.number || ""}</td>
       <td>${wo.date || ""}</td>
-      <td>${wo.clientName || ""}</td>
+      <td>${clientNameDisplay}</td>
       <td>${wo.vehicleLabel || ""}</td>
       <td>
         <span class="status-badge status-${wo.status}">
