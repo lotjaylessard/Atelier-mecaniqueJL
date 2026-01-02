@@ -1820,7 +1820,7 @@ const isPaid = totalPaid >= Number(wo.total || 0);
   <input type="number" id="woManualLaborHours" value="1" min="0.25" step="0.25">
 
   <label>Taux horaire</label>
-  <input type="number" id="woManualLaborRate" value="90" step="0.01">
+  <input type="number" id="woManualLaborRate" value="60" step="0.01">
 
   <div style="display:flex;gap:10px;margin-top:10px;">
     <button class="ghost" onclick="saveManualLabor()">💾 Ajouter</button>
@@ -1928,7 +1928,7 @@ function saveManualLabor(){
   // reset + fermer
   $("woManualLaborDesc").value = "";
   $("woManualLaborHours").value = 1;
-  $("woManualLaborRate").value = 90;
+  $("woManualLaborRate").value = 60;
   $("woManualLaborBox").style.display = "none";
 }
 
@@ -2262,7 +2262,7 @@ if (manualLaborSave){
     // reset + fermer
     document.getElementById("woManualLaborDesc").value = "";
     document.getElementById("woManualLaborHours").value = 1;
-    document.getElementById("woManualLaborRate").value = 90;
+    document.getElementById("woManualLaborRate").value = 60;
     manualLaborBox.style.display = "none";
   };
 }
@@ -2925,7 +2925,7 @@ const statusLabel =
   <input id="woManualLaborHours" type="number" step="0.1" value="1">
 
   <label>Taux horaire ($)</label>
-  <input id="woManualLaborRate" type="number" step="0.01" value="90">
+  <input id="woManualLaborRate" type="number" step="0.01" value="60">
 
   <div style="display:flex;gap:8px;margin-top:10px;">
     <button id="woManualLaborSave">Ajouter</button>
@@ -3102,7 +3102,7 @@ if (stopBtn) {
       return;
     }
 
-    const rate = Number(prompt("Taux horaire :", 90)) || 90;
+    const rate = Number(prompt("Taux horaire :", 60)) || 60;
 
     // 4️⃣ Ajouter la main-d'œuvre au WO
     wo.labor.push({
@@ -3178,7 +3178,7 @@ if (stopBtn){
       return;
     }
 
-    const rate = Number(prompt("Taux horaire :", 90)) || 90;
+    const rate = Number(prompt("Taux horaire :", 60)) || 60;
 
     wo.labor.push({
       description: "Main-d'œuvre (timer)",
