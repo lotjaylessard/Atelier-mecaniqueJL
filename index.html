@@ -1302,9 +1302,21 @@ function payInvoiceWithMethod(number, method){
 
   saveInvoices();
 
-  // 🔁 RAFRAÎCHIR UI (SANS REFRESH PAGE)
+// 🔁 RAFRAÎCHIR TOUTE L’UI (SANS RELOAD)
+loadInvoices();
+renderInvoiceList();
+
+if (typeof renderDashboard === "function") {
+  renderDashboard();
+}
+
+// 🔄 Si on est déjà sur la page factures, on force l’UI visible
+if (document.getElementById("page-invoice-list")?.style.display === "block") {
   renderInvoiceList();
-  openInvoiceEditModal(number);
+}
+
+// 🔁 ROUVRIR LE MODAL MIS À JOUR
+openInvoiceEditModal(number);
 }
 
 
