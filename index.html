@@ -3367,6 +3367,14 @@ function initWorkOrderSaveButton(){
   
 
 /* ===================== SETTINGS ===================== */
+  // ✅ Parse number safe (accepte "90,00" ou "90.00")
+function toNum(v, fallback=0){
+  if (v === null || v === undefined) return fallback;
+  const n = Number(String(v).replace(",", ".").trim());
+  return Number.isFinite(n) ? n : fallback;
+}
+
+  
 function loadSettings(){
   try{
     SETTINGS = JSON.parse(localStorage.getItem(STORAGE.settings) || 'null') || SETTINGS;
@@ -3386,10 +3394,9 @@ function initSettings(){
   if($('saveSettings')){
     $('saveSettings').addEventListener('click',()=>{
       SETTINGS.garageName = $('settingGarageName').value.trim() || SETTINGS.garageName;
-      SETTINGS.gst = Number($('settingGST').value)||SETTINGS.gst;
-      SETTINGS.qst = Number($('settingQST').value)||SETTINGS.qst;
-      SETTINGS.defaultHourlyRate =
-  Number($('settingDefaultHourlyRate')?.value) || SETTINGS.defaultHourlyRate;
+      SETTINGS.gst = toNum($('settingGST')?.value, SETTINGS.gst);
+      SETTINGS.qst = toNum($('settingQST')?.value, SETTINGS.qst);
+      SETTINGS.defaultHourlyRate = toNum($('settingDefaultHourlyRate')?.value, SETTINGS.defaultHourlyRate);
       
       saveSettings();
       alert('Paramètres enregistrés.');
@@ -3402,11 +3409,17 @@ function initSettings(){
 if ($('applyDefaultRateToServices')){
   $('applyDefaultRateToServices').addEventListener('click', () => {
 
-    const rate = Number(SETTINGS.defaultHourlyRate || 0);
-    if (!rate || rate <= 0){
-      alert("Taux horaire par défaut invalide.");
-      return;
-    }
+    // ✅ Toujours lire le champ (pas l'ancienne valeur en mémoire)
+const rate = toNum($('settingDefaultHourlyRate')?.value, 0);
+
+// ✅ On sauvegarde aussi le setting, sinon au refresh ça revient en arrière
+SETTINGS.defaultHourlyRate = rate;
+saveSettings();
+
+if (!rate || rate <= 0){
+  alert("Taux horaire par défaut invalide.");
+  return;
+}
 
     const ok = confirm(
       `Appliquer ${rate} $/h à TOUS les services horaires ?\n\n` +
@@ -3415,6 +3428,9 @@ if ($('applyDefaultRateToServices')){
     if (!ok) return;
 
     let updated = 0;
+
+    loadServices(); // sécurité: s'assure d'avoir les services à jour
+
 
     SERVICES.forEach(s => {
       // service horaire = PAS de prix fixe
