@@ -853,8 +853,15 @@ button.link:hover{
 
         <label>Taux horaire par défaut ($ / h)</label>
 <input id="settingDefaultHourlyRate" type="number" step="0.01" />
-<div class="muted" style="margin-bottom:10px;">
-  Utilisé automatiquement pour les nouveaux services sans taux défini.
+
+<button id="applyDefaultRateToServices"
+        class="ghost"
+        style="margin-top:10px;">
+  Appliquer le taux à tous les services horaires
+</button>
+
+<div class="muted" style="margin-top:6px;">
+  Modifie uniquement les services à taux horaire (les forfaits ne sont pas touchés).
 </div>
 
         <button id="saveSettings" style="margin-top:10px;">Enregistrer les paramètres</button>
@@ -3369,9 +3376,7 @@ function initSettings(){
       SETTINGS.garageName = $('settingGarageName').value.trim() || SETTINGS.garageName;
       SETTINGS.gst = Number($('settingGST').value)||SETTINGS.gst;
       SETTINGS.qst = Number($('settingQST').value)||SETTINGS.qst;
-      
-      // 🔑 taux horaire par défaut
-SETTINGS.defaultHourlyRate =
+      SETTINGS.defaultHourlyRate =
   Number($('settingDefaultHourlyRate')?.value) || SETTINGS.defaultHourlyRate;
       
       saveSettings();
@@ -3379,6 +3384,41 @@ SETTINGS.defaultHourlyRate =
       renderTotals();
     });
   }
+}
+
+  // ===================== APPLY DEFAULT RATE TO SERVICES =====================
+if ($('applyDefaultRateToServices')){
+  $('applyDefaultRateToServices').addEventListener('click', () => {
+
+    const rate = Number(SETTINGS.defaultHourlyRate || 0);
+    if (!rate || rate <= 0){
+      alert("Taux horaire par défaut invalide.");
+      return;
+    }
+
+    const ok = confirm(
+      `Appliquer ${rate} $/h à TOUS les services horaires ?\n\n` +
+      `Les forfaits (prix fixes) ne seront PAS modifiés.`
+    );
+    if (!ok) return;
+
+    let updated = 0;
+
+    SERVICES.forEach(s => {
+      // service horaire = PAS de prix fixe
+      if (!s.priceFixed || Number(s.priceFixed) <= 0){
+        if (Number(s.rate) !== rate){
+          s.rate = rate;
+          updated++;
+        }
+      }
+    });
+
+    saveServices();
+    renderServices();
+
+    alert(`✔ ${updated} service(s) mis à jour.`);
+  });
 }
 
 /* ===================== INVOICES CORE ===================== */
