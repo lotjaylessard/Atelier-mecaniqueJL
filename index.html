@@ -852,7 +852,8 @@ button.link:hover{
         <input id="settingQST" type="number" step="0.01" />
 
         <label>Taux horaire par défaut ($ / h)</label>
-<input id="settingDefaultHourlyRate" type="number" step="0.01" />
+<input id="settingDefaultHourlyRate" type="number" step="0.01" placeholder="ex: 120">
+
 
 <button id="applyDefaultRateToServices"
         class="ghost"
@@ -3385,6 +3386,10 @@ function saveSettings(){
 }
 function initSettings(){
   loadSettings();
+  
+  // 🔒 DEBUG – vérifier le taux horaire chargé
+  console.log("Default hourly rate:", SETTINGS.defaultHourlyRate);
+  
   if($('settingGarageName')) $('settingGarageName').value = SETTINGS.garageName;
   if($('settingGST')) $('settingGST').value = SETTINGS.gst;
   if($('settingQST')) $('settingQST').value = SETTINGS.qst;
