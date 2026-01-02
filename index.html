@@ -851,6 +851,12 @@ button.link:hover{
         <label>TVQ (%)</label>
         <input id="settingQST" type="number" step="0.01" />
 
+        <label>Taux horaire par défaut ($ / h)</label>
+<input id="settingDefaultHourlyRate" type="number" step="0.01" />
+<div class="muted" style="margin-bottom:10px;">
+  Utilisé automatiquement pour les nouveaux services sans taux défini.
+</div>
+
         <button id="saveSettings" style="margin-top:10px;">Enregistrer les paramètres</button>
         <div class="muted" style="margin-top:6px;">Les nouvelles factures utiliseront ces taux de taxes.</div>
 
@@ -1229,7 +1235,12 @@ document.querySelectorAll('.navBtn').forEach(btn=>{
 });
 
 /* ===================== GLOBAL DATA ===================== */
-let SETTINGS = {garageName:'Garage-Atelier Mécanique J.L', gst:5, qst:9.975};
+let SETTINGS = {
+  garageName: 'Garage-Atelier Mécanique J.L',
+  gst: 5,
+  qst: 9.975,
+  defaultHourlyRate: 90   // ⬅️ valeur par défaut sécuritaire
+};
 let INVOICES = [];
 let WORKORDERS = [];
 let items = [];
@@ -3350,12 +3361,19 @@ function initSettings(){
   if($('settingGarageName')) $('settingGarageName').value = SETTINGS.garageName;
   if($('settingGST')) $('settingGST').value = SETTINGS.gst;
   if($('settingQST')) $('settingQST').value = SETTINGS.qst;
+  if($('settingDefaultHourlyRate'))
+  $('settingDefaultHourlyRate').value = SETTINGS.defaultHourlyRate || 0;
 
   if($('saveSettings')){
     $('saveSettings').addEventListener('click',()=>{
       SETTINGS.garageName = $('settingGarageName').value.trim() || SETTINGS.garageName;
       SETTINGS.gst = Number($('settingGST').value)||SETTINGS.gst;
       SETTINGS.qst = Number($('settingQST').value)||SETTINGS.qst;
+      
+      // 🔑 taux horaire par défaut
+SETTINGS.defaultHourlyRate =
+  Number($('settingDefaultHourlyRate')?.value) || SETTINGS.defaultHourlyRate;
+      
       saveSettings();
       alert('Paramètres enregistrés.');
       renderTotals();
