@@ -1076,8 +1076,8 @@ function money(n){return Number(n||0).toFixed(2);}
 
 
   /* ===================== SUPABASE ===================== */
-const SUPABASE_URL = "https://abcd1234efgh.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+const SUPABASE_URL = "https://feeapfylfzlvgnqtglnh.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZWFwZnlsZnpsdmducXRnbG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NDk3MDUsImV4cCI6MjA4MzAyNTcwNX0._ZQc89gbY5DFqFboR9fL8efeOZ2TZLG0zG8_5lzOOUY";
 
 const sb = window.supabase.createClient(
   SUPABASE_URL,
@@ -1275,8 +1275,8 @@ document.querySelectorAll('.navBtn').forEach(btn=>{
 
 /* ===================== AUTH SUPABASE ===================== */
 async function supabaseLogin(){
-  const email = "TON_EMAIL_ICI";
-  const password = "TON_MOT_DE_PASSE_ICI";
+  const email = "lessard.jeremy@outlook.com";
+  const password = "Hemidugaz2026!";
 
   const { data, error } = await sb.auth.signInWithPassword({
     email,
