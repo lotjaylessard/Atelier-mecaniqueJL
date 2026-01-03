@@ -1370,6 +1370,46 @@ function hydrateLocalFromCloud(data){
 }
 
 
+  /* ===================== CLOUD PUSH (SYNC) ===================== */
+let cloudSyncTimer = null;
+
+function scheduleCloudSync(delay = 1500){
+  if (!SUPABASE_USER) return;
+
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(() => {
+    pushLocalDataToCloud();
+  }, delay);
+}
+
+async function pushLocalDataToCloud(){
+  if (!SUPABASE_USER) return;
+
+  const payload = {
+    clients: loadArrayFromStorage(STORAGE.clients),
+    invoices: loadArrayFromStorage(STORAGE.invoices),
+    workorders: loadArrayFromStorage(STORAGE.workorders),
+    notes: loadArrayFromStorage(STORAGE.notes),
+    parts: loadArrayFromStorage(STORAGE.parts),
+    services: loadArrayFromStorage(STORAGE.services),
+    settings: JSON.parse(localStorage.getItem(STORAGE.settings) || "{}")
+  };
+
+  const { error } = await sb
+    .from("garage_data")
+    .update({
+      data: payload,
+      updated_at: new Date().toISOString()
+    })
+    .eq("user_id", SUPABASE_USER.id);
+
+  if (error){
+    console.warn("⚠️ Cloud sync échouée (offline ?)", error.message);
+  } else {
+    console.log("☁️ Cloud synchronisé");
+  }
+}
+
   
 /* ===================== GLOBAL DATA ===================== */
 let SETTINGS = {
@@ -1396,6 +1436,7 @@ function loadInvoices(){
 
 function saveInvoices(){
   localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
+  scheduleCloudSync();
 }
 
 
@@ -2107,7 +2148,9 @@ function loadWorkOrders(){
 
 function saveWorkOrders(){
   localStorage.setItem(STORAGE.workorders, JSON.stringify(WORKORDERS));
+  scheduleCloudSync();
 }
+  
 
   function saveNewWorkOrder() {
   const clientId = $("woClientSelect")?.value;
@@ -3510,9 +3553,14 @@ function loadSettings(){
     SETTINGS = JSON.parse(localStorage.getItem(STORAGE.settings) || 'null') || SETTINGS;
   }catch(e){}
 }
+
+  
 function saveSettings(){
   localStorage.setItem(STORAGE.settings, JSON.stringify(SETTINGS));
+scheduleCloudSync();
 }
+
+  
 function initSettings(){
   loadSettings();
   
@@ -3593,6 +3641,7 @@ function loadInvoices(){
   
 function saveInvoices(){
   localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
+  scheduleCloudSync();
 }
 
   
@@ -3799,6 +3848,7 @@ if (btnEdit){
   let HISTORY = JSON.parse(localStorage.getItem("history") || "[]");
   HISTORY.push(inv);
   localStorage.setItem("history", JSON.stringify(HISTORY));
+    scheduleCloudSync();
 }
 
 
@@ -3810,6 +3860,7 @@ function loadParts(){
   
 function saveParts(){
   localStorage.setItem(STORAGE.parts, JSON.stringify(PARTS));
+scheduleCloudSync();
 }
 
   
@@ -3976,6 +4027,7 @@ function nextInvoiceNumber(){
   let num = Number(localStorage.getItem(STORAGE.invoiceCounter)||0);
   num++;
   localStorage.setItem(STORAGE.invoiceCounter, String(num));
+  scheduleCloudSync();
   return num;
 }
 function resetInvoiceForm(){
@@ -4104,6 +4156,7 @@ function loadClients(){
   
 function saveClients(){
   localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
+  scheduleCloudSync();
 }
 
   
@@ -5012,6 +5065,7 @@ function loadServices(){
   
 function saveServices(){
   localStorage.setItem(STORAGE.services, JSON.stringify(SERVICES));
+scheduleCloudSync();
 }
 
   
@@ -6325,6 +6379,7 @@ function loadNotes(){
 /* Sauver */
 function saveNotes() {
     localStorage.setItem(STORAGE.notes, JSON.stringify(NOTES));
+  scheduleCloudSync();
 }
 
 /* Ajouter note */
@@ -6572,6 +6627,7 @@ function loadLinks() {
 /* Sauver */
 function saveLinks() {
     localStorage.setItem("ar_links_v1", JSON.stringify(LINKS));
+  scheduleCloudSync();
 }
 
 /* Ajouter lien */
