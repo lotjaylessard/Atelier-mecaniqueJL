@@ -380,7 +380,9 @@ button.link:hover{
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 
 </head>
 <body>
@@ -1072,6 +1074,19 @@ const STORAGE = {
 const $ = id => document.getElementById(id);
 function money(n){return Number(n||0).toFixed(2);}
 
+
+  /* ===================== SUPABASE ===================== */
+const SUPABASE_URL = "https://XXXX.supabase.co";
+const SUPABASE_KEY = "PUBLIC_ANON_KEY_ICI";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+let SUPABASE_USER = null;
+
+
   
   /* ===================== SAFE STORAGE HELPERS ===================== */
 function loadArrayFromStorage(key){
@@ -1257,6 +1272,28 @@ document.querySelectorAll('.navBtn').forEach(btn=>{
   btn.addEventListener('click',()=>showPage(btn.dataset.page));
 });
 
+
+/* ===================== AUTH SUPABASE ===================== */
+async function supabaseLogin(){
+  const email = "TON_EMAIL_ICI";
+  const password = "TON_MOT_DE_PASSE_ICI";
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error){
+    console.error("Supabase login error:", error.message);
+    alert("Erreur connexion cloud");
+    return;
+  }
+
+  SUPABASE_USER = data.user;
+  console.log("✅ Supabase connecté :", SUPABASE_USER.email);
+}
+
+  
 /* ===================== GLOBAL DATA ===================== */
 let SETTINGS = {
   garageName: 'Garage-Atelier Mécanique J.L',
@@ -6902,6 +6939,13 @@ function formatVehicleLabel(v){
     </div>
   `;
 }
+
+
+  /* ===================== APP INIT (SUPABASE) ===================== */
+(async function initApp(){
+  await supabaseLogin();
+})();
+
   
 </script>
 
