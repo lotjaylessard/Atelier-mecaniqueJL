@@ -1302,7 +1302,7 @@ async function loadCloudData(){
     .from("garage_data")
     .select("data")
     .eq("user_id", SUPABASE_USER.id)
-    .single();
+    .maybeSingle();
 
   if (error && error.code !== "PGRST116"){
     console.error("Cloud load error:", error);
