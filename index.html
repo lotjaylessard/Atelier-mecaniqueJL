@@ -4793,6 +4793,7 @@ function renderClientModal(id){
       btn.addEventListener('click',()=>{
         const idx=Number(btn.dataset.index);
         client.vehicles.splice(idx,1);
+        saveClients();
         renderVehiclesList();
       });
     });
@@ -4857,10 +4858,12 @@ const name = `${firstName} ${lastName}`.trim();
       client.email=$('clientFormEmail').value.trim();
       client.address=$('clientFormAddress').value.trim();
       client.notes=$('clientFormNotes').value.trim();
+      
       const idx=CLIENTS.findIndex(c=>String(c.id)===String(client.id));
       if(idx===-1) CLIENTS.push(client);
       else CLIENTS[idx]=client;
       saveClients();
+      
       document.dispatchEvent(new CustomEvent("client:created", {detail: client}));
       refreshInvoiceClientSelect();
       renderClientsTable();
@@ -4901,6 +4904,10 @@ if (vehEditIndex !== null && client.vehicles[vehEditIndex]) {
   client.vehicles.push(v);
 }
 
+    saveClients();
+    renderVehiclesList();
+
+      
       $('vehMake').value='';
       $('vehModel').value='';
       $('vehYear').value='';
