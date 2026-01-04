@@ -2323,6 +2323,40 @@ setTimeout(() => {
   });
 
   modal.style.display = "flex";
+
+  // ✅ Activation des checkboxes (taxes par facture) dans CE modal
+  const gstBox = document.getElementById("invApplyGST");
+  const qstBox = document.getElementById("invApplyQST");
+
+  if (gstBox){
+    gstBox.onchange = () => {
+      inv.applyGST = gstBox.checked;
+
+      const totals = calcInvoiceTotals(inv);
+      inv.subTotal = totals.subTotal;
+      inv.gst      = totals.gst;
+      inv.qst      = totals.qst;
+      inv.total    = totals.total;
+
+      saveInvoices();
+      openInvoiceEditModal(inv.number); // refresh modal
+    };
+  }
+
+  if (qstBox){
+    qstBox.onchange = () => {
+      inv.applyQST = qstBox.checked;
+
+      const totals = calcInvoiceTotals(inv);
+      inv.subTotal = totals.subTotal;
+      inv.gst      = totals.gst;
+      inv.qst      = totals.qst;
+      inv.total    = totals.total;
+
+      saveInvoices();
+      openInvoiceEditModal(inv.number); // refresh modal
+    };
+  }
 }
 
   function renderServicePicker() {
@@ -6017,6 +6051,22 @@ content.innerHTML = `
         <span>Sous-total</span>
         <b>${money(inv.subTotal)} $</b>
       </div>
+
+      <!-- ✅ TAXES PAR FACTURE (TPS/TVQ) -->
+      <div style="margin:8px 0;padding:8px;border:1px solid var(--border);border-radius:8px;">
+        <div style="font-weight:600;margin-bottom:6px;">Taxes</div>
+
+        <label style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="invApplyGST" ${inv.applyGST !== false ? 'checked' : ''}>
+          Appliquer TPS (${SETTINGS.gst}%)
+        </label>
+
+        <label style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+          <input type="checkbox" id="invApplyQST" ${inv.applyQST !== false ? 'checked' : ''}>
+          Appliquer TVQ (${SETTINGS.qst}%)
+        </label>
+      </div>
+
       <div style="display:flex; justify-content:space-between;">
         <span>TPS</span>
         <b>${money(inv.gst)} $</b>
