@@ -1162,6 +1162,18 @@ function calcTotalsFromItems(items){
 }
 
 
+  /* ===================== RECALCUL FACTURE (SOURCE UNIQUE) ===================== */
+function recalcInvoice(inv){
+  const totals = calcInvoiceTotals(inv);
+
+  inv.subTotal = totals.subTotal;
+  inv.gst      = totals.gst;
+  inv.qst      = totals.qst;
+  inv.total    = totals.total;
+}
+
+
+
   /* ===================== RENDU TOTAUX FACTURE (SAFE) ===================== */
 function renderInvoiceTotals(items){
   const totals = calcTotalsFromItems(items || []);
@@ -1730,22 +1742,28 @@ function addServiceToCurrentWO(serviceId){
     // ===================== TAXES PAR FACTURE =====================
 setTimeout(() => {
   const gstBox = document.getElementById("invApplyGST");
-  const qstBox = document.getElementById("invApplyQST");
+const qstBox = document.getElementById("invApplyQST");
 
-  if (gstBox){
-    gstBox.onchange = () => {
-      inv.applyGST = gstBox.checked;
+if (gstBox){
+  gstBox.onchange = () => {
+    inv.applyGST = gstBox.checked;
 
-      const totals = calcInvoiceTotals(inv);
-      inv.subTotal = totals.subTotal;
-      inv.gst      = totals.gst;
-      inv.qst      = totals.qst;
-      inv.total    = totals.total;
+    recalcInvoice(inv);     // 🔥 MANQUAIT
+    saveInvoices();         // 🔥
+    openInvoiceEditModal(inv.number); // refresh UI
+  };
+}
 
-      saveInvoices();
-      openInvoiceView(inv.number); // 🔁 refresh UI
-    };
-  }
+if (qstBox){
+  qstBox.onchange = () => {
+    inv.applyQST = qstBox.checked;
+
+    recalcInvoice(inv);     // 🔥 MANQUAIT
+    saveInvoices();         // 🔥
+    openInvoiceEditModal(inv.number); // refresh UI
+  };
+}
+
 
   if (qstBox){
     qstBox.onchange = () => {
@@ -3693,10 +3711,19 @@ function loadSettings(){
   }catch(e){}
 }
 
-  
+
 function saveSettings(){
   localStorage.setItem(STORAGE.settings, JSON.stringify(SETTINGS));
-scheduleCloudSync();
+
+  // 🔥 RECALCULER TOUTES LES FACTURES AVEC LES NOUVEAUX TAUX
+  if (Array.isArray(INVOICES)){
+    INVOICES.forEach(inv => {
+      recalcInvoice(inv);
+    });
+    saveInvoices(); // sauvegarde + sync
+  } else {
+    scheduleCloudSync();
+  }
 }
 
   
