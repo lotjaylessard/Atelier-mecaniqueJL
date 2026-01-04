@@ -1173,6 +1173,12 @@ function recalcInvoice(inv){
 }
 
 
+  /* ===================== NORMALISATION TAXES FACTURE ===================== */
+function normalizeInvoiceTaxes(inv){
+  if (inv.applyGST === undefined) inv.applyGST = true;
+  if (inv.applyQST === undefined) inv.applyQST = true;
+}
+
 
   /* ===================== RENDU TOTAUX FACTURE (SAFE) ===================== */
 function renderInvoiceTotals(items){
@@ -1716,7 +1722,8 @@ function addServiceToCurrentWO(serviceId){
     return;
   }
 
-        // 🔒 TOUJOURS recalculer avant affichage
+// 🔒 Normaliser + recalculer avant affichage
+normalizeInvoiceTaxes(inv);
 recalcInvoice(inv);
 
   // Aller sur la page Factures
@@ -1760,10 +1767,11 @@ setTimeout(() => {
   };
 
   const applyChange = () => {
-    recalcInvoice(inv);
-    saveInvoices(); // ✅ persiste inv.applyGST / inv.applyQST
-    refreshTotalsUI();
-  };
+  normalizeInvoiceTaxes(inv);
+  recalcInvoice(inv);
+  saveInvoices();
+  refreshTotalsUI();
+};
 
   if (gstBox){
     // état initial
