@@ -1263,10 +1263,10 @@ const isPaid =
 
 
     <div style="text-align:right;margin-top:12px;">
-      <div>Sous-total : ${money(inv.subTotal)} $</div>
-      <div>TPS : ${money(inv.gst)} $</div>
-      <div>TVQ : ${money(inv.qst)} $</div>
-      <h3>Total : ${money(inv.total)} $</h3>
+      <div>Sous-total : <span id="invSubTotal">${money(inv.subTotal)} $</span></div>
+<div>TPS : <span id="invGST">${money(inv.gst)} $</span></div>
+<div>TVQ : <span id="invQST">${money(inv.qst)} $</span></div>
+<h3>Total : <span id="invTotal">${money(inv.total)} $</span></h3>
     </div>
   `;
 }
@@ -6203,34 +6203,43 @@ content.innerHTML = `
 </div>
 `;
 
+  
+  // ===================== TAXES PAR FACTURE (UI LIVE) =====================
+setTimeout(() => {
+  const gstBox = $("invApplyGST");
+  const qstBox = $("invApplyQST");
 
-  // ✅ TAXES PAR FACTURE: recalcul immédiat + sauvegarde (local + cloud) + refresh UI
-  setTimeout(()=>{
-    const gstBox = $("invApplyGST");
-    const qstBox = $("invApplyQST");
+  const subEl = $("invSubTotal");
+  const gstEl = $("invGST");
+  const qstEl = $("invQST");
+  const totEl = $("invTotal");
 
-    if (!gstBox && !qstBox) return;
+  if (!gstBox && !qstBox) return;
 
-    const applyAndRefresh = ()=>{
-      if (gstBox) inv.applyGST = !!gstBox.checked;
-      if (qstBox) inv.applyQST = !!qstBox.checked;
+  const refreshTotalsUI = () => {
+    recalcInvoice(inv);
+    saveInvoices();
 
-      // recalcul selon les options + taux de la page Paramètres
-      if (typeof recalcInvoice === "function") recalcInvoice(inv);
+    if (subEl) subEl.textContent = money(inv.subTotal) + " $";
+    if (gstEl) gstEl.textContent = money(inv.gst) + " $";
+    if (qstEl) qstEl.textContent = money(inv.qst) + " $";
+    if (totEl) totEl.textContent = money(inv.total) + " $";
+  };
 
-      // persister (localStorage + cloud sync)
-      saveInvoices();
-
-      // refresh le modal + les listes
-      openInvoiceEditModal(inv.number);
-      if (typeof renderInvoiceList === "function") renderInvoiceList();
-      if (typeof renderHistoryTable === "function") renderHistoryTable();
-      if (typeof renderDashboard === "function") renderDashboard();
+  if (gstBox){
+    gstBox.onchange = () => {
+      inv.applyGST = !!gstBox.checked;
+      refreshTotalsUI();
     };
+  }
 
-    if (gstBox) gstBox.onchange = applyAndRefresh;
-    if (qstBox) qstBox.onchange = applyAndRefresh;
-  },0);
+  if (qstBox){
+    qstBox.onchange = () => {
+      inv.applyQST = !!qstBox.checked;
+      refreshTotalsUI();
+    };
+  }
+}, 0);
 
 
   // === AFFICHER LA MODAL ===
