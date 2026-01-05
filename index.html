@@ -1173,6 +1173,17 @@ function recalcInvoice(inv){
 }
 
 
+  function updateInvoiceTotalsUI(inv){
+  const gstEl = document.getElementById("invGST");
+  const qstEl = document.getElementById("invQST");
+  const totEl = document.getElementById("invTotal");
+
+  if (gstEl) gstEl.textContent = money(inv.gst) + " $";
+  if (qstEl) qstEl.textContent = money(inv.qst) + " $";
+  if (totEl) totEl.textContent = money(inv.total) + " $";
+}
+
+
   /* ===================== RENDU LIVE DES TOTAUX FACTURE ===================== */
 function renderInvoiceTotals(inv, container){
   if (!container) return;
@@ -6176,22 +6187,18 @@ content.innerHTML = `
       </div>
 
       <div style="display:flex; justify-content:space-between;">
-        <span>TPS</span>
-        <b>${money(inv.gst)} $</b>
-      </div>
-      <div style="display:flex; justify-content:space-between;">
-        <span>TVQ</span>
-        <b>${money(inv.qst)} $</b>
-      </div>
-      <hr>
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        font-size:1.3em;
-      ">
-        <span>TOTAL</span>
-        <b>${money(inv.total)} $</b>
-      </div>
+  <span>TPS</span>
+  <b id="invGST">${money(inv.gst)} $</b>
+</div>
+<div style="display:flex; justify-content:space-between;">
+  <span>TVQ</span>
+  <b id="invQST">${money(inv.qst)} $</b>
+</div>
+<hr>
+<div style="display:flex; justify-content:space-between;font-size:1.3em;">
+  <span>TOTAL</span>
+  <b id="invTotal">${money(inv.total)} $</b>
+</div>
     </div>
   </div>
 
@@ -6298,34 +6305,36 @@ setTimeout(() => {
   const gstBox = $("invApplyGST");
   const qstBox = $("invApplyQST");
 
-  const subEl = $("invSubTotal");
-  const gstEl = $("invGST");
-  const qstEl = $("invQST");
-  const totEl = $("invTotal");
-
   if (!gstBox && !qstBox) return;
 
-  const refreshTotalsUI = () => {
-    recalcInvoice(inv);
-    saveInvoices();
-
-    if (subEl) subEl.textContent = money(inv.subTotal) + " $";
-    if (gstEl) gstEl.textContent = money(inv.gst) + " $";
-    if (qstEl) qstEl.textContent = money(inv.qst) + " $";
-    if (totEl) totEl.textContent = money(inv.total) + " $";
-  };
-
   if (gstBox){
+    gstBox.checked = inv.applyGST;
     gstBox.onchange = () => {
-      inv.applyGST = !!gstBox.checked;
-      refreshTotalsUI();
+      inv.applyGST = gstBox.checked;
+      normalizeInvoiceTaxes(inv);
+      recalcInvoice(inv);
+      saveInvoices();
+
+      // 🔥 UPDATE LIVE DES MONTANTS (SANS FERMER / RÉOUVRIR)
+      updateInvoiceTotalsUI(inv);
+
+      // 🔄 mettre à jour la liste des factures
+      if (typeof renderInvoiceList === "function") renderInvoiceList();
     };
   }
 
   if (qstBox){
+    qstBox.checked = inv.applyQST;
     qstBox.onchange = () => {
-      inv.applyQST = !!qstBox.checked;
-      refreshTotalsUI();
+      inv.applyQST = qstBox.checked;
+      normalizeInvoiceTaxes(inv);
+      recalcInvoice(inv);
+      saveInvoices();
+
+      // 🔥 UPDATE LIVE DES MONTANTS (SANS FERMER / RÉOUVRIR)
+      updateInvoiceTotalsUI(inv);
+
+      if (typeof renderInvoiceList === "function") renderInvoiceList();
     };
   }
 }, 0);
