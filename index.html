@@ -6072,9 +6072,10 @@ if (clientObj && Array.isArray(clientObj.vehicles)){
 
 const isLocked = inv.status === "paid";
 
-  // ✅ IMPORTANT: convertir applyGST/applyQST en vrais booléens AVANT le rendu
+// ✅ Normaliser taxes (factures anciennes) + recalculer avant affichage
 normalizeInvoiceTaxes(inv);
 recalcInvoice(inv);
+saveInvoices(); // pour “fixer” les champs manquants (applyGST/applyQST) dans le stockage
   
 content.innerHTML = `
   <!-- EN-TÊTE -->
@@ -6309,31 +6310,32 @@ content.innerHTML = `
 </div>
 `;
 
-  // ===================== TAXES PAR FACTURE (INIT + LIVE) =====================
+// ===================== TAXES PAR FACTURE (INIT + LIVE) =====================
 const gstBox = $("invApplyGST");
 const qstBox = $("invApplyQST");
 
-if (gstBox){
-  gstBox.checked = inv.applyGST === true;
-  gstBox.onchange = () => {
-    inv.applyGST = gstBox.checked;
-    recalcInvoice(inv);
-    saveInvoices();
-    updateInvoiceTotalsUI(inv);
-    if (typeof renderInvoiceList === "function") renderInvoiceList();
-  };
-}
+// IMPORTANT: l'état "vrai" = tout sauf false
+if (gstBox) gstBox.checked = (inv.applyGST !== false);
+if (qstBox) qstBox.checked = (inv.applyQST !== false);
 
-if (qstBox){
-  qstBox.checked = inv.applyQST === true;
-  qstBox.onchange = () => {
-    inv.applyQST = qstBox.checked;
-    recalcInvoice(inv);
-    saveInvoices();
-    updateInvoiceTotalsUI(inv);
-    if (typeof renderInvoiceList === "function") renderInvoiceList();
-  };
-}
+const applyTaxesChange = () => {
+  inv.applyGST = gstBox ? gstBox.checked : (inv.applyGST !== false);
+  inv.applyQST = qstBox ? qstBox.checked : (inv.applyQST !== false);
+
+  normalizeInvoiceTaxes(inv);
+  recalcInvoice(inv);
+  saveInvoices();
+
+  // 🔥 update live dans le modal (TPS/TVQ/TOTAL)
+  if (typeof renderInvoiceTotals === "function") renderInvoiceTotals(inv, content);
+
+  // 🔄 update live dans la liste des factures (montant)
+  if (typeof renderInvoiceList === "function") renderInvoiceList();
+};
+
+if (gstBox) gstBox.onchange = applyTaxesChange;
+if (qstBox) qstBox.onchange = applyTaxesChange;
+
 
   // === AFFICHER LA MODAL ===
   modal.style.display = "flex";
