@@ -1144,22 +1144,37 @@ function calcTotalsFromItems(items){
 }
 
 
-  function calcInvoiceTotals(inv){
-  const subTotal = (inv.items || []).reduce(
-    (sum, it) => sum + (Number(it.qty || 0) * Number(it.rate || 0)),
-    0
-  );
+function calcInvoiceTotals(inv){
+  const items = Array.isArray(inv.items) ? inv.items : [];
 
-  const applyGST = inv.applyGST !== false;
-  const applyQST = inv.applyQST !== false;
+  let subTotal = 0;
+  items.forEach(it => {
+    subTotal += (Number(it.qty) || 0) * (Number(it.rate) || 0);
+  });
+  subTotal = roundMoney(subTotal);
 
-  const gst = applyGST ? subTotal * (SETTINGS.gst / 100) : 0;
-  const qst = applyQST ? (subTotal + gst) * (SETTINGS.qst / 100) : 0;
+  const applyGST = (inv.applyGST !== false);
+  const applyQST = (inv.applyQST !== false);
 
-  const total = subTotal + gst + qst;
+  const gst = applyGST
+    ? roundMoney(subTotal * (Number(SETTINGS.gst) / 100))
+    : 0;
 
-  return { subTotal, gst, qst, total };
+  const qst = applyQST
+    ? roundMoney(subTotal * (Number(SETTINGS.qst) / 100))
+    : 0;
+
+  const total = roundMoney(subTotal + gst + qst);
+
+  // ⚠️ IMPORTANT : ON NE MODIFIE PAS inv ICI
+  return {
+    subTotal,
+    gst,
+    qst,
+    total
+  };
 }
+
 
 
   /* ===================== RECALCUL FACTURE (SOURCE UNIQUE) ===================== */
