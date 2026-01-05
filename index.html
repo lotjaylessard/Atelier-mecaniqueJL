@@ -1729,6 +1729,9 @@ recalcInvoice(inv);
   // Aller sur la page Factures
   showPage("page-invoice-list");
 
+  // 🔄 S’assurer que la liste est rendue (sinon updateInvoiceRow ne trouve aucune ligne)
+  if (typeof renderInvoiceList === "function") renderInvoiceList();
+
   // Injecter le résumé dans un modal
   if ($("invoiceEditModal")){
     $("invoiceEditContent").innerHTML = `
@@ -1783,8 +1786,13 @@ setTimeout(() => {
   if (elQST) elQST.textContent = money(inv.qst) + " $";
   if (elTot) elTot.textContent = money(inv.total) + " $";
 
-  // 🔄 Mise à jour LISTE DES FACTURES (CRITIQUE)
-  updateInvoiceRow(inv);
+  // 🔄 Mise à jour LISTE (et autres vues) immédiatement
+  if (typeof renderInvoiceList === "function") renderInvoiceList();
+  if (typeof renderHistoryTable === "function") renderHistoryTable();
+  if (typeof renderDashboard === "function") renderDashboard();
+
+  // Fallback (si jamais tu changes le rendu de la liste plus tard)
+  if (typeof updateInvoiceRow === "function") updateInvoiceRow(inv);
 };
 
   if (gstBox){
