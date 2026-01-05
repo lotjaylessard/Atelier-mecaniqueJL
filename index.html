@@ -6315,45 +6315,31 @@ content.innerHTML = `
 </div>
 `;
 
-  
-  // ===================== TAXES PAR FACTURE (UI LIVE) =====================
-setTimeout(() => {
-  const gstBox = $("invApplyGST");
-  const qstBox = $("invApplyQST");
+  // ===================== TAXES PAR FACTURE (INIT + LIVE) =====================
+const gstBox = $("invApplyGST");
+const qstBox = $("invApplyQST");
 
-  if (!gstBox && !qstBox) return;
+if (gstBox){
+  gstBox.checked = inv.applyGST === true;
+  gstBox.onchange = () => {
+    inv.applyGST = gstBox.checked;
+    recalcInvoice(inv);
+    saveInvoices();
+    updateInvoiceTotalsUI(inv);
+    if (typeof renderInvoiceList === "function") renderInvoiceList();
+  };
+}
 
-  if (gstBox){
-    gstBox.checked = (inv.applyGST === true);
-    gstBox.onchange = () => {
-      inv.applyGST = gstBox.checked;
-      normalizeInvoiceTaxes(inv);
-      recalcInvoice(inv);
-      saveInvoices();
-
-      // 🔥 UPDATE LIVE DES MONTANTS (SANS FERMER / RÉOUVRIR)
-      updateInvoiceTotalsUI(inv);
-
-      // 🔄 mettre à jour la liste des factures
-      if (typeof renderInvoiceList === "function") renderInvoiceList();
-    };
-  }
-
-  if (qstBox){
-    qstBox.checked = (inv.applyQST === true);
-    qstBox.onchange = () => {
-      inv.applyQST = qstBox.checked;
-      normalizeInvoiceTaxes(inv);
-      recalcInvoice(inv);
-      saveInvoices();
-
-      // 🔥 UPDATE LIVE DES MONTANTS (SANS FERMER / RÉOUVRIR)
-      updateInvoiceTotalsUI(inv);
-
-      if (typeof renderInvoiceList === "function") renderInvoiceList();
-    };
-  }
-}, 0);
+if (qstBox){
+  qstBox.checked = inv.applyQST === true;
+  qstBox.onchange = () => {
+    inv.applyQST = qstBox.checked;
+    recalcInvoice(inv);
+    saveInvoices();
+    updateInvoiceTotalsUI(inv);
+    if (typeof renderInvoiceList === "function") renderInvoiceList();
+  };
+}
 
   // === AFFICHER LA MODAL ===
   modal.style.display = "flex";
