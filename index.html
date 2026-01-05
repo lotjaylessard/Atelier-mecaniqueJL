@@ -1771,6 +1771,7 @@ setTimeout(() => {
   recalcInvoice(inv);
   saveInvoices();
 
+  // 🔄 Mise à jour MODAL (live)
   const elSub = document.getElementById("invSubTotal");
   const elGST = document.getElementById("invGST");
   const elQST = document.getElementById("invQST");
@@ -1780,6 +1781,9 @@ setTimeout(() => {
   if (elGST) elGST.textContent = money(inv.gst) + " $";
   if (elQST) elQST.textContent = money(inv.qst) + " $";
   if (elTot) elTot.textContent = money(inv.total) + " $";
+
+  // 🔄 Mise à jour LISTE DES FACTURES (CRITIQUE)
+  updateInvoiceRow(inv);
 };
 
   if (gstBox){
@@ -3890,7 +3894,7 @@ const clientNameDisplay = clientObj
         <td>${inv.number}</td>
         <td>${inv.date || ""}</td>
         <td>${clientNameDisplay}</td>
-        <td>${money(inv.total)} $</td>
+        <td class="invoice-total">${money(inv.total)} $</td>
         <td>
   ${
     inv.status === "paid"
@@ -3912,6 +3916,29 @@ const clientNameDisplay = clientObj
 
       tbody.appendChild(tr);
     });
+}
+
+
+  /* ===================== UPDATE FACTURE DANS LA LISTE ===================== */
+function updateInvoiceRow(inv){
+  const row = document.querySelector(
+    `tr[data-invoice-number="${inv.number}"]`
+  );
+  if (!row) return;
+
+  // total
+  const totalCell = row.querySelector(".invoice-total");
+  if (totalCell){
+    totalCell.textContent = money(inv.total) + " $";
+  }
+
+  // statut payé / partiel (si applicable chez toi)
+  if (typeof renderInvoiceStatusBadge === "function"){
+    const badgeCell = row.querySelector(".invoice-status");
+    if (badgeCell){
+      badgeCell.innerHTML = renderInvoiceStatusBadge(inv);
+    }
+  }
 }
 
 
