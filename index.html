@@ -1102,7 +1102,16 @@ const STORAGE = {
 
 
 const $ = id => document.getElementById(id);
-function money(n){return Number(n||0).toFixed(2);}
+  
+function money(n){
+  return Number(n||0).toFixed(2);
+}
+
+  
+  function roundMoney(v){
+  return Math.round((Number(v) || 0) * 100) / 100;
+}
+
 
 
   /* ===================== SUPABASE ===================== */
