@@ -407,6 +407,7 @@ button.link:hover{
 }
 
 
+    
 .invoice-totals-grid{
   display: flex;
   gap: 20px;
@@ -442,6 +443,37 @@ button.link:hover{
   text-align:right;
   min-width:220px;
 }
+
+    .invoice-bottom-grid{
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: start;
+  margin-top: 15px;
+}
+
+.invoice-taxes-left{
+  background:#1a1a1a;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 14px;
+}
+
+.invoice-taxes-left h4{
+  margin-bottom:8px;
+}
+
+.invoice-taxes-left label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:6px;
+}
+
+.invoice-totals-right{
+  text-align:right;
+}
+
 
 
     
@@ -1353,11 +1385,11 @@ const isPaid =
     </table>
 
 
-<div class="invoice-totals-grid">
+<div class="invoice-bottom-grid">
 
   <!-- COLONNE GAUCHE : TAXES -->
-  <div class="invoice-taxes-box">
-    <h4>Taxes applicables</h4>
+  <div class="invoice-taxes-left">
+    <h4>Taxes</h4>
 
     <label>
       <input type="checkbox" id="invApplyGST">
@@ -1371,12 +1403,13 @@ const isPaid =
   </div>
 
   <!-- COLONNE DROITE : TOTAUX -->
-  <div class="invoice-totals-values">
+  <div class="invoice-totals-right">
     <div>Sous-total : <span id="invSubTotal">${money(inv.subTotal)} $</span></div>
     <div>TPS : <span id="invGST">${money(inv.gst)} $</span></div>
     <div>TVQ : <span id="invQST">${money(inv.qst)} $</span></div>
     <h3>Total : <span id="invTotal">${money(inv.total)} $</span></h3>
   </div>
+</div>
 </div>
   `;
 }
