@@ -1102,16 +1102,7 @@ const STORAGE = {
 
 
 const $ = id => document.getElementById(id);
-  
-function money(n){
-  return Number(n||0).toFixed(2);
-}
-
-  
-  function roundMoney(v){
-  return Math.round((Number(v) || 0) * 100) / 100;
-}
-
+function money(n){return Number(n||0).toFixed(2);}
 
 
   /* ===================== SUPABASE ===================== */
@@ -1153,37 +1144,22 @@ function calcTotalsFromItems(items){
 }
 
 
-function calcInvoiceTotals(inv){
-  const items = Array.isArray(inv.items) ? inv.items : [];
+  function calcInvoiceTotals(inv){
+  const subTotal = (inv.items || []).reduce(
+    (sum, it) => sum + (Number(it.qty || 0) * Number(it.rate || 0)),
+    0
+  );
 
-  let subTotal = 0;
-  items.forEach(it => {
-    subTotal += (Number(it.qty) || 0) * (Number(it.rate) || 0);
-  });
-  subTotal = roundMoney(subTotal);
+  const applyGST = inv.applyGST !== false;
+  const applyQST = inv.applyQST !== false;
 
-  const applyGST = (inv.applyGST !== false);
-  const applyQST = (inv.applyQST !== false);
+  const gst = applyGST ? subTotal * (SETTINGS.gst / 100) : 0;
+  const qst = applyQST ? (subTotal + gst) * (SETTINGS.qst / 100) : 0;
 
-  const gst = applyGST
-    ? roundMoney(subTotal * (Number(SETTINGS.gst) / 100))
-    : 0;
+  const total = subTotal + gst + qst;
 
-  const qst = applyQST
-    ? roundMoney(subTotal * (Number(SETTINGS.qst) / 100))
-    : 0;
-
-  const total = roundMoney(subTotal + gst + qst);
-
-  // ⚠️ IMPORTANT : ON NE MODIFIE PAS inv ICI
-  return {
-    subTotal,
-    gst,
-    qst,
-    total
-  };
+  return { subTotal, gst, qst, total };
 }
-
 
 
   /* ===================== RECALCUL FACTURE (SOURCE UNIQUE) ===================== */
@@ -1194,17 +1170,6 @@ function recalcInvoice(inv){
   inv.gst      = totals.gst;
   inv.qst      = totals.qst;
   inv.total    = totals.total;
-}
-
-
-  function updateInvoiceTotalsUI(inv){
-  const gstEl = document.getElementById("invGST");
-  const qstEl = document.getElementById("invQST");
-  const totEl = document.getElementById("invTotal");
-
-  if (gstEl) gstEl.textContent = money(inv.gst) + " $";
-  if (qstEl) qstEl.textContent = money(inv.qst) + " $";
-  if (totEl) totEl.textContent = money(inv.total) + " $";
 }
 
 
@@ -1226,20 +1191,13 @@ function renderInvoiceTotals(inv, container){
 
   /* ===================== NORMALISATION TAXES FACTURE ===================== */
 function normalizeInvoiceTaxes(inv){
-  const toBoolDefaultTrue = (v) => {
-    if (v === false || v === 0 || v === "0" || v === "false") return false;
-    if (v === true  || v === 1 || v === "1" || v === "true")  return true;
-    // undefined / null / vide => true par défaut
-    return true;
-  };
-
-  inv.applyGST = toBoolDefaultTrue(inv.applyGST);
-  inv.applyQST = toBoolDefaultTrue(inv.applyQST);
+  if (inv.applyGST === undefined) inv.applyGST = true;
+  if (inv.applyQST === undefined) inv.applyQST = true;
 }
 
 
   /* ===================== RENDU TOTAUX FACTURE (SAFE) ===================== */
-function renderInvoiceTotalsHTML(items){
+function renderInvoiceTotals(items){
   const totals = calcTotalsFromItems(items || []);
   return `
     <div style="text-align:right;margin-top:12px;">
@@ -1575,12 +1533,6 @@ let VEHICLES_SORT = {key: "client", dir: 1 // 1 = asc, -1 = desc
 
 function loadInvoices(){
   INVOICES = loadArrayFromStorage(STORAGE.invoices);
-
-  // 🔒 Normalisation ABSOLUE des taxes (évite tout reset)
-  INVOICES.forEach(inv => {
-    if (typeof inv.applyGST !== "boolean") inv.applyGST = true;
-    if (typeof inv.applyQST !== "boolean") inv.applyQST = true;
-  });
 }
 
 
@@ -1823,7 +1775,12 @@ setTimeout(() => {
   const qstBox = container.querySelector?.("#invApplyQST") || document.getElementById("invApplyQST");
 
   // petite fonction pour rafraîchir les montants sans réouvrir le modal
-  const refreshTotalsUI = () => {
+  
+  // S'assurer que les cases reflètent l'état sauvegardé
+  if (gstBox) gstBox.checked = (inv.applyGST !== false);
+  if (qstBox) qstBox.checked = (inv.applyQST !== false);
+
+const refreshTotalsUI = () => {
     const elSub = container.querySelector?.("#invSubTotal") || document.getElementById("invSubTotal");
     const elGST = container.querySelector?.("#invGST") || document.getElementById("invGST");
     const elQST = container.querySelector?.("#invQST") || document.getElementById("invQST");
@@ -1835,31 +1792,29 @@ setTimeout(() => {
   };
 
   const applyChange = () => {
+  // ⚠️ IMPORTANT: on lit les 2 cases à chaque changement (sinon une peut "revenir" à l'ancien état)
+  if (gstBox) inv.applyGST = !!gstBox.checked;
+  if (qstBox) inv.applyQST = !!qstBox.checked;
+
   normalizeInvoiceTaxes(inv);
   recalcInvoice(inv);
   saveInvoices();
 
-  // 🔥 UPDATE LIVE (LA CLÉ)
-  const container = document.getElementById("invoiceEditContent");
-  renderInvoiceTotals(inv, container);
+  // 🔥 Mise à jour LIVE des montants (sans rerender qui détruit les listeners)
+  refreshTotalsUI();
 
-  // 🔄 Liste des factures
-  if (typeof renderInvoiceList === "function") renderInvoiceList();
+  // 🔄 Mise à jour de la ligne dans la liste (sans loadInvoices())
+  if (typeof updateInvoiceRow === "function") updateInvoiceRow(inv);
 };
 
 
+
   if (gstBox){
-  gstBox.onchange = () => {
-    inv.applyGST = gstBox.checked;
-    applyChange();
-  };
+  gstBox.onchange = applyChange;
 }
 
 if (qstBox){
-  qstBox.onchange = () => {
-    inv.applyQST = qstBox.checked;
-    applyChange();
-  };
+  qstBox.onchange = applyChange;
 }
 }, 0);
   }
@@ -6102,10 +6057,6 @@ if (clientObj && Array.isArray(clientObj.vehicles)){
 
 const isLocked = inv.status === "paid";
 
-// ✅ Normaliser taxes (factures anciennes) + recalculer avant affichage
-normalizeInvoiceTaxes(inv);
-recalcInvoice(inv);
-saveInvoices(); // pour “fixer” les champs manquants (applyGST/applyQST) dans le stockage
   
 content.innerHTML = `
   <!-- EN-TÊTE -->
@@ -6217,29 +6168,33 @@ content.innerHTML = `
         <div style="font-weight:600;margin-bottom:6px;">Taxes</div>
 
         <label style="display:flex;align-items:center;gap:8px;">
-          <input type="checkbox" id="invApplyGST" ${inv.applyGST ? 'checked' : ''}>
+          <input type="checkbox" id="invApplyGST" ${inv.applyGST !== false ? 'checked' : ''}>
           Appliquer TPS (${SETTINGS.gst}%)
         </label>
 
         <label style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-          <input type="checkbox" id="invApplyQST" ${inv.applyQST ? 'checked' : ''}>
+          <input type="checkbox" id="invApplyQST" ${inv.applyQST !== false ? 'checked' : ''}>
           Appliquer TVQ (${SETTINGS.qst}%)
         </label>
       </div>
 
       <div style="display:flex; justify-content:space-between;">
-  <span>TPS</span>
-  <b id="invGST">${money(inv.gst)} $</b>
-</div>
-<div style="display:flex; justify-content:space-between;">
-  <span>TVQ</span>
-  <b id="invQST">${money(inv.qst)} $</b>
-</div>
-<hr>
-<div style="display:flex; justify-content:space-between;font-size:1.3em;">
-  <span>TOTAL</span>
-  <b id="invTotal">${money(inv.total)} $</b>
-</div>
+        <span>TPS</span>
+        <b>${money(inv.gst)} $</b>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>TVQ</span>
+        <b>${money(inv.qst)} $</b>
+      </div>
+      <hr>
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        font-size:1.3em;
+      ">
+        <span>TOTAL</span>
+        <b>${money(inv.total)} $</b>
+      </div>
     </div>
   </div>
 
@@ -6340,32 +6295,45 @@ content.innerHTML = `
 </div>
 `;
 
-// ===================== TAXES PAR FACTURE (INIT + LIVE) =====================
-const gstBox = $("invApplyGST");
-const qstBox = $("invApplyQST");
+  
+  // ===================== TAXES PAR FACTURE (UI LIVE) =====================
+setTimeout(() => {
+  const gstBox = $("invApplyGST");
+  const qstBox = $("invApplyQST");
 
-// IMPORTANT: l'état "vrai" = tout sauf false
-if (gstBox) gstBox.checked = (inv.applyGST !== false);
-if (qstBox) qstBox.checked = (inv.applyQST !== false);
+  const subEl = $("invSubTotal");
+  const gstEl = $("invGST");
+  const qstEl = $("invQST");
+  const totEl = $("invTotal");
 
-const applyTaxesChange = () => {
-  inv.applyGST = gstBox ? gstBox.checked : (inv.applyGST !== false);
-  inv.applyQST = qstBox ? qstBox.checked : (inv.applyQST !== false);
+  if (!gstBox && !qstBox) return;
 
-  normalizeInvoiceTaxes(inv);
-  recalcInvoice(inv);
-  saveInvoices();
+  const refreshTotalsUI = () => {
+    recalcInvoice(inv);
+    saveInvoices();
 
-  // 🔥 update live dans le modal (TPS/TVQ/TOTAL)
-  if (typeof renderInvoiceTotals === "function") renderInvoiceTotals(inv, content);
+    if (subEl) subEl.textContent = money(inv.subTotal) + " $";
+    if (gstEl) gstEl.textContent = money(inv.gst) + " $";
+    if (qstEl) qstEl.textContent = money(inv.qst) + " $";
+    if (totEl) totEl.textContent = money(inv.total) + " $";
+  };
 
-  // 🔄 update live dans la liste des factures (montant)
-  if (typeof renderInvoiceList === "function") renderInvoiceList();
-};
+  if (gstBox){
+    gstBox.onchange = () => {
+      inv.applyGST = !!gstBox.checked;
+      refreshTotalsUI();
+    };
+  }
 
-if (gstBox) gstBox.onchange = applyTaxesChange;
-if (qstBox) qstBox.onchange = applyTaxesChange;
+  if (qstBox){
+    qstBox.onchange = () => {
+      inv.applyQST = !!qstBox.checked;
+      refreshTotalsUI();
+    };
+  }
+}, 0);
 
+  renderInvoiceTotals(inv, content);
 
   // === AFFICHER LA MODAL ===
   modal.style.display = "flex";
