@@ -1131,16 +1131,25 @@ function loadArrayFromStorage(key){
 
   /* ===================== CALCULS TOTAUX (SAFE) ===================== */
 function calcTotalsFromItems(items){
-  const subTotal = (items || []).reduce(
+  // 🔒 Sécurité absolue
+  if (!Array.isArray(items)) items = [];
+
+  const subTotal = items.reduce(
     (sum, it) => sum + (Number(it.qty || 0) * Number(it.rate || 0)),
     0
   );
 
-  const gst = subTotal * (SETTINGS.gst / 100);
-  const qst = (subTotal + gst) * (SETTINGS.qst / 100);
+  // ⚠️ On NE FORCE PAS les taxes ici, on calcule seulement
+  const gst = subTotal * (Number(SETTINGS.gst || 0) / 100);
+  const qst = (subTotal + gst) * (Number(SETTINGS.qst || 0) / 100);
   const total = subTotal + gst + qst;
 
-  return { subTotal, gst, qst, total };
+  return {
+    subTotal,
+    gst,
+    qst,
+    total
+  };
 }
 
 
