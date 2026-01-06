@@ -1129,9 +1129,8 @@ function loadArrayFromStorage(key){
 }
 
 
-  /* ===================== CALCULS TOTAUX (SAFE) ===================== */
-function calcTotalsFromItems(items){
-  // 🔒 Sécurité absolue
+  /* ===================== CALCULS TOTAUX (SAFE + TAX FLAGS) ===================== */
+function calcTotalsFromItems(items, inv){
   if (!Array.isArray(items)) items = [];
 
   const subTotal = items.reduce(
@@ -1139,9 +1138,17 @@ function calcTotalsFromItems(items){
     0
   );
 
-  // ⚠️ On NE FORCE PAS les taxes ici, on calcule seulement
-  const gst = subTotal * (Number(SETTINGS.gst || 0) / 100);
-  const qst = (subTotal + gst) * (Number(SETTINGS.qst || 0) / 100);
+  const applyGST = inv?.applyGST !== false;
+  const applyQST = inv?.applyQST !== false;
+
+  const gst = applyGST
+    ? subTotal * (Number(SETTINGS.gst || 0) / 100)
+    : 0;
+
+  const qst = applyQST
+    ? (subTotal + gst) * (Number(SETTINGS.qst || 0) / 100)
+    : 0;
+
   const total = subTotal + gst + qst;
 
   return {
@@ -1173,7 +1180,7 @@ function calcTotalsFromItems(items){
 
   /* ===================== RECALCUL FACTURE (SOURCE UNIQUE) ===================== */
 function recalcInvoice(inv){
-  const totals = calcInvoiceTotals(inv);
+  const totals = calcTotalsFromItems(inv.items, inv);
 
   inv.subTotal = totals.subTotal;
   inv.gst      = totals.gst;
