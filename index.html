@@ -406,6 +406,39 @@ button.link:hover{
   border: none !important;
 }
 
+
+    .invoice-totals-grid{
+  display: flex;
+  gap: 20px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.invoice-taxes-box{
+  background:#1a1a1a;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 14px;
+  min-width:220px;
+}
+
+.invoice-taxes-box h4{
+  margin-bottom:8px;
+}
+
+.invoice-taxes-box label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:6px;
+}
+
+.invoice-totals-values{
+  text-align:right;
+  min-width:220px;
+}
+
+
     
   </style>
 
@@ -1315,31 +1348,31 @@ const isPaid =
     </table>
 
 
-<div class="card invoice-tax-toggle" style="margin-top:10px;">
-  <h4>Taxes applicables</h4>
+<div class="invoice-totals-grid">
 
-  <label style="display:flex;align-items:center;gap:8px;">
-    <input type="checkbox"
-           id="invApplyGST"
-           ${inv.applyGST !== false ? 'checked' : ''}>
-    Appliquer TPS (${SETTINGS.gst}%)
-  </label>
+  <!-- COLONNE GAUCHE : TAXES -->
+  <div class="invoice-taxes-box">
+    <h4>Taxes applicables</h4>
 
-  <label style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-    <input type="checkbox"
-           id="invApplyQST"
-           ${inv.applyQST !== false ? 'checked' : ''}>
-    Appliquer TVQ (${SETTINGS.qst}%)
-  </label>
+    <label>
+      <input type="checkbox" id="invApplyGST">
+      Appliquer TPS (${SETTINGS.gst}%)
+    </label>
+
+    <label>
+      <input type="checkbox" id="invApplyQST">
+      Appliquer TVQ (${SETTINGS.qst}%)
+    </label>
+  </div>
+
+  <!-- COLONNE DROITE : TOTAUX -->
+  <div class="invoice-totals-values">
+    <div>Sous-total : <span id="invSubTotal">${money(inv.subTotal)} $</span></div>
+    <div>TPS : <span id="invGST">${money(inv.gst)} $</span></div>
+    <div>TVQ : <span id="invQST">${money(inv.qst)} $</span></div>
+    <h3>Total : <span id="invTotal">${money(inv.total)} $</span></h3>
+  </div>
 </div>
-
-
-    <div style="text-align:right;margin-top:12px;">
-<div>Sous-total : <span id="invSubTotal">${money(inv.subTotal)} $</span></div>
-<div>TPS : <span id="invGST">${money(inv.gst)} $</span></div>
-<div>TVQ : <span id="invQST">${money(inv.qst)} $</span></div>
-<h3>Total : <span id="invTotal">${money(inv.total)} $</span></h3>
-    </div>
   `;
 }
 
