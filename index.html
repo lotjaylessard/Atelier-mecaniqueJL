@@ -6184,7 +6184,12 @@ const isLocked = inv.status === "paid";
   
 content.innerHTML = `
   <!-- EN-TÊTE -->
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+  <div style="
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:4px;
+">
     <div>
       <h2 style="margin:0;">Facture #${inv.number}</h2>
       <div class="muted">Date : ${inv.date || ""}</div>
