@@ -7590,9 +7590,9 @@ clone.querySelectorAll("h3").forEach(h=>{
         }
 
 
-        /* ================= PDF LAYOUT ================= */
+/* ================= PDF LAYOUT ================= */
 
-/* Totaux en bas à droite */
+/* ===== Totaux en bas à droite ===== */
 .pdf-totals{
   position: fixed;
   right: 25px;
@@ -7600,39 +7600,13 @@ clone.querySelectorAll("h3").forEach(h=>{
   width: 260px;
 }
 
-/* Historique paiements en bas à gauche */
-.pdf-payments{
-  position: fixed;
-  left: 25px;
-  bottom: 25px;
-  width: 60%;
-  font-size: 11px;
-}
 
-.pdf-payments table{
-  font-size: 11px;
-}
-
-.pdf-payments h3{
-  margin-top: 0;
-}
-
-
-/* ================= PDF : bas-gauche / bas-droite ================= */
-
-.pdf-totals{
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 240px;
-}
-
-/* Paiements plus petit, en bas à gauche */
+/* ===== Historique paiements en bas à gauche ===== */
 .pdf-payments{
   position: fixed;
   left: 20px;
-  bottom: 18px;
-  width: 60%;
+  bottom: 22px;
+  width: 38%;              /* ✅ plus étroit */
   font-size: 9px;
   line-height: 1.1;
 }
@@ -7646,18 +7620,40 @@ clone.querySelectorAll("h3").forEach(h=>{
   font-weight: bold;
 }
 
+/* Table compacte */
 .pdf-payments table{
+  width: 100%;
+  table-layout: fixed;
   margin-top: 4px;
   font-size: 9px;
+  border-collapse: collapse;
 }
 
 .pdf-payments th,
 .pdf-payments td{
   padding: 2px 4px;
+  border: 1px solid #000;
 }
 
 .pdf-payments table tr{
   line-height: 1.05;
+}
+
+/* Colonnes mieux proportionnées */
+.pdf-payments th:nth-child(1),
+.pdf-payments td:nth-child(1){
+  width: 10%;
+}
+
+.pdf-payments th:nth-child(2),
+.pdf-payments td:nth-child(2){
+  width: 60%;
+}
+
+.pdf-payments th:nth-child(3),
+.pdf-payments td:nth-child(3){
+  width: 30%;
+  text-align: right;
 }
 
       </style>
