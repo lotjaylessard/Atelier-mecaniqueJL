@@ -391,6 +391,50 @@ button.link:hover{
 }
 
 
+    /* ===================== PRINT FACTURE ===================== */
+@media print {
+
+  /* Fond blanc + texte noir */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Masquer éléments non imprimables */
+  .no-print,
+  button,
+  input,
+  select {
+    display: none !important;
+  }
+
+  /* Modal facture en plein écran */
+  #invoiceEditModal {
+    position: static !important;
+    background: transparent !important;
+  }
+
+  #invoiceEditContent {
+    width: 100% !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Tables propres */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th, td {
+    border-bottom: 1px solid #ccc;
+    padding: 6px 4px;
+  }
+
+}
+
+
     /* ===================== FIX CHECKBOX NATIVES (FACTURE) ===================== */
 .invoice-tax-toggle input[type="checkbox"]{
   appearance: checkbox !important;
