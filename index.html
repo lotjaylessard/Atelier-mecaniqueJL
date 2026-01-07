@@ -7468,11 +7468,10 @@ function printInvoice(){
   
   // ================== POSITIONNEMENT PDF ==================
 
-// 🔹 Marquer le bloc TOTAUX (bas droite)
-const totalEl = clone.querySelector("#invTotal");
-if (totalEl){
-  const totalsBlock = totalEl.closest("div");
-  if (totalsBlock) totalsBlock.classList.add("pdf-totals");
+// 🔹 Marquer le bloc COMPLET des montants (Escompte, Sous-total, Taxes, Total)
+const totalsContainer = clone.querySelector("#invTotal")?.parentElement;
+if (totalsContainer){
+  totalsContainer.classList.add("pdf-totals");
 }
 
 // 🔹 Marquer le bloc HISTORIQUE PAIEMENTS (bas gauche)
