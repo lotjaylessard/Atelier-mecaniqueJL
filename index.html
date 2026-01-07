@@ -6502,6 +6502,17 @@ setTimeout(() => {
   const discountInput = $("invDiscountValue");
   const discountType  = $("invDiscountType");
 
+  // 🔒 Verrouillage escompte si facture payée
+if (inv.status === "paid"){
+  if (discountInput) discountInput.disabled = true;
+  if (discountType)  discountType.disabled  = true;
+}
+
+  if (inv.status === "paid"){
+  if (discountInput) discountInput.style.opacity = "0.6";
+  if (discountType)  discountType.style.opacity  = "0.6";
+}
+
   if (!gstBox && !qstBox) return;
 
   // 🔒 Re-synchroniser l'UI sur l'objet inv (au cas où)
