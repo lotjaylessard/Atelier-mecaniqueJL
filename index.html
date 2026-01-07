@@ -6213,42 +6213,32 @@ content.innerHTML = `
   <div style="
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  margin-bottom:4px;
+  align-items:flex-start;
+  margin-bottom:6px;
 ">
+
+  <!-- COLONNE GAUCHE : CLIENT + ADRESSE -->
   <div>
-    <span style="color:#aaa;">Client :</span>
-    <b style="color:#fff;">${inv.customer || ""}</b>
+    <div>
+      <span style="color:#aaa;">Client :</span>
+      <b style="color:#fff;">${inv.customer || ""}</b>
+    </div>
+
+    ${clientObj ? `
+      <div style="margin-top:4px; font-size:0.9em; color:#ccc;">
+        ${clientObj.address ? `<div><b>Adresse :</b> ${clientObj.address}</div>` : ""}
+        ${clientObj.phone ? `<div><b>Téléphone :</b> ${clientObj.phone}</div>` : ""}
+      </div>
+    ` : ""}
   </div>
 
+  <!-- COLONNE DROITE : BADGE -->
   ${inv.status === "paid" ? `
-    <div class="invoice-paid-badge" style="
-      padding:6px 14px;
-      border-radius:10px;
-      background:#1b5e20;
-      color:#fff;
-      font-weight:900;
-      font-size:1.15rem;
-      letter-spacing:1px;
-      white-space:nowrap;
-    ">
-      ${
-        inv.paymentMethod === "cash"
-          ? "PAYÉ (Comptant)"
-          : inv.paymentMethod === "transfer"
-            ? "PAYÉ (Virement)"
-            : "PAYÉ"
-      }
+    <div class="invoice-paid-badge">
+      PAYÉ (${inv.paymentMethod === "cash" ? "Comptant" : "Virement"})
     </div>
   ` : ""}
 </div>
-
-  ${clientObj ? `
-    <div style="margin-left:12px; font-size:0.9em; color:#ccc;">
-  ${clientObj.address ? `<div><b>Adresse :</b> ${clientObj.address}</div>` : ""}
-  ${clientObj.phone ? `<div><b>Téléphone :</b> ${clientObj.phone}</div>` : ""}
-</div>
-  ` : ""}
 
   <div style="margin-top:6px;">
     <span style="color:#aaa;">Véhicule :</span>
