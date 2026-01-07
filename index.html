@@ -6331,10 +6331,10 @@ content.innerHTML = `
       step="0.01"
       placeholder="0.00"
       value="${inv.discountValue || ""}"
-      style="flex:1;"
+      style="flex:1 1 auto; min-width:140px;"
     >
 
-    <select id="invDiscountType">
+    <select id="invDiscountType" style="width:48px; flex:0 0 48px;">
       <option value="amount" ${inv.discountType === "amount" ? "selected" : ""}>$</option>
       <option value="percent" ${inv.discountType === "percent" ? "selected" : ""}>%</option>
     </select>
