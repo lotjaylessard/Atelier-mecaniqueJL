@@ -445,6 +445,46 @@ button.link:hover{
   div:has(select#invDiscountType) {
     display: none !important;
   }
+
+  @media print {
+
+  /* ===================== SÉCURITÉ PRINT ===================== */
+
+  /* 1️⃣ AUCUNE INTERACTION POSSIBLE */
+  input,
+  select,
+  textarea,
+  button {
+    display: none !important;
+    pointer-events: none !important;
+  }
+
+  label {
+    display: none !important;
+  }
+
+  /* 2️⃣ MASQUER BLOCS UI TAXES & ESCOMPTE PAR STRUCTURE */
+  /* Bloc Taxes */
+  div:has(#invApplyGST),
+  div:has(#invApplyQST) {
+    display: none !important;
+  }
+
+  /* Bloc Escompte */
+  div:has(#invDiscountValue),
+  div:has(#invDiscountType) {
+    display: none !important;
+  }
+
+  /* 3️⃣ SÉCURITÉ ULTIME : si le moteur ignore :has() */
+  #invApplyGST,
+  #invApplyQST,
+  #invDiscountValue,
+  #invDiscountType {
+    display: none !important;
+  }
+}
+  
 }
 
 
