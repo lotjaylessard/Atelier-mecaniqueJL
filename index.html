@@ -390,102 +390,69 @@ button.link:hover{
   text-decoration: underline;
 }
 
-
-    /* ===================== PRINT FACTURE ===================== */
 @media print {
 
-  /* Fond blanc + texte noir */
+  /* ===================== BASE PRINT ===================== */
   body {
-    background: #fff !important;
-    color: #000 !important;
+    background:#fff !important;
+    color:#000 !important;
   }
 
-  /* Masquer éléments non imprimables */
-  .no-print,
-  button,
-  input,
-  select {
-    display: none !important;
+  .no-print {
+    display:none !important;
   }
 
-  /* Modal facture en plein écran */
-  #invoiceEditModal {
-    position: static !important;
-    background: transparent !important;
-  }
-
-  #invoiceEditContent {
-    width: 100% !important;
-    max-width: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-
-  /* Tables propres */
-  table {
-    border-collapse: collapse;
-    width: 100%;
-  }
-
-  th, td {
-    border-bottom: 1px solid #ccc;
-    padding: 6px 4px;
-  }
-
-    /* ===================== PRINT : MASQUER UI TAXES & ESCOMPTE ===================== */
-
-  /* Masquer complètement le bloc Taxes (cases à cocher) */
-  div:has(input#invApplyGST),
-  div:has(input#invApplyQST) {
-    display: none !important;
-  }
-
-  /* Masquer complètement le bloc Escompte (input + select) */
-  div:has(input#invDiscountValue),
-  div:has(select#invDiscountType) {
-    display: none !important;
-  }
-
-  @media print {
-
-  /* ===================== SÉCURITÉ PRINT ===================== */
-
-  /* 1️⃣ AUCUNE INTERACTION POSSIBLE */
+  /* ===================== SUPPRIMER TOUTE INTERACTIVITÉ ===================== */
   input,
   select,
   textarea,
-  button {
-    display: none !important;
-    pointer-events: none !important;
-  }
-
+  button,
   label {
-    display: none !important;
+    display:none !important;
+    pointer-events:none !important;
   }
 
-  /* 2️⃣ MASQUER BLOCS UI TAXES & ESCOMPTE PAR STRUCTURE */
-  /* Bloc Taxes */
-  div:has(#invApplyGST),
-  div:has(#invApplyQST) {
-    display: none !important;
+  /* ===================== MASQUER BLOCS UI ===================== */
+
+  /* ❌ Bloc TAXES */
+  .invoice-taxes-left {
+    display:none !important;
   }
 
-  /* Bloc Escompte */
-  div:has(#invDiscountValue),
-  div:has(#invDiscountType) {
-    display: none !important;
-  }
-
-  /* 3️⃣ SÉCURITÉ ULTIME : si le moteur ignore :has() */
-  #invApplyGST,
-  #invApplyQST,
+  /* ❌ Bloc ESCOMPTE (UI) */
   #invDiscountValue,
   #invDiscountType {
-    display: none !important;
+    display:none !important;
+  }
+
+  /* Sécurité : masquer aussi leur conteneur direct */
+  div:has(#invDiscountValue),
+  div:has(#invDiscountType) {
+    display:none !important;
+  }
+
+  /* ===================== MODAL FACTURE CLEAN ===================== */
+  .modal-backdrop {
+    background:transparent !important;
+  }
+
+  .modal-panel {
+    box-shadow:none !important;
+    border:none !important;
+  }
+
+  /* ===================== TABLES PROPRES ===================== */
+  table {
+    border-collapse:collapse;
+    width:100%;
+  }
+
+  th, td {
+    border-bottom:1px solid #ccc;
+    padding:6px 4px;
   }
 }
-  
-}
+
 
 
     /* ===================== FIX CHECKBOX NATIVES (FACTURE) ===================== */
