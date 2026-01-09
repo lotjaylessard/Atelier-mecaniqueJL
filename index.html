@@ -3242,7 +3242,7 @@ if (!wo.vehicleKm){
   <div class="card">
     <h2>${wo.__fromInvoice ? "Facture" : "Bon de travail"} #${wo.number}</h2>
 
-    <p><b>Client :</b> ${wo.clientName}</p>
+<p><b>Client :</b> ${wo.clientName}</p>
 
 <p><b>Véhicule :</b> ${wo.vehicleLabel}</p>
 
@@ -3251,10 +3251,20 @@ if (!wo.vehicleKm){
   <input
     id="woVehicleKmInput"
     type="number"
-    style="width:120px"
+    min="0"
     value="${wo.vehicleKm || ''}"
+    style="
+      margin-left:6px;
+      width:120px;
+      padding:4px;
+      border-radius:4px;
+      border:1px solid var(--border);
+      background:#111;
+      color:#fff;
+    "
     onchange="saveWorkOrderVehicleKm(${wo.id}, this.value)"
-  > km
+  >
+  km
 </p>
   </div>
 
