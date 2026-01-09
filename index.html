@@ -3478,6 +3478,22 @@ const statusLabel =
       <div style="margin-top:6px;">
   <b>Client :</b> ${wo.clientName || ""}<br>
   <b>Véhicule :</b> ${wo.vehicleLabel || ""}<br>
+  <div>
+  Kilométrage :
+  <input
+    id="woKmInput"
+    type="number"
+    value="${wo.vehicleKm || ''}"
+    style="
+      width:120px;
+      padding:4px;
+      border-radius:4px;
+      border:1px solid var(--border);
+      background:#111;
+      color:#fff;
+    "
+  > km
+</div>
   <b>Description Problème/Travail :</b>
 <span style="
   background: #ffeb3b;
@@ -3610,6 +3626,30 @@ const statusLabel =
     <button class="danger" onclick="deleteWorkOrder(${wo.id})">🗑 Supprimer</button>
   </div>
 `;
+
+    // ================= KM sauvegarde =================
+setTimeout(() => {
+  const kmInput = document.getElementById("woKmInput");
+  if (!kmInput) return;
+
+  kmInput.onchange = () => {
+    wo.vehicleKm = Number(kmInput.value) || 0;
+    saveWorkOrders();
+
+    // sync vers véhicule client
+    const client = CLIENTS.find(c => c.name === wo.clientName);
+    if (client && Array.isArray(client.vehicles)){
+      const veh = client.vehicles.find(v =>
+        `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
+      );
+      if (veh){
+        veh.km = wo.vehicleKm;
+        saveClients();
+      }
+    }
+  };
+}, 0);
+
 
 
     // Bind boutons
