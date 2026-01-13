@@ -5124,7 +5124,9 @@ loadInvoices?.();
   modal.style.display = "flex";
 }
 
-function renderVehicleModalContent(client, vehicle){
+
+  function renderVehicleModalContent(client, vehicle){
+
   const clientName = `${client.lastName || ""}${client.firstName ? ", " + client.firstName : ""}`.trim();
   const vehicleLabel = `${vehicle.year || ""} ${vehicle.make || ""} ${vehicle.model || ""}`.trim();
 
@@ -5133,9 +5135,13 @@ function renderVehicleModalContent(client, vehicle){
   // =========================
   const wos = (WORKORDERS || [])
     .filter(wo => {
-      const sameClient = String(wo.clientId || "") === String(client.id || "");
+      const sameClient =
+        String(wo.clientId || "") === String(client.id || "") ||
+        String(wo.clientName || "").trim() === String(client.name || "").trim();
+
       const sameVehId  = wo.vehicleId != null && String(wo.vehicleId) === String(vehicle.id);
       const sameLabel  = (wo.vehicleLabel || "").trim() === vehicleLabel;
+
       return sameClient && (sameVehId || sameLabel);
     })
     .sort((a,b) => new Date(b.date || 0) - new Date(a.date || 0));
@@ -5171,10 +5177,9 @@ function renderVehicleModalContent(client, vehicle){
     .filter(inv => {
       const sameClient =
         String(inv.customerId || "") === String(client.id || "") ||
-        String(inv.customer || "").toLowerCase().trim() === String(client.name || "").toLowerCase().trim();
+        String(inv.customer || "").trim() === String(client.name || "").trim();
 
-      const invVeh = String(inv.vehicle || inv.job || "").trim();
-      const sameVeh = invVeh === vehicleLabel;
+      const sameVeh = String(inv.vehicle || "").trim() === vehicleLabel;
 
       return sameClient && sameVeh;
     })
@@ -5204,6 +5209,9 @@ function renderVehicleModalContent(client, vehicle){
     });
   }
 
+  // =========================
+  // RENDU FINAL
+  // =========================
   return `
     <div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:#111; margin-bottom:12px;">
       <div class="muted">Client</div>
@@ -5261,6 +5269,7 @@ function renderVehicleModalContent(client, vehicle){
     </div>
   `;
 }
+
 
   // Historique BT: match robuste (id si dispo, sinon fallback sur label)
   const wos = (WORKORDERS || [])
