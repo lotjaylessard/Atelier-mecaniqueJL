@@ -5099,9 +5099,10 @@ function closeVehicleModal(){
 }
 
 function openVehicleModal(clientId, vehicleId){
-  // sécurité: data peut ne pas être chargée
-  loadClients?.();
-  loadWorkOrders?.();
+// sécurité: data peut ne pas être chargée
+loadClients?.();
+loadWorkOrders?.();
+loadInvoices?.();
 
   const modal = $("vehicleModal");
   const content = $("vehicleModalContent");
@@ -5123,11 +5124,143 @@ function openVehicleModal(clientId, vehicleId){
   modal.style.display = "flex";
 }
 
-/* Rendu du contenu (historique BT pour CE véhicule) */
 function renderVehicleModalContent(client, vehicle){
   const clientName = `${client.lastName || ""}${client.firstName ? ", " + client.firstName : ""}`.trim();
-
   const vehicleLabel = `${vehicle.year || ""} ${vehicle.make || ""} ${vehicle.model || ""}`.trim();
+
+  // =========================
+  // HISTORIQUE BONS DE TRAVAIL
+  // =========================
+  const wos = (WORKORDERS || [])
+    .filter(wo => {
+      const sameClient = String(wo.clientId || "") === String(client.id || "");
+      const sameVehId  = wo.vehicleId != null && String(wo.vehicleId) === String(vehicle.id);
+      const sameLabel  = (wo.vehicleLabel || "").trim() === vehicleLabel;
+      return sameClient && (sameVehId || sameLabel);
+    })
+    .sort((a,b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+  let woRows = "";
+  if (!wos.length){
+    woRows = `<tr><td colspan="5" class="muted">Aucun bon de travail pour ce véhicule.</td></tr>`;
+  } else {
+    wos.forEach(wo => {
+      const statusLabel =
+        wo.status === "en_cours" ? "En cours" :
+        wo.status === "termine"  ? "Terminé"  :
+        wo.status || "";
+
+      woRows += `
+        <tr>
+          <td>${wo.number || ""}</td>
+          <td>${wo.date || ""}</td>
+          <td><span class="status-badge status-${wo.status}">${statusLabel}</span></td>
+          <td style="text-align:right;">${money(wo.estimateTotal || 0)} $</td>
+          <td style="text-align:right;">
+            <button class="ghost" onclick="openWorkOrderFromVehicleModal('${wo.id}')">Ouvrir</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  // =========================
+  // HISTORIQUE FACTURES
+  // =========================
+  const invs = (INVOICES || [])
+    .filter(inv => {
+      const sameClient =
+        String(inv.customerId || "") === String(client.id || "") ||
+        String(inv.customer || "").toLowerCase().trim() === String(client.name || "").toLowerCase().trim();
+
+      const invVeh = String(inv.vehicle || inv.job || "").trim();
+      const sameVeh = invVeh === vehicleLabel;
+
+      return sameClient && sameVeh;
+    })
+    .sort((a,b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+  let invRows = "";
+  if (!invs.length){
+    invRows = `<tr><td colspan="5" class="muted">Aucune facture pour ce véhicule.</td></tr>`;
+  } else {
+    invs.forEach(inv => {
+      const statusLabel =
+        inv.status === "paid" ? "Payée" :
+        inv.status === "unpaid" ? "Non payée" :
+        (inv.status || "");
+
+      invRows += `
+        <tr>
+          <td>${inv.number || ""}</td>
+          <td>${inv.date || ""}</td>
+          <td>${statusLabel}</td>
+          <td style="text-align:right;">${money(inv.total || 0)} $</td>
+          <td style="text-align:right;">
+            <button class="ghost" onclick="openInvoiceFromVehicleModal('${inv.number}')">Ouvrir</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  return `
+    <div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:#111; margin-bottom:12px;">
+      <div class="muted">Client</div>
+      <div style="font-weight:700; font-size:1.05rem;">${clientName || client.name || ""}</div>
+
+      <div style="margin-top:10px;" class="muted">Véhicule</div>
+      <div style="font-weight:700;">${vehicleLabel}</div>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
+        <div><span class="muted">Plaque :</span> <b>${vehicle.plate || "-"}</b></div>
+        <div><span class="muted">VIN :</span> <b>${vehicle.vin || "-"}</b></div>
+        <div><span class="muted">KM :</span> <b>${vehicle.km || "-"}</b></div>
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="ghost" onclick="editVehicle('${client.id}','${vehicle.id}'); closeVehicleModal();">✏️ Modifier le véhicule</button>
+        <button class="ghost" onclick="openClientModal('${client.id}'); closeVehicleModal();">👤 Ouvrir fiche client</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <h3 style="margin:0 0 8px;">Historique des bons de travail</h3>
+      <table style="width:100%;">
+        <thead>
+          <tr>
+            <th># BT</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th style="text-align:right;">Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${woRows}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px;">Historique des factures</h3>
+      <table style="width:100%;">
+        <thead>
+          <tr>
+            <th># Facture</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th style="text-align:right;">Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invRows}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
 
   // Historique BT: match robuste (id si dispo, sinon fallback sur label)
   const wos = (WORKORDERS || [])
@@ -5202,6 +5335,7 @@ function renderVehicleModalContent(client, vehicle){
   `;
 }
 
+  
 /* Ouvrir un BT depuis la fiche véhicule */
 function openWorkOrderFromVehicleModal(woId){
   closeVehicleModal();
@@ -5221,6 +5355,24 @@ function openWorkOrderFromVehicleModal(woId){
     // fallback: clique le bouton "Ouvrir" dans la table si présent
     const btn = document.querySelector(`tr[data-id="${woId}"] button[data-action="open"]`);
     if (btn) btn.click();
+  }, 0);
+}
+
+  /* Ouvrir une FACTURE depuis la fiche véhicule */
+function openInvoiceFromVehicleModal(invoiceNumber){
+  closeVehicleModal();
+
+  // aller à la liste de factures
+  showPage("page-invoice-list");
+
+  setTimeout(() => {
+    loadInvoices?.();
+    renderInvoiceList?.();
+
+    if (typeof openInvoiceEditModal === "function"){
+      openInvoiceEditModal(invoiceNumber);
+      return;
+    }
   }, 0);
 }
 
