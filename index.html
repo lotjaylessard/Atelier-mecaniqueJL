@@ -3625,14 +3625,21 @@ setTimeout(() => {
   const kmInput = document.getElementById("woKmInput");
   if (!kmInput) return;
 
-  kmInput.oninput = () => {
-  syncKmEverywhereFromWO(wo, kmInput.value);
+  const saveKm = () => {
+    syncKmEverywhereFromWO(wo, kmInput.value);
 
-  const kmCell = document.getElementById("wo-km-cell-" + wo.id);
-  if (kmCell){
-    kmCell.textContent = kmInput.value + " km";
-  }
-};
+    const kmCell = document.getElementById("wo-km-cell-" + wo.id);
+    if (kmCell){
+      kmCell.textContent = kmInput.value + " km";
+    }
+  };
+
+  // ✅ sauvegarde quand la valeur est finale
+  kmInput.onchange = saveKm;
+  kmInput.onblur   = saveKm;
+
+}, 0);
+
 
       const kmCell = document.getElementById("wo-km-cell-" + wo.id);
   if (kmCell){
