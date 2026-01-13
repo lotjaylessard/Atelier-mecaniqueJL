@@ -2016,7 +2016,8 @@ recalcInvoice(inv);
     number: invoice.number,
     date: invoice.date,
     clientName: invoice.customer,
-    vehicleLabel: invoice.vehicle,
+    vehicleLabel:
+    vehicleKm: vehicleKm, invoice.vehicle,
     status: invoice.status || "draft",
 
     parts: (invoice.items || [])
@@ -2511,7 +2512,17 @@ function saveWorkOrders(){
   const vehicle = client.vehicles.find(v => String(v.id) === String(vehicleId));
 
   // Création du Work Order minimal
-  const wo = {
+  
+  // 🔁 Préremplir KM depuis le véhicule
+  let vehicleKm = 0;
+  const clientObj = CLIENTS.find(c => String(c.id) === String(clientId));
+  if (clientObj && Array.isArray(clientObj.vehicles)){
+    const vehObj = clientObj.vehicles.find(v => String(v.id) === String(vehicleId));
+    if (vehObj && vehObj.km){
+      vehicleKm = vehObj.km;
+    }
+  }
+const wo = {
     id: Date.now(),
     number: generateWorkOrderNumber(client.name),
     date: new Date().toLocaleString("fr-CA"),
@@ -3615,7 +3626,12 @@ setTimeout(() => {
   if (!kmInput) return;
 
   kmInput.oninput = () => {
-  saveWorkOrderVehicleKm(wo.id, kmInput.value);
+  syncKmEverywhereFromWO(wo, kmInput.value);
+
+  const kmCell = document.getElementById("wo-km-cell-" + wo.id);
+  if (kmCell){
+    kmCell.textContent = kmInput.value + " km";
+  }
 };
 
       const kmCell = document.getElementById("wo-km-cell-" + wo.id);
@@ -3744,6 +3760,44 @@ function saveWorkOrderVehicleKm(woId, kmValue){
       veh.km = km;
       saveClients();
     }
+
+
+function syncKmEverywhereFromWO(wo, newKm){
+  newKm = Number(newKm);
+  if (!newKm || newKm <= 0) return;
+
+  // 1. update WO
+  wo.vehicleKm = newKm;
+
+  // 2. update véhicule client
+  const client = CLIENTS.find(c => c.name === wo.clientName);
+  if (client && Array.isArray(client.vehicles)){
+    const veh = client.vehicles.find(v =>
+      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
+    );
+    if (veh){
+      if (!veh.km || newKm > veh.km){
+        veh.km = newKm;
+      }
+    }
+  }
+
+  // 3. update factures liées
+  if (typeof INVOICES !== "undefined"){
+    INVOICES.forEach(inv => {
+      if (inv.workOrderNumber === wo.number){
+        if (!inv.vehicleKm || newKm > inv.vehicleKm){
+          inv.vehicleKm = newKm;
+        }
+      }
+    });
+  }
+
+  saveWorkOrders();
+  saveClients();
+  if (typeof saveInvoices === "function") saveInvoices();
+}
+
   }
 
   // ================= UI LIVE UPDATE =================
