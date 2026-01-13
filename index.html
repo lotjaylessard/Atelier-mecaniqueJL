@@ -3736,32 +3736,7 @@ let timerDisplay = null;
 let stopBtn = null;
 
 
-function saveWorkOrderVehicleKm(woId, kmValue){
-
-  const wo = WORKORDERS.find(w => String(w.id) === String(woId));
-  if (!wo) return;
-
-  const km = parseInt(kmValue);
-  if (isNaN(km)) return;
-
-  // ✅ sauvegarde dans le bon de travail
-  wo.vehicleKm = km;
-  saveWorkOrders();
-
-  // 🔁 synchroniser aussi dans le véhicule du client
-  let veh = null;
-
-  const client = CLIENTS.find(c => c.name === wo.clientName);
-  if (client && Array.isArray(client.vehicles)){
-    veh = client.vehicles.find(v =>
-      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
-    );
-    if (veh){
-      veh.km = km;
-      saveClients();
-    }
-
-
+// ✅ FONCTION CENTRALE — synchro KM partout
 function syncKmEverywhereFromWO(wo, newKm){
   newKm = Number(newKm);
   if (!newKm || newKm <= 0) return;
@@ -3793,34 +3768,25 @@ function syncKmEverywhereFromWO(wo, newKm){
     });
   }
 
+  // 4. sauvegarde TOTALE
   saveWorkOrders();
   saveClients();
   if (typeof saveInvoices === "function") saveInvoices();
+
+  // 5. refresh UI
+  renderWorkOrders();
+  if (typeof renderClientsTable === "function") renderClientsTable();
+
+  console.log("KM synchronisé partout :", newKm);
 }
 
-  }
 
-  // ================= UI LIVE UPDATE =================
+// ✅ FONCTION APPELÉE PAR L’INPUT HTML
+function saveWorkOrderVehicleKm(woId, kmValue){
+  const wo = WORKORDERS.find(w => String(w.id) === String(woId));
+  if (!wo) return;
 
-  // ✅ Liste des bons de travail
-  const kmCell = document.getElementById("wo-km-cell-" + wo.id);
-  if (kmCell){
-    kmCell.textContent = km + " km";
-  }
-
-  // ✅ Fiche véhicule (si ouverte)
-  const vehKmLabel = document.getElementById("vehicleKmLabel");
-  if (vehKmLabel){
-    vehKmLabel.textContent = km + " km";
-  }
-
-  // ✅ Section client / véhicule dans WO
-  const woKmLabel = document.getElementById("woVehicleKm");
-  if (woKmLabel){
-    woKmLabel.textContent = km + " km";
-  }
-
-  console.log("KM synchronisé partout :", km);
+  syncKmEverywhereFromWO(wo, kmValue);
 }
 
 
