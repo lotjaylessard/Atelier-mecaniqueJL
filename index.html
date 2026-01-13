@@ -3348,23 +3348,23 @@ $("woDetailCard").style.display = "block";
     cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
   });
           
-          document.addEventListener("client:created", (e) => {
+document.addEventListener("client:created", function handler(e){
   const newClient = e.detail;
   if (!newClient || !cSel) return;
 
-  // recharger les clients
   loadClients();
 
-  // rafraîchir la liste déroulante
   cSel.innerHTML = `<option value="">Sélectionner</option>`;
   CLIENTS.forEach(c => {
     cSel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
   });
 
-  // sélectionner automatiquement le nouveau client
   cSel.value = newClient.id;
   cSel.dispatchEvent(new Event("change"));
+
+  document.removeEventListener("client:created", handler);
 });
+
           
           const btnAddClient = $("woAddClientBtn");
 if (btnAddClient){
@@ -3404,8 +3404,6 @@ if (cancelBtn){
   };
 }
 };
-};
-}
 
   const table = $("woTable");
 if (table){
