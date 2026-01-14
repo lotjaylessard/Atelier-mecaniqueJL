@@ -4895,7 +4895,10 @@ vehiclesFlat.forEach(v => {
     <td>${v.vin}</td>
     <td>${v.km}</td>
     <td>
-  <button class="ghost" onclick="openVehicleModal('${v.clientId}','${v.id}')">Fiche</button>
+  <button class="ghost"
+  onclick="openVehicleModal('${v.clientId}','${v.vehicleId}')">
+  Fiche
+</button>
 </td>
   `;
   tbody.appendChild(tr);
@@ -5122,6 +5125,13 @@ loadInvoices?.();
 
   content.innerHTML = renderVehicleModalContent(client, vehicle);
   modal.style.display = "flex";
+
+  console.log("DEBUG VEHICLE MODAL", {
+  clientId,
+  vehicleId,
+  client,
+  vehicles: client?.vehicles
+});
 }
 
 
