@@ -5237,11 +5237,31 @@ loadInvoices?.();
       <div style="margin-top:10px;" class="muted">Véhicule</div>
       <div style="font-weight:700;">${vehicleLabel}</div>
 
-      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
-        <div><span class="muted">Plaque :</span> <b>${vehicle.plate || "-"}</b></div>
-        <div><span class="muted">VIN :</span> <b>${vehicle.vin || "-"}</b></div>
-        <div><span class="muted">KM :</span> <b>${vehicle.km || "-"}</b></div>
-      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:10px;">
+
+  <div>
+    <div class="muted">Plaque</div>
+    <input id="vehEditPlate" value="${escapeHTML(vehicle.plate || "")}">
+  </div>
+
+  <div>
+    <div class="muted">VIN</div>
+    <input id="vehEditVin" value="${escapeHTML(vehicle.vin || "")}">
+  </div>
+
+  <div>
+    <div class="muted">KM</div>
+    <input id="vehEditKm" type="number" value="${vehicle.km || ""}">
+  </div>
+
+</div>
+
+<div style="text-align:right; margin-top:12px;">
+  <button class="ghost"
+    onclick="saveVehicleInfo('${client.id}','${vehicle.id}')">
+    💾 Sauvegarder
+  </button>
+</div>
     </div>
 
     <div class="card" style="margin-bottom:12px;">
@@ -5282,6 +5302,45 @@ loadInvoices?.();
   `;
 }
 
+
+  function saveVehicleInfo(clientId, vehicleId){
+
+  const plate = document.getElementById("vehEditPlate").value.trim();
+  const vin   = document.getElementById("vehEditVin").value.trim();
+  const km    = Number(document.getElementById("vehEditKm").value || 0);
+
+  if (!plate || !vin){
+    alert("Plaque et VIN sont obligatoires.");
+    return;
+  }
+
+  CLIENTS = loadArrayFromStorage(STORAGE.clients);
+
+  const client = CLIENTS.find(c => String(c.id) === String(clientId));
+  if (!client) return alert("Client introuvable.");
+
+  const veh = client.vehicles.find(v => String(v.id) === String(vehicleId));
+  if (!veh) return alert("Véhicule introuvable.");
+
+  // ✏️ mise à jour
+  veh.plate = plate;
+  veh.vin   = vin;
+  veh.km    = km;
+
+  // 💾 sauvegarde
+  localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
+  scheduleCloudSync();
+
+  // 🔁 refresh UI sans reload
+  renderClientsTable();
+  renderVehiclesPage();
+  loadWorkOrders();
+  renderInvoiceList();
+
+  // 🔁 re-render du modal
+  document.getElementById("vehicleModalContent").innerHTML =
+    renderVehicleModalContent(client, veh);
+}
 
     
 /* Ouvrir un BT depuis la fiche véhicule */
