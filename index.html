@@ -3915,91 +3915,103 @@ function initWorkOrderSaveButton(){
   const btn = $("woSaveBtn");
   if (!btn) return;
 
+  // 🔒 empêcher l'empilement de handlers (très fréquent)
+  btn.onclick = null;
+
   btn.onclick = () => {
+    // 1) déterminer l'ID du WO de façon fiable
+    const editIdRaw = $("woEditId")?.value;
+    const editId = (editIdRaw != null) ? String(editIdRaw).trim() : "";
 
-    const editId = $("woEditId")?.value;
-    const isEditing = !!(editId || window.__currentWO);
+    // si pas d'ID -> on est en création (écran "Nouveau bon de travail")
+    if (!editId){
+      const clientId = $("woClientSelect")?.value;
+      const vehicleId = $("woVehicleSelect")?.value;
+      const description = ($("woDescription")?.value || "").trim();
 
-    /* ======================================================
-       MODE MODIFICATION (WO EXISTANT)
-    ====================================================== */
-    if (isEditing){
-      const wo =
-  WORKORDERS.find(w => String(w.id) === String(editId)) ||
-  window.__currentWO;
+      if (!clientId) return alert("Veuillez choisir un client.");
+      if (!vehicleId) return alert("Veuillez choisir un véhicule.");
 
-if (!wo){
-  alert("Erreur : bon de travail introuvable.");
-  return;
-}
+      const client = CLIENTS.find(c => String(c.id) === String(clientId));
+      if (!client) return alert("Client introuvable.");
 
-// 🔒 s’assurer que le WO actif est bien celui-ci
-window.__currentWO = wo;
+      const vehicle = (client.vehicles || []).find(v => String(v.id) === String(vehicleId));
+      if (!vehicle) return alert("Véhicule introuvable.");
 
+      const wo = {
+        id: Date.now(),
+        number: generateWorkOrderNumber(client.name),
+        date: new Date().toLocaleString("fr-CA"),
+        clientId: client.id,
+        clientName: client.name,
+        vehicleId: vehicle.id,
+        vehicleLabel: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+        vehiclePlate: vehicle.plate || "",
+        vehicleVin: vehicle.vin || "",
+        vehicleKm: vehicle.km || 0,
+        description,
+        parts: [],
+        labor: [],
+        estimateTotal: 0,
+        status: "en_cours"
+      };
 
-      // 🔁 Recalcul TOTAL PROPRE
-      const totalParts = Array.isArray(wo.parts)
-        ? wo.parts.reduce((s,p)=> s + (Number(p.rate) * Number(p.qty)), 0)
-        : 0;
+      WORKORDERS.push(wo);
 
-      const totalLabor = Array.isArray(wo.labor)
-        ? wo.labor.reduce((s,l)=> s + (Number(l.rate) * Number(l.hours)), 0)
-        : 0;
+      // ✅ écriture sûre
+      try{
+        localStorage.setItem(STORAGE.workorders, JSON.stringify(WORKORDERS));
+      }catch(e){
+        console.error("Save WORKORDERS failed", e);
+      }
+      if (typeof scheduleCloudSync === "function") scheduleCloudSync();
 
-      wo.estimateTotal = totalParts + totalLabor;
+      if (typeof renderWorkOrders === "function") renderWorkOrders();
 
-      saveWorkOrders(); // garantit l’écriture locale avant toute autre logique
-
-      // 💾 PERSISTENCE OFFICIELLE (OBLIGATOIRE)
-      persistActiveWO(wo);
-
-      // 🔄 RAFRAÎCHISSEMENT UI
-      woRenderLines(wo);
-      renderWorkOrders();
-
-      alert("Bon de travail mis à jour !");
+      alert("Bon de travail créé !");
       return;
     }
 
-    /* ======================================================
-       MODE CRÉATION (NOUVEAU WO)
-    ====================================================== */
-    const clientId = $("woClientSelect")?.value;
-    const vehicleId = $("woVehicleSelect")?.value;
-    const description = $("woDescription")?.value.trim();
+    // 2) MODE ÉDITION : toujours prendre l'objet DANS WORKORDERS
+    const wo = WORKORDERS.find(w => String(w.id) === String(editId));
+    if (!wo){
+      alert("Erreur : bon de travail introuvable (id=" + editId + ").");
+      return;
+    }
+    window.__currentWO = wo; // garder cohérence
 
-    if (!clientId) return alert("Veuillez choisir un client.");
-    if (!vehicleId) return alert("Veuillez choisir un véhicule.");
+    // 3) sécuriser structures
+    if (!Array.isArray(wo.parts)) wo.parts = [];
+    if (!Array.isArray(wo.labor)) wo.labor = [];
 
-    const client = CLIENTS.find(c => String(c.id) === String(clientId));
-    if (!client) return alert("Client introuvable.");
+    // 4) recalcul total (robuste)
+    const totalParts = wo.parts.reduce((s,p)=> {
+      const rate = Number(p?.rate || 0);
+      const qty  = Number(p?.qty  || 0);
+      return s + (rate * qty);
+    }, 0);
 
-    const vehicle = client.vehicles.find(v => String(v.id) === String(vehicleId));
-    if (!vehicle) return alert("Véhicule introuvable.");
+    const totalLabor = wo.labor.reduce((s,l)=> {
+      const rate  = Number(l?.rate  || 0);
+      const hours = Number(l?.hours || 0);
+      return s + (rate * hours);
+    }, 0);
 
-    const wo = {
-      id: Date.now(),
-      number: generateWorkOrderNumber(client.name),
-      date: new Date().toLocaleString("fr-CA"),
-      clientName: client.name,
-      vehicleLabel: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-      vehiclePlate: vehicle.plate || "",
-      vehicleVin: vehicle.vin || "",
-      vehicleKm: vehicle.km || 0,
-      description,
-      parts: [],
-      labor: [],
-      estimateTotal: 0,
-      status: "en_cours"
-    };
+    wo.estimateTotal = totalParts + totalLabor;
 
-    WORKORDERS.push(wo);
-    localStorage.setItem(STORAGE.workorders, JSON.stringify(WORKORDERS));
-    scheduleCloudSync();
+    // 5) ✅ écriture sûre (la vraie persistance)
+    try{
+      localStorage.setItem(STORAGE.workorders, JSON.stringify(WORKORDERS));
+    }catch(e){
+      console.error("Save WORKORDERS failed", e);
+    }
+    if (typeof scheduleCloudSync === "function") scheduleCloudSync();
 
-    renderWorkOrders();
+    // 6) refresh UI
+    if (typeof woRenderLines === "function") woRenderLines(wo);
+    if (typeof renderWorkOrders === "function") renderWorkOrders();
 
-    alert("Bon de travail créé !");
+    alert("Bon de travail mis à jour !");
   };
 }
   
