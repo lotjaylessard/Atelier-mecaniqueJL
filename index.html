@@ -3381,6 +3381,107 @@ function openWorkOrderDetail(wo){
 
   window.__currentWO = wo;
 
+    // ================= BIND BOUTONS WO (IMPORTANT) =================
+  const btnAddPart  = $("woAddPart");
+  const btnAddLabor = $("woAddLabor");
+
+  if (btnAddPart){
+    btnAddPart.onclick = () => woAddPartLine(wo);
+  }
+
+  if (btnAddLabor){
+    btnAddLabor.onclick = () => woAddLaborLine(wo);
+  }
+
+  // ================= PIÈCE MANUELLE (toggle + save/cancel) =================
+  const manualPartBtn = $("woAddPartManual");
+  const manualPartBox = $("woManualPartBox");
+
+  if (manualPartBtn && manualPartBox){
+    manualPartBtn.onclick = () => {
+      manualPartBox.style.display = "block";
+    };
+  }
+
+  const manualPartSave   = $("woManualPartSave");
+  const manualPartCancel = $("woManualPartCancel");
+
+  if (manualPartSave){
+    manualPartSave.onclick = () => {
+      const name = ($("woManualPartName")?.value || "").trim();
+      const qty  = Number($("woManualPartQty")?.value || 0);
+      const rate = Number($("woManualPartRate")?.value || 0);
+
+      if (!name || qty <= 0 || rate <= 0){
+        return alert("Informations de la pièce incomplètes.");
+      }
+
+      if (!Array.isArray(wo.parts)) wo.parts = [];
+
+      wo.parts.push({
+        name,
+        qty,
+        rate,
+        total: qty * rate
+      });
+
+      // sauver
+      if (typeof persistActiveWO === "function") persistActiveWO(wo);
+      else saveWorkOrders();
+
+      woRenderLines(wo);
+
+      // reset + fermer
+      if ($("woManualPartName")) $("woManualPartName").value = "";
+      if ($("woManualPartQty")) $("woManualPartQty").value = 1;
+      if ($("woManualPartRate")) $("woManualPartRate").value = "";
+      if (manualPartBox) manualPartBox.style.display = "none";
+    };
+  }
+
+  if (manualPartCancel && manualPartBox){
+    manualPartCancel.onclick = () => {
+      manualPartBox.style.display = "none";
+    };
+  }
+
+  // ================= SERVICE MANUEL (toggle seulement) =================
+  const manualLaborBtn = $("woAddLaborManual");
+  const manualLaborBox = $("woManualLaborBox");
+  if (manualLaborBtn && manualLaborBox){
+    manualLaborBtn.onclick = () => {
+      manualLaborBox.style.display = "block";
+    };
+  }
+
+  // ================= TIMER (si ta fonction existe déjà) =================
+  if (typeof bindWOTimerUI === "function"){
+    bindWOTimerUI(wo);
+  }
+
+  // ================= KM (si ton input s'appelle woKmInput) =================
+  setTimeout(() => {
+    const kmInput = document.getElementById("woKmInput");
+    if (!kmInput) return;
+
+    const saveKm = () => {
+      if (typeof syncKmEverywhereFromWO === "function"){
+        syncKmEverywhereFromWO(wo, kmInput.value);
+      }
+
+      if (typeof VEHICLES_FLAT !== "undefined"){
+        VEHICLES_FLAT = [];
+      }
+
+      if (typeof renderWorkOrders === "function") renderWorkOrders();
+      if (typeof renderVehiclesPage === "function") renderVehiclesPage();
+    };
+
+    kmInput.onchange = saveKm;
+    kmInput.onblur   = saveKm;
+  }, 0);
+
+
   // ✅ MAINTENANT SEULEMENT
   woRenderLines(wo);
 }
