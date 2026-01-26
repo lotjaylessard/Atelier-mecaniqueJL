@@ -4220,22 +4220,23 @@ function renderInvoiceList(){
   INVOICES
     .filter(inv => {
       if (statusFilter && inv.status !== statusFilter) return false;
+
       if (search){
         const clientObj = CLIENTS.find(c =>
-  c.id === inv.customerId ||
-  c.name === inv.customer
-);
+          c.id === inv.customerId ||
+          c.name === inv.customer
+        );
 
-const clientNameSearch = clientObj
-  ? `${clientObj.lastName || ""} ${clientObj.firstName || ""}`
-  : (inv.customer || "");
+        const clientNameSearch = clientObj
+          ? `${clientObj.lastName || ""} ${clientObj.firstName || ""}`
+          : (inv.customer || "");
 
-const hay = `
-  ${inv.number}
-  ${clientNameSearch}
-  ${inv.job || ""}
-`.toLowerCase();
-        
+        const hay = `
+          ${inv.number}
+          ${clientNameSearch}
+          ${inv.job || ""}
+        `.toLowerCase();
+
         if (!hay.includes(search)) return false;
       }
       return true;
@@ -4245,23 +4246,15 @@ const hay = `
       tr.dataset.number = inv.number;
 
       // 🔎 Résoudre le client depuis CLIENTS (source fiable)
-const clientObj = CLIENTS.find(c =>
-  c.id === inv.customerId ||
-  c.name === inv.customer
-);
+      const clientObj = CLIENTS.find(c =>
+        c.id === inv.customerId ||
+        c.name === inv.customer
+      );
 
-        // 🚗 Résoudre le véhicule depuis CLIENTS (source unique)
-let vehicleObj = null;
-if (clientObj && Array.isArray(clientObj.vehicles) && wo.vehicleId != null){
-  vehicleObj = clientObj.vehicles.find(v =>
-    String(v.id) === String(wo.vehicleId)
-  );
-}
-
-// Format Nom, Prénom (comme page Clients)
-const clientNameDisplay = clientObj
-  ? `${clientObj.lastName || ""}${clientObj.firstName ? ", " + clientObj.firstName : ""}`.trim()
-  : (inv.customer || "");
+      // Format Nom, Prénom (cohérent avec Clients / Factures)
+      const clientNameDisplay = clientObj
+        ? `${clientObj.lastName || ""}${clientObj.firstName ? ", " + clientObj.firstName : ""}`.trim()
+        : (inv.customer || "");
 
       tr.innerHTML = `
         <td>${inv.number}</td>
@@ -4269,21 +4262,21 @@ const clientNameDisplay = clientObj
         <td>${clientNameDisplay}</td>
         <td class="invoice-total">${money(inv.total)} $</td>
         <td>
-  ${
-    inv.status === "paid"
-      ? (inv.paymentMethod === "cash"
-          ? "Payée (Comptant)"
-          : inv.paymentMethod === "transfer"
-            ? "Payée (Virement)"
-            : "Payée")
-      : inv.status === "partial"
-        ? "Partielle"
-        : "Impayée"
-  }
-</td>
+          ${
+            inv.status === "paid"
+              ? (inv.paymentMethod === "cash"
+                  ? "Payée (Comptant)"
+                  : inv.paymentMethod === "transfer"
+                    ? "Payée (Virement)"
+                    : "Payée")
+              : inv.status === "partial"
+                ? "Partielle"
+                : "Impayée"
+          }
+        </td>
         <td>
-        <button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">Ouvrir</button>
-        <button class="ghost danger btn-delete-invoice">Supprimer</button>
+          <button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">Ouvrir</button>
+          <button class="ghost danger btn-delete-invoice">Supprimer</button>
         </td>
       `;
 
