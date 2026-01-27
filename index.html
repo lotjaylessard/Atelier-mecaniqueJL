@@ -7749,12 +7749,19 @@ function initLinksModule() {
   }
 
   // 3️⃣ Facture liée (si existe)
-  const invoice = INVOICES.find(inv =>
-    inv.workOrderNumber === wo.number
-  );
-  if (invoice){
-    invoice.vehicleKm = km;
-  }
+let invoice = null;
+
+// Mode normal : facture liée à un BT
+invoice = INVOICES.find(inv => inv.workOrderNumber === wo.number);
+
+// Mode "facture ouverte comme WO"
+if (!invoice && wo && wo.__fromInvoice && wo.__invoiceNumber){
+  invoice = INVOICES.find(inv => String(inv.number) === String(wo.__invoiceNumber));
+}
+
+if (invoice){
+  invoice.vehicleKm = km;
+}
 
   // 4️⃣ Persistance
   saveWorkOrders();
