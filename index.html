@@ -4273,10 +4273,21 @@ recalcInvoice(inv);
                 : "Impayée"
           }
         </td>
-        <td>
-          <button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">Ouvrir</button>
-          <button class="ghost danger btn-delete-invoice">Supprimer</button>
-        </td>
+        <td style="text-align:right;">
+  <button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">
+    Ouvrir
+  </button>
+
+  ${
+    inv.status === "paid"
+      ? `<button class="ghost" onclick="archiveInvoice('${inv.number}')">
+           Archiver
+         </button>`
+      : `<button class="ghost danger" onclick="deleteInvoice('${inv.number}')">
+           Supprimer
+         </button>`
+  }
+</td>
       `;
 
       tbody.appendChild(tr);
@@ -6120,6 +6131,7 @@ const filterVehicle = $("filterVehicle")?.value || "";
 INVOICES
   .slice()
   .sort((a, b) => Number(b.number) - Number(a.number))
+  .filter(inv => inv.archived === true)
   .filter(inv => {
       if (filterClient && inv.customer !== filterClient) return false;
       if (filterVehicle) {
@@ -8077,6 +8089,27 @@ clone.querySelectorAll("h3").forEach(h=>{
   saveInvoices();
   renderInvoiceList();
   openInvoiceEditModal(number);
+}
+
+
+  function archiveInvoice(number){
+  const inv = INVOICES.find(i => String(i.number) === String(number));
+  if (!inv) return;
+
+  if (inv.status !== "paid"){
+    alert("Seules les factures payées peuvent être archivées.");
+    return;
+  }
+
+  if (!confirm(`Archiver la facture ${inv.number} ?`)) return;
+
+  inv.archived = true;
+  inv.archivedDate = new Date().toLocaleDateString("fr-CA");
+
+  saveInvoices();
+  renderInvoiceList();
+  renderHistoryTable();
+  renderDashboard();
 }
 
   
