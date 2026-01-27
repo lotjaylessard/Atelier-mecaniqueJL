@@ -2015,6 +2015,10 @@ recalcInvoice(inv);
     id: "INV-" + invoice.number,      // ID virtuel
     number: invoice.number,
     date: invoice.date,
+
+    clientId: invoice.clientId ?? null,
+vehicleId: invoice.vehicleId ?? null,
+    
     clientName: invoice.customer,
     vehicleLabel: invoice.vehicle,
     vehicleKm: invoice.vehicleKm ?? null,
@@ -7736,6 +7740,11 @@ function woConvertToInvoice(wo) {
   const invoice = {
     number,
     date: new Date().toLocaleDateString("fr-CA"),
+
+    clientId: wo.clientId,
+    vehicleId: wo.vehicleId,
+    vehicleKm: wo.vehicleKm ?? null,
+    
     customer: wo.clientName,
     job: wo.vehicleLabel + " - " + (wo.description || ""),
     items: [],
