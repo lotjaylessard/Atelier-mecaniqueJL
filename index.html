@@ -2269,6 +2269,22 @@ function persistActiveWO(wo){
 }
 
 
+  function syncWOTimerUI(){
+  const startBtn = document.getElementById("woTimerBtn");
+  const stopBtn  = document.getElementById("woTimerStopBtn");
+
+  if (!startBtn || !stopBtn) return;
+
+  if (WO_TIMER_INTERVAL){
+    startBtn.style.display = "none";
+    stopBtn.style.display  = "inline-block";
+  } else {
+    startBtn.style.display = "inline-block";
+    stopBtn.style.display  = "none";
+  }
+}
+
+
   function formatDuration(ms){
   const totalSec = Math.floor(ms / 1000);
   const h = String(Math.floor(totalSec / 3600)).padStart(2,"0");
@@ -3516,11 +3532,16 @@ function openWorkOrderDetail(wo){
 
   startBtn.onclick = () => {
     startWOTimer();
+    syncWOTimerUI();
   };
 
   stopBtn.onclick = () => {
     stopWOTimer();
+    syncWOTimerUI();
   };
+
+  // 🔁 IMPORTANT : resynchroniser l’UI au chargement du WO
+  syncWOTimerUI();
 
 }, 0);
 
