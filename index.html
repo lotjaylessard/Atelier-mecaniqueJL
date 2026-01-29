@@ -1791,6 +1791,8 @@ INVOICES = [];
 
 let WO_TIMER_INTERVAL = null;
 let WO_TIMER_START = null;
+let WO_TIMER_ELAPSED = 0; // temps accumulé en ms
+let WO_TIMER_PAUSED = false;
 let WORKORDERS = [];
 let items = [];
 let CLIENTS = [];
@@ -2197,7 +2199,8 @@ function persistActiveWO(wo){
   function startWOTimer(){
   if (WO_TIMER_INTERVAL) return;
 
-  WO_TIMER_START = Date.now();
+  WO_TIMER_START = Date.now() - WO_TIMER_ELAPSED;
+  WO_TIMER_PAUSED = false;
 
   // 🔁 Bascule boutons
   const startBtn = document.getElementById("woTimerBtn");
@@ -2217,6 +2220,19 @@ function persistActiveWO(wo){
 }
 
 
+  function pauseWOTimer(){
+  if (!WO_TIMER_INTERVAL) return;
+
+  clearInterval(WO_TIMER_INTERVAL);
+  WO_TIMER_INTERVAL = null;
+
+  WO_TIMER_ELAPSED = Date.now() - WO_TIMER_START;
+  WO_TIMER_PAUSED = true;
+
+  console.log("WO TIMER PAUSED", WO_TIMER_ELAPSED);
+}
+
+
   function stopWOTimer(){
   if (!WO_TIMER_START) return;
 
@@ -2226,7 +2242,9 @@ function persistActiveWO(wo){
   const elapsedMs = Date.now() - WO_TIMER_START;
   WO_TIMER_START = null;
 
-  const hours = Math.round((elapsedMs / 3600000) * 100) / 100;
+    const totalMs = WO_TIMER_PAUSED ? WO_TIMER_ELAPSED : elapsedMs;
+
+  const hours = Math.round((totalMs / 3600000) * 100) / 100;
 
   console.log("WO TIMER STOP");
   console.log("Heures calculées :", hours);
@@ -2266,6 +2284,9 @@ function persistActiveWO(wo){
   persistActiveWO(wo);
   woRenderLines(wo);
 
+    WO_TIMER_ELAPSED = 0;
+WO_TIMER_PAUSED = false;
+
 }
 
 
@@ -2275,13 +2296,17 @@ function persistActiveWO(wo){
 
   if (!startBtn || !stopBtn) return;
 
-  if (WO_TIMER_INTERVAL){
-    startBtn.style.display = "none";
-    stopBtn.style.display  = "inline-block";
-  } else {
-    startBtn.style.display = "inline-block";
-    stopBtn.style.display  = "none";
-  }
+  const pauseBtn = document.getElementById("woTimerPauseBtn");
+
+if (WO_TIMER_INTERVAL){
+  startBtn.style.display = "none";
+  stopBtn.style.display  = "inline-block";
+  if (pauseBtn) pauseBtn.style.display = "inline-block";
+} else {
+  startBtn.style.display = "inline-block";
+  stopBtn.style.display  = "none";
+  if (pauseBtn) pauseBtn.style.display = "none";
+}
 }
 
 
@@ -3524,11 +3549,20 @@ function openWorkOrderDetail(wo){
 
   const startBtn = document.getElementById("woTimerBtn");
   const stopBtn  = document.getElementById("woTimerStopBtn");
+  const pauseBtn = document.getElementById("woTimerPauseBtn");
+
 
   if (!startBtn || !stopBtn){
     console.warn("Boutons timer introuvables");
     return;
   }
+
+    if (pauseBtn){
+  pauseBtn.onclick = () => {
+    pauseWOTimer();
+    syncWOTimerUI();
+  };
+}
 
   startBtn.onclick = () => {
     startWOTimer();
@@ -3785,6 +3819,11 @@ const statusLabel =
   <button id="woTimerStopBtn" class="ghost danger" style="display:none;">
     ⏹ Arrêter
   </button>
+
+  <button id="woTimerPauseBtn" class="ghost" style="display:none;">
+  ⏸ Pause
+</button>
+
 </div>
 </div>
 
