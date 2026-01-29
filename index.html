@@ -547,6 +547,45 @@ button.link:hover{
 }
 
 
+    /* ===============================
+   SERVICES — MODE LISTE PRO
+=============================== */
+
+.service-row{
+  display:grid;
+  grid-template-columns: 2.5fr 1fr 1.5fr 2.5fr;
+  gap:12px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  align-items:center;
+}
+
+.service-row:hover{
+  background:rgba(255,255,255,0.03);
+}
+
+.srv-name strong{
+  color:var(--accent);
+  font-size:15px;
+}
+
+.srv-desc{
+  font-size:12px;
+  opacity:.8;
+  margin-top:4px;
+}
+
+.srv-cat,
+.srv-price{
+  font-size:13px;
+  opacity:.9;
+}
+
+.srv-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+}
 
     
   </style>
@@ -6106,28 +6145,32 @@ function renderServices(){
         ? `${s.hours} h x ${money(s.rate)} $/h`
         : `Non défini`);
     const icon = SERVICE_ICONS[s.category] || "⚙️";
-    const card=document.createElement('div');
-    card.style=`
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:12px;
-      width:260px;
-    `;
-    card.innerHTML=`
-      <h3 style="margin-bottom:6px;color:var(--accent);">${icon} ${s.name}</h3>
-      <div class="small">Catégorie : <b>${s.category}</b></div>
-      <div class="small">Tarification : <b>${typeLabel}</b></div>
-      ${s.desc ? `<div class="small" style="margin-top:6px;">${s.desc}</div>` : ""}
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <button class="ghost" data-action="edit-srv" data-id="${s.id}" style="flex:1;">Modifier</button>
-        <button class="ghost" data-action="del-srv" data-id="${s.id}" style="flex:1;">Supprimer</button>
-      </div>
-      <button class="ghost" onclick="addServiceToCurrentWO(${s.id})">
-  ➕ Ajouter au bon de travail
-</button>
-    `;
-    wrap.appendChild(card);
+    const row = document.createElement('div');
+row.className = 'service-row';
+
+row.innerHTML = `
+  <div class="srv-col srv-name">
+    <strong>${icon} ${s.name}</strong>
+    ${s.desc ? `<div class="srv-desc">${s.desc}</div>` : ``}
+  </div>
+
+  <div class="srv-col srv-cat">
+    ${s.category}
+  </div>
+
+  <div class="srv-col srv-price">
+    ${typeLabel}
+  </div>
+
+  <div class="srv-col srv-actions">
+    <button class="ghost" data-action="edit-srv" data-id="${s.id}">Modifier</button>
+    <button class="ghost" data-action="del-srv" data-id="${s.id}">Supprimer</button>
+    <button class="ghost" onclick="addServiceToCurrentWO(${s.id})">
+      ➕ Bon de travail
+    </button>
+  </div>
+`;
+wrap.appendChild(row);
   });
 
   wrap.querySelectorAll('button[data-action="del-srv"]').forEach(btn=>{
