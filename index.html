@@ -1684,6 +1684,13 @@ async function loadCloudData(){
 
   // ✅ Charger le cloud dans le localStorage
   hydrateLocalFromCloud(data.data);
+
+  // 🔁 Recharger les données en mémoire après hydratation cloud
+loadInvoices();
+
+// 🔄 Rafraîchir le dashboard avec les vraies données
+renderDashboard();
+
   console.log("☁️ Données cloud chargées");
   return true;
 }
