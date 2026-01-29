@@ -3414,6 +3414,24 @@ function openWorkOrderDetail(wo){
 
   // rendu des lignes
   woRenderLines(wo);
+
+    // ===============================
+  // TIMER – BRANCHEMENT DU BOUTON
+  // ===============================
+  setTimeout(() => {
+
+    const startBtn = document.getElementById("woTimerBtn");
+
+    if (!startBtn) {
+      console.warn("woTimerBtn introuvable");
+      return;
+    }
+
+    startBtn.onclick = () => {
+      console.log("WO TIMER START CLICK");
+    };
+
+  }, 0);
 }
 
 
