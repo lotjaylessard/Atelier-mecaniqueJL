@@ -2144,13 +2144,36 @@ function getActiveWOById(woId){
   
 /* 2) Sauver: si c'est une facture -> INVOICES, sinon -> WORKORDERS */
 function persistActiveWO(wo){
-  if (!wo) return;
+  if (!wo || !wo.id) return;
 
+  // 🔁 MODE FACTURE (WO temporaire)
   if (wo.__fromInvoice){
     saveTempWOToInvoice(wo);
-  } else {
-    saveWorkOrders();
+    return;
   }
+
+  // 🔢 recalcul total estimé
+  const partsTotal = (wo.parts || []).reduce(
+    (s,p)=> s + Number(p.total || (p.qty * p.rate) || 0), 0
+  );
+
+  const laborTotal = (wo.labor || []).reduce(
+    (s,l)=> s + Number(l.total || (l.hours * l.rate) || 0), 0
+  );
+
+  wo.estimateTotal = partsTotal + laborTotal;
+
+  // 🔁 remettre le WO modifié dans WORKORDERS
+  const idx = WORKORDERS.findIndex(w => String(w.id) === String(wo.id));
+  if (idx !== -1){
+    WORKORDERS[idx] = wo;
+  } else {
+    WORKORDERS.push(wo);
+  }
+
+  // 💾 sauvegarde réelle
+  localStorage.setItem(STORAGE.workorders, JSON.stringify(WORKORDERS));
+  scheduleCloudSync();
 }
 
   
