@@ -6451,32 +6451,10 @@ wrap.appendChild(row);
 
 function initServicesModule(){
   loadServices();
-  renderServices();
+  renderServicesList();
 
-  if($('srvAddBtn')){
-    $('srvAddBtn').addEventListener('click',()=>{
-      const name=$('srvName').value.trim();
-      const category=$('srvCategory')?.value || 'Divers';
-      const desc=$('srvDesc').value.trim();
-      const priceFixed=Number($('srvPriceFixed').value)||0;
-      const hours=Number($('srvHours').value)||0;
-      const rate=Number($('srvRate').value)||0;
-      if(!name){alert("Nom du service requis.");return;}
-      if(priceFixed<=0 && (hours<=0 || rate<=0)){
-        alert("Définir soit un prix fixe, soit heures + taux.");
-        return;
-      }
-      const srv={id:Date.now(),name,category,desc,priceFixed,hours,rate};
-      SERVICES.push(srv);
-      saveServices();
-      renderServices();
-      $('srvName').value='';
-      $('srvDesc').value='';
-      $('srvPriceFixed').value='';
-      $('srvHours').value='';
-      $('srvRate').value='';
-    });
-  }
+  EDITING_SERVICE_ID = null;
+if ($("srvAddBtn")) $("srvAddBtn").textContent = "Ajouter le service";
 
   const modal=$('servicePickerModal');
   const list=$('servicePickerList');
