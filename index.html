@@ -6167,7 +6167,18 @@ function loadServices(){
 }
 
 function deleteService(id){
-  console.log("deleteService appelé pour :", id);
+  const srv = SERVICES.find(s => String(s.id) === String(id));
+  if (!srv) return;
+
+  const ok = confirm(`Supprimer le service : "${srv.name}" ?`);
+  if (!ok) return;
+
+  SERVICES = SERVICES.filter(s => String(s.id) !== String(id));
+
+  localStorage.setItem(STORAGE.services, JSON.stringify(SERVICES));
+  scheduleCloudSync();
+
+  renderServicesList();
 }
 
 
