@@ -6357,7 +6357,7 @@ function deleteService(id){
 }
 
 
-  function renderPartsList(){
+function renderPartsList(){
   const list = $("partsInventoryList");
   if (!list) return;
 
@@ -6367,14 +6367,11 @@ function deleteService(id){
   list.innerHTML = "";
 
   const filtered = PARTS.filter(p => {
-    const matchText =
-      p.name.toLowerCase().includes(search) ||
-      (p.number || "").toLowerCase().includes(search) ||
-      p.category.toLowerCase().includes(search);
-
-    const matchCategory = !category || p.category === category;
-
-    return matchText && matchCategory;
+    const hay =
+      `${p.name} ${p.number || ""} ${p.category}`.toLowerCase();
+    if (search && !hay.includes(search)) return false;
+    if (category && p.category !== category) return false;
+    return true;
   });
 
   if (!filtered.length){
@@ -6383,30 +6380,38 @@ function deleteService(id){
   }
 
   filtered.forEach(p => {
+
+    const priceLabel = `${money(p.price)} $`;
+    const categoryLabel = p.category;
+    const desc = `
+      # Pièce : ${escapeHTML(p.number || "")}
+      • Stock : ${p.qty}
+      • Coût : ${money(p.cost)} $
+      • Marge : ${calcMargin(p.cost, p.price)}%
+    `;
+
     list.innerHTML += `
       <div class="service-row">
-        <div class="service-main">
+
+        <!-- COLONNE GAUCHE (IDENTIQUE SERVICES) -->
+        <div class="service-left">
           <div class="service-title">${escapeHTML(p.name)}</div>
-          <div class="service-desc">
-            # Pièce : ${escapeHTML(p.number || "")}
-            &nbsp;•&nbsp;
-            Catégorie : ${escapeHTML(p.category)}
-            &nbsp;•&nbsp;
-            Stock : ${p.qty}
-            &nbsp;•&nbsp;
-            Coût : ${money(p.cost)} $
-            &nbsp;•&nbsp;
-            Prix : ${money(p.price)} $
-            &nbsp;•&nbsp;
-            Marge : ${calcMargin(p.cost, p.price)}%
-          </div>
+          <div class="service-desc">${desc}</div>
         </div>
 
+        <!-- COLONNE CENTRALE (IDENTIQUE SERVICES) -->
+        <div class="service-center">
+          <span class="badge">${escapeHTML(categoryLabel)}</span>
+          <span class="price">${priceLabel}</span>
+        </div>
+
+        <!-- COLONNE DROITE (IDENTIQUE SERVICES) -->
         <div class="service-actions">
           <button class="ghost" onclick="editPart('${p.id}')">Modifier</button>
           <button class="ghost danger" onclick="deletePart('${p.id}')">Supprimer</button>
           <button onclick="addPartToCurrentWO('${p.id}')">+ Bon de travail</button>
         </div>
+
       </div>
     `;
   });
