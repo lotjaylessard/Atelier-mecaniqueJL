@@ -1173,7 +1173,7 @@ button.link:hover{
   Modifie uniquement les services à taux horaire (les forfaits ne sont pas touchés).
 </div>
 
-        <button id="saveSettings" style="margin-top:10px;">Enregistrer les paramètres</button>
+        <button id="saveSettings" style="margin-top:10px;">💾 Enregistrer les paramètres</button>
         <div class="muted" style="margin-top:6px;">Les nouvelles factures utiliseront ces taux de taxes.</div>
 
         <hr style="margin:20px 0; border-color:var(--border);">
@@ -1318,7 +1318,7 @@ button.link:hover{
 
     <div class="modal-actions">
       <button class="ghost" onclick="closeAddVehicleModal()">Annuler</button>
-      <button class="primary" onclick="saveNewVehicle()">💾 Sauvegarder</button>
+      <button class="primary" onclick="saveNewVehicle()">💾 Enregistrer</button>
     </div>
   </div>
 </div>
@@ -2602,7 +2602,7 @@ function returnToWOListFromDetail(){
     return;
   }
 
-  // 🔒 1) Sauvegarder les modifications dans la facture
+  // 🔒 1) Enregistrer les modifications dans la facture
   persistActiveWO(wo);
 
   const invoiceNumber = wo.number; // garder le numéro AVANT nettoyage
@@ -3876,7 +3876,7 @@ $("woDetailCard").style.display = "block";
       <label>Description</label>
       <textarea id="woDescription" style="min-height:100px;"></textarea>
 
-      <button id="btnSaveWO">💾 Sauvegarder</button>
+      <button id="btnSaveWO">💾 Enregistrer</button>
     </div>
   `;
 
@@ -5792,7 +5792,7 @@ loadInvoices?.();
 <div style="text-align:right; margin-top:12px;">
   <button class="ghost"
     onclick="saveVehicleInfo('${client.id}','${vehicle.id}')">
-    💾 Sauvegarder
+    💾 Enregistrer
   </button>
 </div>
     </div>
@@ -6004,7 +6004,7 @@ function renderClientModal(id){
 
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
         ${isNew ? '' : '<button id="clientDeleteBtn" class="ghost">Supprimer client</button>'}
-        <button id="clientSaveBtn">Enregistrer</button>
+        <button id="clientSaveBtn">💾 Enregistrer</button>
       </div>
     </div>
   `;
@@ -7888,7 +7888,7 @@ function renderEditUI(){
       </button>
       <button id="saveInvoiceEditBtn"
               ${locked ? 'disabled' : ''}>
-        💾 Sauvegarder
+        💾 Enregistrer
       </button>
       <button id="closeInvoiceEditModal" class="ghost">
         Fermer
@@ -9104,7 +9104,7 @@ function formatVehicleLabel(v){
 
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:15px;">
       <button id="woEditCancel" class="ghost">Annuler</button>
-      <button id="woEditSave">Enregistrer</button>
+      <button id="woEditSave">💾 Enregistrer</button>
     </div>
   </div>
 </div>
