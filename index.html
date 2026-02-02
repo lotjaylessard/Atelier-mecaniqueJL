@@ -6248,7 +6248,15 @@ function initPartsModule(){
       const category=$('partInvCategory')?.value || 'Divers';
       if(!name){alert("Nom obligatoire");return;}
       if(qty<0){alert("Quantité invalide");return;}
-      PARTS.push({name,number,qty,cost,price,category});
+      PARTS.push({
+  id: Date.now(),
+  name,
+  number,
+  qty,
+  cost,
+  price,
+  category
+});
       saveParts();
       renderDashboard();
       $('partInvName').value='';
