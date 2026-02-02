@@ -6235,38 +6235,56 @@ function renderParts_OLD_DO_NOT_USE(){
     });
   });
 }
+  
 
 function initPartsModule(){
   loadParts();
-  if($('partInvAddBtn')){
-    $('partInvAddBtn').addEventListener('click',()=>{
-      const name=$('partInvName').value.trim();
-      const number=$('partInvNumber').value.trim();
-      const qty=Number($('partInvQty').value)||0;
-      const cost=Number($('partInvCost').value)||0;
-      const price=Number($('partInvPrice').value)||0;
-      const category=$('partInvCategory')?.value || 'Divers';
-      if(!name){alert("Nom obligatoire");return;}
-      if(qty<0){alert("Quantité invalide");return;}
-      PARTS.push({
-  id: Date.now(),
-  name,
-  number,
-  qty,
-  cost,
-  price,
-  category
-});
-      saveParts();
-      renderDashboard();
-      $('partInvName').value='';
-      $('partInvNumber').value='';
-      $('partInvQty').value=1;
-      $('partInvCost').value='';
-      $('partInvPrice').value='';
+
+  const btn = $('partInvAddBtn');
+  if (!btn) return;
+
+  btn.onclick = null; // 🔥 évite le multi-binding
+  btn.onclick = () => {
+
+    const name = $('partInvName').value.trim();
+    const number = $('partInvNumber').value.trim();
+    const qty = Number($('partInvQty').value) || 0;
+    const cost = Number($('partInvCost').value) || 0;
+    const price = Number($('partInvPrice').value) || 0;
+    const category = $('partInvCategory')?.value || 'Divers';
+
+    if (!name){
+      alert("Nom obligatoire");
+      return;
+    }
+
+    if (qty < 0){
+      alert("Quantité invalide");
+      return;
+    }
+
+    PARTS.push({
+      id: Date.now(),
+      name,
+      number,
+      qty,
+      cost,
+      price,
+      category
     });
-  }
+
+    saveParts();
+    renderDashboard();
+    renderPartsList(); // ✅ affichage immédiat
+
+    $('partInvName').value='';
+    $('partInvNumber').value='';
+    $('partInvQty').value=1;
+    $('partInvCost').value='';
+    $('partInvPrice').value='';
+  };
 }
+  
 
 /* ===================== SERVICES ===================== */
 function loadServices(){
