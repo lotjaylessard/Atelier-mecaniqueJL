@@ -7695,8 +7695,8 @@ ${inv.discount && inv.discount > 0 ? `
     <!-- autres boutons -->
     <button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePartial('${inv.number}')">➗ Partielle</button>
     <button class="ghost"
-      ${isLocked ? "disabled title='Facture payée — modification verrouillée'" : ""}
-      onclick="openInvoiceAsWO('${inv.number}')">✏️ Modifier</button>
+  ${isLocked ? "disabled title='Facture payée — modification verrouillée'" : ""}
+  onclick="openInvoiceEditModal('${inv.number}')">✏️ Modifier</button>
     <button class="ghost" onclick="printInvoice()">🖨 Imprimer</button>
     <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
 
@@ -7801,6 +7801,13 @@ if (closeBtn){
 }
 
 
+  /* ======================================================
+   ⚠️ DÉPRÉCIÉ (NE PLUS UTILISER POUR "MODIFIER")
+   Cette fonction sert UNIQUEMENT si on veut
+   volontairement ouvrir le Work Order lié à une facture.
+   
+   ❌ INTERDIT pour l’édition de facture
+====================================================== */
   // ✅ Alias pour compatibilité (le tableau appelle openInvoiceAsWO)
 function openInvoiceAsWO(number){
   // 🔥 fermer le modal facture
