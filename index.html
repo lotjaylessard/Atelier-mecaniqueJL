@@ -3031,6 +3031,7 @@ function saveManualPart(){
 
   const name = $("woManualPartName").value.trim();
   const qty  = Number($("woManualPartQty").value);
+  const cost = Number($("woManualPartCost").value) || 0;
   const rate = Number($("woManualPartRate").value);
 
   if (!name || qty <= 0 || rate < 0){
@@ -3039,11 +3040,11 @@ function saveManualPart(){
   }
 
   wo.parts.push({
-    name,
-    qty,
-    cost: 0,
-    rate
-  });
+  name,
+  qty,
+  cost,   // 👈 vient du champ
+  price: rate
+});
 
   saveWorkOrders();
   woRenderLines(wo);
@@ -3051,6 +3052,7 @@ function saveManualPart(){
   // reset + fermer
   $("woManualPartName").value = "";
   $("woManualPartQty").value = 1;
+  $("woManualPartCost").value = "";   // 👈 AJOUT
   $("woManualPartRate").value = 0;
   $("woManualPartBox").style.display = "none";
 }
@@ -3434,20 +3436,21 @@ function woRenderLines(wo) {
     const profit = (price - cost) * qty;
 
     return `
-      <tr>
-        <td>${p.name}</td>
-        <td>${qty}</td>
-        <td>${money(price)} $</td>
-        <td style="color:${profit >= 0 ? '#4CAF50' : '#ff4d4d'}">
-          ${money(profit)} $
-        </td>
-        <td>${money(price * qty)} $</td>
-        <td>
-          <button class="ghost" onclick="woEditLine('${wo.id}','part',${i})">✏️</button>
-          <button class="ghost" onclick="woRemovePart('${wo.id}',${i})">🗑</button>
-        </td>
-      </tr>
-    `;
+  <tr>
+    <td>${p.name}</td>
+    <td>${qty}</td>
+    <td>${money(cost)} $</td>
+    <td>${money(price)} $</td>
+    <td style="color:${profit >= 0 ? '#4CAF50' : '#ff4d4d'}">
+      ${money(profit)} $
+    </td>
+    <td>${money(price * qty)} $</td>
+    <td>
+      <button class="ghost" onclick="woEditLine('${wo.id}','part',${i})">✏️</button>
+      <button class="ghost" onclick="woRemovePart('${wo.id}',${i})">🗑</button>
+    </td>
+  </tr>
+`;
   }).join("");
 
 
@@ -3580,15 +3583,18 @@ function woEditLine(woId, type, index) {
 
   if (type === "part") {
     box.innerHTML = `
-      <label>Nom</label>
-      <input id="woEditName" value="${line.name}">
+  <label>Nom</label>
+  <input id="woEditName" value="${line.name}">
 
-      <label>Quantité</label>
-      <input id="woEditQty" type="number" value="${line.qty}">
+  <label>Quantité</label>
+  <input id="woEditQty" type="number" value="${line.qty}">
 
-      <label>Prix unitaire</label>
-      <input id="woEditRate" type="number" step="0.01" value="${line.rate}">
-    `;
+  <label>Prix coûtant</label>
+  <input id="woEditCost" type="number" step="0.01" value="${Number(line.cost || 0)}">
+
+  <label>Prix de vente</label>
+  <input id="woEditRate" type="number" step="0.01" value="${line.rate}">
+`;
   } else {
     box.innerHTML = `
       <label>Description</label>
@@ -3609,7 +3615,8 @@ function woEditLine(woId, type, index) {
   $("woEditSave").onclick = () => {
     if (type === "part") {
       line.name = $("woEditName").value;
-      line.qty = Number($("woEditQty").value);
+      line.qty  = Number($("woEditQty").value);
+      line.cost = Number($("woEditCost").value) || 0;
       line.rate = Number($("woEditRate").value);
       line.total = line.qty * line.rate;
     } else {
@@ -4207,7 +4214,15 @@ const statusLabel =
 
     <table id="woPartsTable" style="margin-top:10px;">
       <thead>
-        <tr><th>Nom</th><th>Qté</th><th>Prix</th><th>Profit</th><th>Total</th><th></th></tr>
+        <tr>
+  <th>Nom</th>
+  <th>Qté</th>
+  <th>Coût</th>
+  <th>Prix</th>
+  <th>Profit</th>
+  <th>Total</th>
+  <th></th>
+</tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -4220,7 +4235,11 @@ const statusLabel =
   <label>Quantité</label>
   <input id="woManualPartQty" type="number" value="1">
 
-  <label>Prix unitaire ($)</label>
+  <!-- ✅ NOUVEAU CHAMP -->
+  <label>Prix coûtant ($)</label>
+  <input id="woManualPartCost" type="number" step="0.01">
+
+  <label>Prix de vente ($)</label>
   <input id="woManualPartRate" type="number" step="0.01">
 
   <div style="display:flex;gap:8px;margin-top:10px;">
@@ -4391,12 +4410,15 @@ if (saveManualBtn){
       return alert("Informations de la pièce incomplètes.");
     }
 
-    wo.parts.push({
-      name,
-      qty,
-      rate,
-      total: qty * rate
-    });
+    const cost = Number(document.getElementById("woManualPartCost").value) || 0;
+
+wo.parts.push({
+  name,
+  qty,
+  cost,
+  rate,
+  total: qty * rate
+});
 
     saveWorkOrders();
     woRenderLines(wo);
