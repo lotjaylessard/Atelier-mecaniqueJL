@@ -2247,6 +2247,7 @@ function addServiceToCurrentWO(serviceId){
     name: part.name,
     number: part.number,
     qty,
+    cost: Number(part.cost || 0),
     rate: Number(part.price || 0),
     total: qty * Number(part.price || 0)
   });
@@ -2913,6 +2914,7 @@ function saveManualPart(){
   wo.parts.push({
     name,
     qty,
+    cost: 0,
     rate
   });
 
@@ -3880,6 +3882,10 @@ function openWorkOrderDetail(wo){
 }
 
 
+
+   // ===============================
+  // Création de Work-Order + rentrer pièces, main-d'oeuvre, LE MAIN EN FAIT
+  // ===============================
 function initWorkOrdersModule(){
   loadWorkOrders();
   renderWorkOrders();
@@ -4074,7 +4080,7 @@ const statusLabel =
 
     <table id="woPartsTable" style="margin-top:10px;">
       <thead>
-        <tr><th>Nom</th><th>Qté</th><th>Prix</th><th>Total</th><th></th></tr>
+        <tr><th>Nom</th><th>Qté</th><th>Prix</th><th>Profit</th><th>Total</th><th></th></tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -4157,6 +4163,7 @@ const statusLabel =
     <div class="muted">Pièces : <span id="woPartsTotal">0 $</span></div>
     <div class="muted">Main-d'œuvre : <span id="woLaborTotal">0 $</span></div>
     <h3 style="margin-top:10px;">Total estimé : <span id="woEstimateTotal">0 $</span></h3>
+    <div class="muted">Profit estimé : <span id="woProfitTotal">0 $</span></div>
   </div>
 
 
@@ -4566,6 +4573,17 @@ function initWorkOrderSaveButton(){
       const totalParts = wo.parts.reduce((s,p)=> s + (p.rate * p.qty), 0);
       const totalLabor = wo.labor.reduce((s,l)=> s + (l.rate * l.hours), 0);
       wo.estimateTotal = totalParts + totalLabor;
+
+      const totalProfit = wo.parts.reduce((s,p)=> {
+  const qty  = Number(p.qty || 0);
+  const rate = Number(p.rate || 0);
+  const cost = Number(p.cost || 0);
+  return s + ((rate - cost) * qty);
+}, 0);
+
+wo.estimateProfit = totalProfit;
+
+if ($("woProfitTotal")) $("woProfitTotal").innerText = money(totalProfit) + " $";
 
       // 💾 Sauvegarde
       saveWorkOrders();
