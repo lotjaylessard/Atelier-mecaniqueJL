@@ -1414,6 +1414,18 @@ const $ = id => document.getElementById(id);
 function money(n){return Number(n||0).toFixed(2);}
 
 
+  function calcWorkOrderProfit(wo){
+  if (!wo || !Array.isArray(wo.parts)) return 0;
+
+  return wo.parts.reduce((sum, p) => {
+    const cost = Number(p.cost || 0);
+    const price = Number(p.price || 0);
+    const qty = Number(p.qty || 0);
+    return sum + ((price - cost) * qty);
+  }, 0);
+}
+
+
   function calcMargin(cost, price){
   cost = Number(cost || 0);
   price = Number(price || 0);
@@ -2777,6 +2789,7 @@ const isPaid = totalPaid >= Number(wo.total || 0);
         <th>Qté</th>
         <th>Prix</th>
         <th>Total</th>
+        <th>Profit</th>
         <th></th>
       </tr>
     </thead>
@@ -3282,18 +3295,32 @@ function bindWOTimerUI(){
 function woRenderLines(wo) {
   // pièces
   const pBody = $("woPartsTable").querySelector("tbody");
-  pBody.innerHTML = wo.parts.map((p,i)=>`
-    <tr>
-      <td>${p.name}</td>
-      <td>${p.qty}</td>
-      <td>${money(p.rate)}$</td>
-      <td>${money(p.qty*p.rate)}$</td>
-      <td>
-        <button class="ghost" onclick="woEditLine('${wo.id}','part',${i})">✏️</button>
-<button class="ghost" onclick="woRemovePart('${wo.id}',${i})">🗑</button>
-      </td>
-    </tr>
-  `).join("");
+
+  pBody.innerHTML = wo.parts.map((p,i)=>{
+
+    const cost  = Number(p.cost || 0);   // prix coûtant
+    const price = Number(p.rate || 0);   // prix vendu
+    const qty   = Number(p.qty || 0);
+
+    const profit = (price - cost) * qty;
+
+    return `
+      <tr>
+        <td>${p.name}</td>
+        <td>${qty}</td>
+        <td>${money(price)} $</td>
+        <td style="color:${profit >= 0 ? '#4CAF50' : '#ff4d4d'}">
+          ${money(profit)} $
+        </td>
+        <td>${money(price * qty)} $</td>
+        <td>
+          <button class="ghost" onclick="woEditLine('${wo.id}','part',${i})">✏️</button>
+          <button class="ghost" onclick="woRemovePart('${wo.id}',${i})">🗑</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
 
 
   // ===== SERVICE MANUEL (BON DE TRAVAIL) =====
