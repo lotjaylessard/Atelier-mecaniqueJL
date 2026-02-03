@@ -3441,10 +3441,10 @@ function woRenderLines(wo) {
     <td>${qty}</td>
     <td>${money(cost)} $</td>
     <td>${money(price)} $</td>
-    <td style="color:${profit >= 0 ? '#4CAF50' : '#ff4d4d'}">
-      ${money(profit)} $
-    </td>
     <td>${money(price * qty)} $</td>
+    <td style="color:${profit >= 0 ? '#4CAF50' : '#ff4d4d'}">
+  ${money(profit)} $
+</td>
     <td>
       <button class="ghost" onclick="woEditLine('${wo.id}','part',${i})">✏️</button>
       <button class="ghost" onclick="woRemovePart('${wo.id}',${i})">🗑</button>
@@ -4219,8 +4219,8 @@ const statusLabel =
   <th>Qté</th>
   <th>Coût</th>
   <th>Prix</th>
-  <th>Profit</th>
   <th>Total</th>
+  <th>Profit</th>
   <th></th>
 </tr>
       </thead>
