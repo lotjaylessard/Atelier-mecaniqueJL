@@ -7512,10 +7512,8 @@ function renderDashboard(){
   loadWorkOrders();
   if (!Array.isArray(WORKORDERS)) WORKORDERS = [];
   
-  // === FACTURES ACTIVES (page Factures seulement, PAS historique) ===
-const activeInvoices = INVOICES.filter(inv =>
-  !inv.isArchived && inv.status !== "archived"
-);
+// === FACTURES ACTIVES (page Factures seulement, PAS historique) ===
+const activeInvoices = INVOICES.filter(inv => inv.locked !== true);
 
 const invoicesCount = activeInvoices.length;
 
@@ -7640,7 +7638,7 @@ if ($("lastNotesBox")) {
     /* ===== 5 DERNIÈRES FACTURES ===== */
 if ($("lastInvoicesBox")) {
 
-    const lastFive = [...INVOICES]
+    const lastFive = [...activeInvoices]
         .sort((a, b) => new Date(b.date) - new Date(a.date)) // plus récent → plus ancien
         .slice(0, 5);
 
