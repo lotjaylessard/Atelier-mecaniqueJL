@@ -7638,9 +7638,20 @@ if ($("lastNotesBox")) {
     /* ===== 5 DERNIÈRES FACTURES ===== */
 if ($("lastInvoicesBox")) {
 
-    const lastFive = [...activeInvoices]
-        .sort((a, b) => new Date(b.date) - new Date(a.date)) // plus récent → plus ancien
-        .slice(0, 5);
+    /* ===== 5 DERNIÈRES FACTURES (page Factures) ===== */
+const lastFive = [];
+
+const invoiceTbody = document.querySelector('#invoiceTable tbody');
+if (invoiceTbody) {
+  const rows = [...invoiceTbody.querySelectorAll('tr')].slice(0, 5);
+
+  rows.forEach(tr => {
+    const numBtn = tr.querySelector('button');
+    if (numBtn) {
+      lastFive.push(numBtn.textContent.replace('#', '').trim());
+    }
+  });
+}
 
     $("lastInvoicesBox").innerHTML = "";
 
