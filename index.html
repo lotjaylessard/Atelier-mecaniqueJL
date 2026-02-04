@@ -1920,27 +1920,31 @@ function showPage(id){
   break;
 
   case "page-history":
-    // reset filtres historique
-    if ($("filterClient")) $("filterClient").value = "";
-    if ($("filterVehicle")) $("filterVehicle").value = "";
 
-      if ($("filterClient")){
-  $("filterClient").onchange = () => {
-    renderHistoryTable();
-    renderHistoryWOTable();
-  };
-}
+  // ✅ IMPORTANT: charger les BT avant le rendu
+  loadWorkOrders();
 
-if ($("filterVehicle")){
-  $("filterVehicle").onchange = () => {
-    renderHistoryTable();
-    renderHistoryWOTable();
-  };
-}
+  // reset filtres historique
+  if ($("filterClient")) $("filterClient").value = "";
+  if ($("filterVehicle")) $("filterVehicle").value = "";
 
-    renderHistoryTable();
-    renderHistoryWOTable();
-    break;
+  if ($("filterClient")){
+    $("filterClient").onchange = () => {
+      renderHistoryTable();
+      renderHistoryWOTable();
+    };
+  }
+
+  if ($("filterVehicle")){
+    $("filterVehicle").onchange = () => {
+      renderHistoryTable();
+      renderHistoryWOTable();
+    };
+  }
+
+  renderHistoryTable();
+  renderHistoryWOTable();
+  break;
 }
 }
 
