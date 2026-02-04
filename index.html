@@ -7503,9 +7503,10 @@ if ($("filterVehicle")) {
 
 
 function renderDashboard(){
-  loadInvoices();
-  loadWorkOrders();
-  if (!Array.isArray(WORKORDERS)) WORKORDERS = [];
+  // 🔒 Source de vérité directe (dashboard = lecture seule)
+INVOICES = loadArrayFromStorage(STORAGE.invoices);
+WORKORDERS = loadArrayFromStorage(STORAGE.workorders);
+
   
 // === FACTURES ACTIVES (page Factures seulement, PAS historique) ===
 const activeInvoices = INVOICES.filter(inv => inv.locked !== true);
