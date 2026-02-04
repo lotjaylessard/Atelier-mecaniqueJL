@@ -7329,8 +7329,23 @@ workorders
   })
   .sort((a,b)=> new Date(b.date) - new Date(a.date))
   .forEach(wo => {
-    // rendu du <tr> (INCHANGÉ)
-  });
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td>${wo.number || ""}</td>
+    <td>${wo.date || ""}</td>
+    <td>${wo.clientName || ""}</td>
+    <td>${wo.vehicleLabel || ""}</td>
+    <td>
+      <span class="status-badge status-${wo.status}">
+        ${wo.status}
+      </span>
+    </td>
+    <td>${money(wo.total || wo.estimatedTotal || 0)} $</td>
+  `;
+
+  tbody.appendChild(tr);
+});
 }
   
 
