@@ -7400,24 +7400,28 @@ if (historyWOTable){
 
   function setWorkOrderReadOnlyMode(){
 
-  // Désactiver tous les inputs / textarea / select
-  document
-    .querySelectorAll("#woDetailCard input, #woDetailCard textarea, #woDetailCard select")
-    .forEach(el => {
-      el.disabled = true;
-      el.classList.add("readonly");
-    });
+  const scope = document.getElementById("woDetailCard");
+  if (!scope) return;
 
-  // Masquer les boutons d’action
-  [
-    "woSaveBtn",
-    "woAddPartBtn",
-    "woAddServiceBtn",
-    "woAddNoteBtn",
-    "woFinishBtn"
-  ].forEach(id=>{
-    if ($(id)) $(id).style.display = "none";
+  // 1️⃣ Désactiver tous les champs
+  scope.querySelectorAll("input, textarea, select").forEach(el=>{
+    el.disabled = true;
+    el.classList.add("readonly");
   });
+
+  // 2️⃣ Supprimer / cacher TOUS les boutons d’action
+  scope.querySelectorAll("button").forEach(btn=>{
+    // garder seulement les boutons neutres si tu en as (ex: imprimer)
+    btn.style.display = "none";
+  });
+
+  // 3️⃣ Empêcher les clics résiduels (sécurité)
+  scope.querySelectorAll("[onclick]").forEach(el=>{
+    el.onclick = null;
+  });
+
+  // 4️⃣ Marqueur global (utile plus tard)
+  scope.dataset.readonly = "1";
 }
   
 
