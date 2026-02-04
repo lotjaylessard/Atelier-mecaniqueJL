@@ -3939,7 +3939,7 @@ function deleteWorkOrder(id){
   if (detail) detail.innerHTML = `<div class="muted">Bon de travail supprimé.</div>`;
 }
 
-
+// ===== Voir un BON DE TRAVAIL dans l'historique =====
 function openWorkOrderDetail(wo){
   if (!wo) return;
 
@@ -4046,20 +4046,32 @@ function openWorkOrderDetail(wo){
     </div>
 
     <div class="card" style="text-align:right;">
-      <h3>Total estimé : <span id="woEstimateTotal">0.00 $</span></h3>
-      ${
-        wo.__fromInvoice
-          ? `
-            <button class="ghost" onclick="saveTempWOToInvoice(window.__currentWO); alert('Facture enregistrée !');">
-              💾 Enregistrer facture
-            </button>
-            <button class="ghost" onclick="showPage('page-invoice-list')">⬅ Retour</button>
-          `
-          : `
-            <button class="ghost" onclick="backToWorkOrdersList()">⬅ Retour</button>
-          `
-      }
-    </div>
+  <h3>
+    Total estimé :
+    <span id="woEstimateTotal">0.00 $</span>
+  </h3>
+
+  <div class="muted" style="margin-top:6px;">
+    Profit estimé :
+    <span id="woEstimatedProfit"
+          style="color:#3ddc84;font-weight:600;">
+      0.00 $
+    </span>
+  </div>
+
+  ${
+    wo.__fromInvoice
+      ? `
+        <button class="ghost" onclick="saveTempWOToInvoice(window.__currentWO); alert('Facture enregistrée !');">
+          💾 Enregistrer facture
+        </button>
+        <button class="ghost" onclick="showPage('page-invoice-list')">⬅ Retour</button>
+      `
+      : `
+        <button class="ghost" onclick="backToWorkOrdersList()">⬅ Retour</button>
+      `
+  }
+</div>
   `;
 
   // mémoriser le WO actif
@@ -4082,6 +4094,15 @@ function openWorkOrderDetail(wo){
 
   // rendu des lignes
   woRenderLines(wo);
+
+  // 💰 PROFIT ESTIMÉ GLOBAL
+if (typeof calcWorkOrderProfit === "function") {
+  const profit = calcWorkOrderProfit(wo);
+
+  if ($("woEstimatedProfit")) {
+    $("woEstimatedProfit").textContent = money(profit) + " $";
+  }
+}
 
     // ===============================
   // TIMER – BRANCHEMENT DU BOUTON
