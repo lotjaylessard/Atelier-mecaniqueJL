@@ -7382,7 +7382,12 @@ workorders
 const profit = calcWorkOrderProfit(wo);
 
 tr.innerHTML = `
-  <td>${wo.number}</td>
+  <td>
+  <button class="link"
+    onclick="openWorkOrderReadOnly('${wo.id || wo.number}')">
+    ${wo.number}
+  </button>
+</td>
   <td>${wo.date}</td>
   <td>${wo.clientName}</td>
   <td>${wo.vehicleLabel}</td>
