@@ -1809,8 +1809,11 @@ function showPage(id){
 
   // logique par page
   if (id === "page-dashboard") {
-    loadWorkOrders();
-  }
+  loadInvoices();      // 🔥 MANQUANT
+  loadWorkOrders();
+  renderDashboard();   // 🔥 recalcul avec vraies données
+}
+
 
   if (id === "page-workorders") {
     initWorkOrdersModule();
@@ -7520,6 +7523,9 @@ const activeInvoices = (INVOICES || []).filter(
 
   // 2) Revenus totaux = total de l'historique (toutes les factures, payées incluses)
   const revenue = (INVOICES || []).reduce((s, inv) => s + Number(inv.total || 0), 0);
+
+  if ($('statInvoices')) $('statInvoices').innerText = invoicesCount;
+if ($('dashTotalRevenue')) $('dashTotalRevenue').innerText = money(revenue) + ' $';
 
   const clientsCount=CLIENTS.length;
   let vehiclesCount=0;
