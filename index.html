@@ -719,10 +719,16 @@ button.link:hover{
           <div class="stat-label">Factures totales</div>
           <div class="stat-value" id="statInvoices">0</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Revenus totaux</div>
-          <div class="stat-value" id="statRevenue">0.00 $</div>
-        </div>
+        <div class="statCard">
+  <div class="label">Revenus totaux</div>
+  <div class="value" id="dashTotalRevenue">0 $</div>
+
+  <!-- ✅ NOUVEAU : PROFITS TOTAUX -->
+  <div class="label" style="margin-top:6px;">Profits totaux</div>
+  <div class="value" id="dashTotalProfit" style="color:#4CAF50;">
+    0 $
+  </div>
+</div>
         <div class="stat-card">
           <div class="stat-label">Clients</div>
           <div class="stat-value" id="statClients">0</div>   
@@ -7267,7 +7273,17 @@ function renderDashboard(){
   const partsCount=PARTS.reduce((s,p)=>s+Number(p.qty||0),0);
   const lowStock=PARTS.filter(p=>Number(p.qty||0)<=2).length;
   if($('statInvoices')) $('statInvoices').innerText=invoicesCount;
-  if($('statRevenue')) $('statRevenue').innerText=money(revenue)+' $';
+  if($('dashTotalRevenue')) $('dashTotalRevenue').innerText = money(revenue) + ' $';
+
+  // === PROFITS TOTAUX (TOUS LES WORK ORDERS) ===
+const totalProfit = WORKORDERS.reduce((sum, wo) => {
+  return sum + calcWorkOrderProfit(wo);
+}, 0);
+
+if ($('dashTotalProfit')) {
+  $('dashTotalProfit').innerText = money(totalProfit) + ' $';
+}
+  
   if($('statClients')) $('statClients').innerText=clientsCount;
   if($('statVehicles')) $('statVehicles').innerText=vehiclesCount;
 
