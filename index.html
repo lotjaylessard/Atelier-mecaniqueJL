@@ -1035,28 +1035,7 @@ button.link:hover{
     <!-- HISTORIQUE GLOBAL -->
     <div class="page" id="page-history">
 
-      
-      <h2>Historique des bons de travail</h2>
-<div class="card">
-  <table id="historyWOTable">
-    <thead>
-      <tr>
-        <th># BT</th>
-        <th>Date</th>
-        <th>Client</th>
-        <th>Véhicule</th>
-        <th>Statut</th>
-        <th>Total estimé</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-      
-      <h2>Historique des factures</h2>
-      <div class="card">
-        <div style="display:flex; gap:15px; margin:10px 0;">
+      <div style="display:flex; gap:15px; margin:10px 0;">
   
   <div>
     <label>Filtrer par client :</label><br>
@@ -1073,6 +1052,29 @@ button.link:hover{
   </div>
 
 </div>
+      
+      <h2>Historique des bons de travail</h2>
+<div class="card">
+  <table id="historyWOTable">
+    <thead>
+      <tr>
+        <th># BT</th>
+        <th>Date</th>
+        <th>Client</th>
+        <th>Véhicule</th>
+        <th>Statut</th>
+        <th style="text-align:right;">Total estimé</th>
+        <th style="text-align:right;">Profit estimé</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+      
+      <h2>Historique des factures</h2>
+      <div class="card">
+        
         <table id="historyTable">
           <thead>
             <tr>
@@ -7361,25 +7363,24 @@ workorders
   .forEach(wo => {
   const tr = document.createElement("tr");
 
-  tr.innerHTML = `
-    <td>
-  <button class="ghost btn-open-wo"
-          data-wo-id="${wo.id}">
-    ${wo.number}
-  </button>
-</td>
-    <td>${wo.date || ""}</td>
-    <td>${wo.clientName || ""}</td>
-    <td>${wo.vehicleLabel || ""}</td>
-    <td>
-      <span class="status-badge status-${wo.status}">
-        ${wo.status}
-      </span>
-    </td>
-    <td style="text-align:right;">
-  ${money(calcWorkOrderTotal(wo))} $
-</td>
-  `;
+  const total  = calcWorkOrderTotal(wo);
+const profit = calcWorkOrderProfit(wo);
+
+tr.innerHTML = `
+  <td>${wo.number}</td>
+  <td>${wo.date}</td>
+  <td>${wo.clientName}</td>
+  <td>${wo.vehicleLabel}</td>
+  <td>${renderWOStatusBadge(wo.status)}</td>
+
+  <td style="text-align:right;">
+    ${money(total)} $
+  </td>
+
+  <td style="text-align:right;color:#3ddc84;">
+    ${money(profit)} $
+  </td>
+`;
 
   tbody.appendChild(tr);
 });
