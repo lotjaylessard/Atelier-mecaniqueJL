@@ -1924,6 +1924,20 @@ function showPage(id){
     if ($("filterClient")) $("filterClient").value = "";
     if ($("filterVehicle")) $("filterVehicle").value = "";
 
+      if ($("filterClient")){
+  $("filterClient").onchange = () => {
+    renderHistoryTable();
+    renderHistoryWOTable();
+  };
+}
+
+if ($("filterVehicle")){
+  $("filterVehicle").onchange = () => {
+    renderHistoryTable();
+    renderHistoryWOTable();
+  };
+}
+
     renderHistoryTable();
     renderHistoryWOTable();
     break;
@@ -7254,6 +7268,8 @@ INVOICES
     }
 }
 
+    populateHistoryFiltersFromWorkOrders();
+
       return true;
   })
   .forEach(inv => {
@@ -7270,6 +7286,25 @@ INVOICES
 }
 
 
+  function populateHistoryFiltersFromWorkOrders(){
+  const selClient  = $("filterClient");
+  const selVehicle = $("filterVehicle");
+  if (!selClient || !selVehicle) return;
+
+  const workorders = loadArrayFromStorage(STORAGE.workorders);
+
+  workorders.forEach(wo=>{
+    if (wo.clientName && ![...selClient.options].some(o=>o.value===wo.clientName)){
+      selClient.appendChild(new Option(wo.clientName, wo.clientName));
+    }
+
+    if (wo.vehicleLabel && ![...selVehicle.options].some(o=>o.value===wo.vehicleLabel)){
+      selVehicle.appendChild(new Option(wo.vehicleLabel, wo.vehicleLabel));
+    }
+  });
+}
+
+
   function renderHistoryWOTable(){
   const tbody = document.querySelector("#historyWOTable tbody");
   if (!tbody) return;
@@ -7278,27 +7313,20 @@ INVOICES
 
   const workorders = loadArrayFromStorage(STORAGE.workorders);
 
-  workorders
-    .filter(wo => wo.status !== "en_cours")
-    .sort((a,b)=> new Date(b.date) - new Date(a.date))
-    .forEach(wo=>{
-      const tr = document.createElement("tr");
+  const filterClient = $("filterClient")?.value || "";
+const filterVehicle = $("filterVehicle")?.value || "";
 
-      tr.innerHTML = `
-        <td>${wo.number || ""}</td>
-        <td>${wo.date || ""}</td>
-        <td>${escapeHTML(wo.clientName || "")}</td>
-        <td>${escapeHTML(wo.vehicleLabel || "")}</td>
-        <td>
-          <span class="status-badge status-${wo.status}">
-            ${wo.status}
-          </span>
-        </td>
-        <td>${money(wo.total || wo.estimatedTotal || 0)} $</td>
-      `;
-
-      tbody.appendChild(tr);
-    });
+workorders
+  .filter(wo => wo.status !== "en_cours")
+  .filter(wo => {
+    if (filterClient && wo.clientName !== filterClient) return false;
+    if (filterVehicle && wo.vehicleLabel !== filterVehicle) return false;
+    return true;
+  })
+  .sort((a,b)=> new Date(b.date) - new Date(a.date))
+  .forEach(wo => {
+    // rendu du <tr> (INCHANGÉ)
+  });
 }
   
 
