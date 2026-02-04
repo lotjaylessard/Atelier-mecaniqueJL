@@ -5054,12 +5054,6 @@ function loadInvoices(){
   }catch(e){INVOICES=[];}
 }
   
-function saveInvoices(){
-  localStorage.setItem(STORAGE.invoices, JSON.stringify(INVOICES));
-  scheduleCloudSync();
-}
-
-  
 function renderInvoiceList(){
   const table = $("invoiceListTable");
   const tbody = table?.querySelector("tbody");
@@ -9484,7 +9478,7 @@ clone.querySelectorAll("h3").forEach(h=>{
 }
 
 
-  function archiveInvoice(number){
+function archiveInvoice(number){
   const inv = INVOICES.find(i => String(i.number) === String(number));
   if (!inv) return;
 
@@ -9499,6 +9493,10 @@ clone.querySelectorAll("h3").forEach(h=>{
   inv.archivedDate = new Date().toLocaleDateString("fr-CA");
 
   saveInvoices();
+
+  // 🔄 AJOUT CRUCIAL 👇
+  INVOICES = loadArrayFromStorage(STORAGE.invoices);
+
   renderInvoiceList();
   renderHistoryTable();
   renderDashboard();
