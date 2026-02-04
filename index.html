@@ -7506,20 +7506,17 @@ if ($("filterVehicle")) {
 
 
 function renderDashboard(){
-  // 🔒 Source de vérité directe (dashboard = lecture seule)
+  
+// 🔒 Source de vérité directe (dashboard = lecture seule)
 INVOICES = loadArrayFromStorage(STORAGE.invoices);
 WORKORDERS = loadArrayFromStorage(STORAGE.workorders);
 
-  
-  // Recharge les factures depuis le storage
-  loadInvoices(); // INVOICES = loadArrayFromStorage(...) :contentReference[oaicite:2]{index=2}
-
-  // === FACTURES PAGE FACTURES (payées + non payées, PAS historique) ===
-const activeInvoices = (INVOICES || []).filter(
-  inv => inv.locked !== true
-);
-
-  const invoicesCount = activeInvoices.length;
+// === FACTURES TOTALES = lignes affichées dans la page Factures ===
+let invoicesCount = 0;
+const invoiceTbody = document.querySelector('#invoiceTable tbody');
+if (invoiceTbody) {
+  invoicesCount = invoiceTbody.querySelectorAll('tr').length;
+}
 
   // 2) Revenus totaux = total de l'historique (toutes les factures, payées incluses)
   const revenue = (INVOICES || []).reduce((s, inv) => s + Number(inv.total || 0), 0);
@@ -7538,11 +7535,9 @@ const woInProgressCount = WORKORDERS.filter(
   wo => wo.status === "en_cours"
 ).length;
   
-  if($('statInvoices')) $('statInvoices').innerText=invoicesCount;
   if ($('statWOInProgress')) {
   $('statWOInProgress').innerText = woInProgressCount;
 }
-  if($('dashTotalRevenue')) $('dashTotalRevenue').innerText = money(revenue) + ' $';
 
   // === PROFITS TOTAUX (TOUS LES WORK ORDERS) ===
 const totalProfit = WORKORDERS.reduce((sum, wo) => {
