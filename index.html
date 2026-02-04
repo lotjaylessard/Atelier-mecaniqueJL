@@ -7341,6 +7341,21 @@ INVOICES
 }
 
 
+  // Badge Statut pour les WO (historique)
+function renderWOStatusBadge(status){
+  const raw = String(status || "").trim();
+  const safe = raw.toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+
+  // Label affiché (tu peux ajuster si tu veux)
+  let label = raw || "-";
+  if (safe === "en_cours") label = "En cours";
+  if (safe === "termine")  label = "Terminé";
+  if (safe === "billed")   label = "billed"; // ou "Facturé" si tu préfères
+
+  return `<span class="status-badge status-${safe}">${label}</span>`;
+}
+
+
   function renderHistoryWOTable(){
   const tbody = document.querySelector("#historyWOTable tbody");
   if (!tbody) return;
