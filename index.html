@@ -7509,8 +7509,9 @@ WORKORDERS = loadArrayFromStorage(STORAGE.workorders);
   const activeInvoices = (INVOICES || []).filter(inv => (inv.status || "unpaid") !== "paid");
   const invoicesCount = activeInvoices.length;
 
-  // 2) Revenus totaux = total de l'historique (toutes les factures, payées incluses)
-  const revenue = (INVOICES || []).reduce((s, inv) => s + Number(inv.total || 0), 0);
+  // 2) Revenus totaux = total de l'historique (factures archivées)
+const historyInvoices = (INVOICES || []).filter(inv => inv.archived === true);
+const revenue = historyInvoices.reduce((s, inv) => s + Number(inv.total || 0), 0);
 
   const clientsCount=CLIENTS.length;
   let vehiclesCount=0;
