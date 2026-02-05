@@ -3834,9 +3834,6 @@ function renderWorkOrders(){
     String(inv.workOrderNumber) === String(wo.number)
   );
 
-  const invoice = INVOICES.find(inv =>
-  String(inv.workOrderNumber) === String(wo.number)
-);
 
 const isPaid = invoice && invoice.status === "paid";
 
@@ -3893,9 +3890,10 @@ const isPaid = invoice && invoice.status === "paid";
       : (wo.clientName || "");
 
     const statusLabel =
-      wo.status === "en_cours" ? "En cours" :
-      wo.status === "termine"  ? "Terminé"  :
-      wo.status;
+  isPaid ? "Facturé / Payé" :
+  wo.status === "en_cours" ? "En cours" :
+  wo.status === "termine"  ? "Terminé"  :
+  wo.status;
 
     tr.innerHTML = `
       <td>${wo.number || ""}</td>
