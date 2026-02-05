@@ -3836,7 +3836,7 @@ function renderWorkOrders(){
 
   if (invoice && invoice.status === "paid") return false;
 
-  if (!["en_cours", "termine"].includes(wo.status)) return false;
+  if (!["en_cours", "termine", "billed"].includes(wo.status)) return false;
   if (selectedStatus && wo.status !== selectedStatus) return false;
 
   if (search) {
@@ -4236,6 +4236,7 @@ if (typeof calcWorkOrderProfit === "function") {
   // ===============================
 function initWorkOrdersModule(){
   loadWorkOrders();
+  loadInvoices();
   renderWorkOrders();
 
 
