@@ -5105,7 +5105,8 @@ function renderInvoiceList(){
         if (!hay.includes(search)) return false;
       }
       return true;
-    })
+    }
+  
     .forEach(inv => {
       const tr = document.createElement("tr");
       tr.dataset.number = inv.number;
