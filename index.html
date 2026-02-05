@@ -674,6 +674,13 @@ button.link:hover{
   cursor:not-allowed;
 }
 
+/* Timer WO grosseur */
+    .wo-timer-display{
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
 
     
   </style>
@@ -4449,7 +4456,7 @@ const statusLabel =
 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
   <div>
     <h3 style="margin:0;">🔧 Main-d'œuvre</h3>
-    <div id="woTimerDisplay" class="muted" style="font-size:14px;">
+    <div id="woTimerDisplay" class="wo-timer-display muted">
       ⏱ 00:00:00
     </div>
   </div>
@@ -8292,9 +8299,6 @@ ${inv.discount && inv.discount > 0 ? `
 
     <!-- autres boutons -->
     <button class="ghost" ${isLocked ? "disabled" : ""} onclick="markInvoicePartial('${inv.number}')">➗ Partielle</button>
-    <button class="ghost"
-  ${isLocked ? "disabled title='Facture payée — modification verrouillée'" : ""}
-  onclick="openInvoiceEditModal('${inv.number}')">✏️ Modifier</button>
     <button class="ghost" onclick="printInvoice()">🖨 Imprimer</button>
     <button class="ghost" onclick="closeInvoiceModal()">Fermer</button>
 
