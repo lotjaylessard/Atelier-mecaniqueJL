@@ -3836,10 +3836,22 @@ function renderWorkOrders(){
       </td>
       <td>${money(wo.estimateTotal || 0)} $</td>
       <td>
-        <button class="ghost" data-action="open">Ouvrir</button>
-        <button class="ghost" onclick="finishWorkOrder(${wo.id})">✅ Terminé</button>
-        <button class="ghost danger" onclick="deleteWorkOrder(${wo.id})">🗑 Supprimer</button>
-      </td>
+  <button class="ghost" data-action="open">Ouvrir</button>
+
+  ${
+    wo.status !== "termine"
+      ? `
+        <button class="ghost" onclick="finishWorkOrder(${wo.id})">
+          ✅ Terminé
+        </button>
+
+        <button class="ghost danger" onclick="deleteWorkOrder(${wo.id})">
+          🗑 Supprimer
+        </button>
+      `
+      : ""
+  }
+</td>
     `;
 
     tbody.appendChild(tr);
