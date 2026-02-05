@@ -4326,7 +4326,8 @@ if (btnAddClient){
   vSel.innerHTML += `<option value="${v.id}">${label}</option>`;
 });
   };
-
+          
+console.log("BTN SAVE =", $("btnSaveWO"));
   $("btnSaveWO").onclick = saveNewWorkOrder;
           
           const cancelBtn = $("woCancelCreateBtn");
