@@ -819,7 +819,7 @@ button.link:hover{
       <input id="invoiceSearch" placeholder="Recherche (#, client, véhicule)" style="flex:1;" />
       <select id="invoiceStatusFilter">
         <option value="">-- Statuts --</option>
-        <option value="pending">En attente de paiement</option>
+        <option value="pending">Impayée</option>
         <option value="partial">Partielle</option>
         <option value="paid">Payée</option>
       </select>
@@ -5075,8 +5075,16 @@ function renderInvoiceList(){
 
   INVOICES
     .filter(inv => inv.archived !== true)   // ✅ LIGNE AJOUTÉE
-    .filter(inv => {
-      if (statusFilter && inv.status !== statusFilter) return false;
+    if (statusFilter){
+
+  if (statusFilter === "pending"){
+    if (!["unpaid","pending"].includes(inv.status)) return false;
+  }
+  else if (inv.status !== statusFilter){
+    return false;
+  }
+
+}
 
       if (search){
         const clientObj = CLIENTS.find(c =>
@@ -9168,7 +9176,7 @@ function woConvertToInvoice(wo) {
     gst: 0,
     qst: 0,
     total: 0,
-    status: "pending",
+    status: "unpaid",
     locked: true
   };
 
