@@ -5074,38 +5074,41 @@ function renderInvoiceList(){
   tbody.innerHTML = "";
 
   INVOICES
-    .filter(inv => inv.archived !== true)   // ✅ LIGNE AJOUTÉE
+  .filter(inv => inv.archived !== true)
+  .filter(inv => {
+
     if (statusFilter){
 
-  if (statusFilter === "pending"){
-    if (!["unpaid","pending"].includes(inv.status)) return false;
-  }
-  else if (inv.status !== statusFilter){
-    return false;
-  }
-
-}
-
-      if (search){
-        const clientObj = CLIENTS.find(c =>
-          c.id === inv.customerId ||
-          c.name === inv.customer
-        );
-
-        const clientNameSearch = clientObj
-          ? `${clientObj.lastName || ""} ${clientObj.firstName || ""}`
-          : (inv.customer || "");
-
-        const hay = `
-          ${inv.number}
-          ${clientNameSearch}
-          ${inv.job || ""}
-        `.toLowerCase();
-
-        if (!hay.includes(search)) return false;
+      if (statusFilter === "pending"){
+        if (!["unpaid","pending"].includes(inv.status)) return false;
       }
-      return true;
+      else if (inv.status !== statusFilter){
+        return false;
+      }
+
     }
+
+    if (search){
+      const clientObj = CLIENTS.find(c =>
+        c.id === inv.customerId ||
+        c.name === inv.customer
+      );
+
+      const clientNameSearch = clientObj
+        ? `${clientObj.lastName || ""} ${clientObj.firstName || ""}`
+        : (inv.customer || "");
+
+      const hay = `
+        ${inv.number}
+        ${clientNameSearch}
+        ${inv.job || ""}
+      `.toLowerCase();
+
+      if (!hay.includes(search)) return false;
+    }
+
+    return true;
+  })
   
     .forEach(inv => {
       const tr = document.createElement("tr");
