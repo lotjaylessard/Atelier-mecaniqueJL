@@ -7499,7 +7499,7 @@ function renderHistoryTable(){
         <td><button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">#${inv.number}</button></td>
         <td>${inv.date}</td>
         <td>${inv.customer || ""}</td>
-        <td>${inv.job || ""}</td>
+        <td>${inv.vehicle || inv.job || ""}</td>
         <td>${money(inv.total || 0)} $</td>
       `;
 
