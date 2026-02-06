@@ -1876,14 +1876,14 @@ function showPage(id){
     $("partInvAddBtn").onclick = () => {
 
       const data = {
-        id: EDITING_PART_ID || Date.now(),
-        name: $("partInvName").value.trim(),
-         $("partInvNumber").value.trim(),
-        category: $("partInvCategory").value,
-        qty: Number($("partInvQty").value || 0),
-        cost: Number($("partInvCost").value || 0),
-        price: Number($("partInvPrice").value || 0)
-      };
+  id: EDITING_PART_ID || Date.now(),
+  name: $("partInvName").value.trim(),
+  number: $("partInvNumber").value.trim(),
+  category: $("partInvCategory").value,
+  qty: Number($("partInvQty").value || 0),
+  cost: Number($("partInvCost").value || 0),
+  price: Number($("partInvPrice").value || 0)
+};
 
       if (!data.name){
         alert("Nom de la pièce requis.");
