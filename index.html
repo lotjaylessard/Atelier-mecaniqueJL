@@ -5470,7 +5470,7 @@ if (btnEdit){
 
   // 🔥 3️⃣ Supprimer le Work Order associé
   WORKORDERS = WORKORDERS.filter(wo =>
-    String(wo.number) !== String(invoice.number)
+    String(wo.number) !== String(invoice.workOrderNumber)
   );
   saveWorkOrders();
 
