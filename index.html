@@ -5460,14 +5460,24 @@ if (btnEdit){
   function deleteInvoice(number) {
   if (!confirm("Supprimer cette facture ?")) return;
 
-  // Retirer la facture de la liste actuelle
+  // 🔎 1️⃣ Trouver la facture avant suppression
+  const invoice = INVOICES.find(inv => inv.number === number);
+  if (!invoice) return;
+
+  // 🔥 2️⃣ Supprimer la facture
   INVOICES = INVOICES.filter(inv => inv.number !== number);
   saveInvoices();
 
-  // Rafraîchir l'affichage des factures
-  renderInvoiceList();
+  // 🔥 3️⃣ Supprimer le Work Order associé
+  WORKORDERS = WORKORDERS.filter(wo =>
+    String(wo.number) !== String(invoice.number)
+  );
+  saveWorkOrders();
 
-  // Mettre à jour le reste de l’interface si les fonctions existent
+  // 🔄 4️⃣ Rafraîchir toutes les vues
+  renderInvoiceList();
+  renderWorkOrders();
+
   if (typeof renderHistoryTable === "function") {
     renderHistoryTable();
   }
