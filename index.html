@@ -4046,17 +4046,12 @@ invoice.total = invoice.subTotal + invoice.gst + invoice.qst;
   INVOICES.push(invoice);
   saveInvoices();
 
-  renderWorkOrders();
+ renderWorkOrders();
 if (typeof renderInvoiceList === "function") renderInvoiceList();
+showPage("page-invoice-list");
 
-// 👉 Rester dans les Work Orders
-showPage("page-workorders");
-
-// 👉 Réouvrir le WO en mode normal
-setTimeout(() => {
-  const freshWO = WORKORDERS.find(w => String(w.id) === String(id));
-  if (freshWO) openWorkOrderDetail(freshWO);
-}, 0);
+// 3) Ouvrir la facture en résumé (lecture seule) avec bouton Modifier
+openInvoiceEditModal(invoice.number);
 }
 
   
@@ -4076,7 +4071,7 @@ function deleteWorkOrder(id){
 }
 
 // ===== Voir un BON DE TRAVAIL dans l'historique =====
-function openWorkOrderDetail_OLD(wo){
+function openWorkOrderDetail(wo){
   if (!wo) return;
 
   // afficher la page WO
