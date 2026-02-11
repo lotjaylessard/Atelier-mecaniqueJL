@@ -7497,22 +7497,9 @@ function renderHistoryTable(){
     if (inv.archived !== true) return false;
 
     if (filterClient && inv.customer !== filterClient) return false;
+    
+    if (filterVehicle && inv.vehicle !== filterVehicle) return false;
 
-    if (filterVehicle) {
-      const job = (inv.job || "").toLowerCase();
-      const v = filterVehicle.toLowerCase();
-
-      if (!job.includes(v)) {
-        const parts = v.split(" ").filter(x => x.trim().length > 0);
-        let allMatch = true;
-
-        parts.forEach(p => {
-          if (!job.includes(p)) allMatch = false;
-        });
-
-        if (!allMatch) return false;
-      }
-    }
 
     return true;
   })
