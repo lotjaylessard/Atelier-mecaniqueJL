@@ -1135,7 +1135,6 @@ button.link:hover{
         <th>KM</th>
         <th>Statut</th>
         <th style="text-align:right;">Total estimé</th>
-        <th style="text-align:right;">Profit estimé</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -1153,8 +1152,8 @@ button.link:hover{
     <th>Date</th>
     <th>Client</th>
     <th>Véhicule / Job</th>
-    <th style="text-align:right;">Total</th>
-    <th style="text-align:right;">Profit estimé</th>
+    <th style="text-align:right;">Total Facturé</th>
+    <th style="text-align:right;">Profit</th>
   </tr>
 </thead>
           <tbody></tbody>
@@ -7806,10 +7805,6 @@ ${wo.vehicleKm ? Number(wo.vehicleKm).toLocaleString("fr-CA") : "-"} km</td>
 
   <td style="text-align:right;">
     ${money(total)} $
-  </td>
-
-  <td style="text-align:right;color:#3ddc84;">
-    ${money(profit)} $
   </td>
 `;
 
