@@ -4310,8 +4310,18 @@ function openWorkOrderDetail(wo){
           <button class="ghost" onclick="showPage('page-invoice-list')">⬅ Retour</button>
         `
         : `
-          <button class="ghost" onclick="backToWorkOrdersList()">⬅ Retour</button>
-        `
+    ${
+      locked
+        ? `<button id="btnBackHistory" class="ghost"
+             onclick="showPage('page-history')">
+             ⬅ Retour à l'historique
+           </button>`
+        : `<button id="btnBackWorkOrders" class="ghost"
+             onclick="backToWorkOrdersList()">
+             ⬅ Retour aux bons de travail
+           </button>`
+    }
+  `
   }
 </div>
   `;
@@ -7794,10 +7804,10 @@ function openWorkOrderReadOnly(woId){
 }
 
 
-  function setWorkOrderReadOnlyMode(){
-    
-const keepBtnIds = new Set(["btnBackHistory", "btnBackWorkOrders"]);
-    
+function setWorkOrderReadOnlyMode(){
+
+  const keepBtnIds = new Set(["btnBackHistory", "btnBackWorkOrders"]);
+
   const scope = document.getElementById("woDetailCard");
   if (!scope) return;
 
@@ -7807,21 +7817,24 @@ const keepBtnIds = new Set(["btnBackHistory", "btnBackWorkOrders"]);
     el.classList.add("readonly");
   });
 
-  // 2️⃣ Supprimer / cacher TOUS les boutons d’action
+  // 2️⃣ Cacher tous les boutons SAUF ceux autorisés
   scope.querySelectorAll("button").forEach(btn=>{
-    // garder seulement les boutons neutres si tu en as (ex: imprimer)
-    btn.style.display = "none";
+    if (!keepBtnIds.has(btn.id)){
+      btn.style.display = "none";
+    }
   });
 
-  // 3️⃣ Empêcher les clics résiduels (sécurité)
+  // 3️⃣ Supprimer les onclick sauf boutons autorisés
   scope.querySelectorAll("[onclick]").forEach(el=>{
-    el.onclick = null;
+    if (!keepBtnIds.has(el.id)){
+      el.onclick = null;
+    }
   });
 
-  // 4️⃣ Marqueur global (utile plus tard)
+  // 4️⃣ Marqueur global
   scope.dataset.readonly = "1";
 }
-  
+
 
   // === Activation des filtres historique ===
 if ($("filterClient")) {
