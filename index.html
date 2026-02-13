@@ -689,6 +689,20 @@ button.link:hover{
   color:var(--accent);
 }
 
+/* Dashboard espacement */
+    .dashboard-stack{
+  display:flex;
+  flex-direction:column;
+  gap:20px; /* 🔥 espace uniforme vertical */
+}
+
+.dashboard-two-cols{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px; /* espace horizontal ET vertical interne */
+}
+
+
     
   </style>
 
@@ -737,6 +751,8 @@ button.link:hover{
 
     <!-- DASHBOARD -->
     <div class="page" id="page-dashboard" style="display:block;">
+  <div class="dashboard-stack">
+
       <h2>Tableau de bord</h2>
       <div class="stats-grid">
       <div class="stat-card">
@@ -780,7 +796,7 @@ button.link:hover{
   <div id="lastNotesBox"></div>
 </div>
       
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">
+<div class="dashboard-two-cols">
 
   <div class="stat-card">
     <div class="stat-label">Bons de travail "En Cours"</div>
@@ -793,7 +809,7 @@ button.link:hover{
   </div>
 </div>
 
-      <div class="card" style="margin-top:20px;">
+      <div class="card">
         <h3>Raccourcis</h3>
         <div style="display:flex;flex-wrap:wrap;gap:10px;">
           <button class="ghost" onclick="openNewWorkOrderFromDashboard()">+ Nouveau Work Order</button>
