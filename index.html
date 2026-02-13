@@ -1148,14 +1148,15 @@ button.link:hover{
         
         <table id="historyTable">
           <thead>
-            <tr>
-              <th># Facture</th>
-              <th>Date</th>
-              <th>Client</th>
-              <th>Véhicule / Job</th>
-              <th>Total</th>
-            </tr>
-          </thead>
+  <tr>
+    <th># Facture</th>
+    <th>Date</th>
+    <th>Client</th>
+    <th>Véhicule / Job</th>
+    <th style="text-align:right;">Total</th>
+    <th style="text-align:right;">Profit estimé</th>
+  </tr>
+</thead>
           <tbody></tbody>
         </table>
       </div>
@@ -7691,18 +7692,38 @@ function renderHistoryTable(){
   })
   .forEach(inv => {
 
-      const tr = document.createElement("tr");
+  const tr = document.createElement("tr");
 
-      tr.innerHTML = `
-        <td><button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">#${inv.number}</button></td>
-        <td>${inv.date}</td>
-        <td>${inv.customer || ""}</td>
-        <td>${inv.vehicle || inv.job || ""}</td>
-        <td>${money(inv.total || 0)} $</td>
-      `;
+  // 🔎 Trouver le WO lié
+  const wo = WORKORDERS.find(w =>
+    String(w.number) === String(inv.workOrderNumber)
+  );
 
-      tbody.appendChild(tr);
-    });
+  const profit = wo ? calcWorkOrderProfit(wo) : 0;
+
+  tr.innerHTML = `
+    <td>
+      <button class="ghost" onclick="openInvoiceEditModal('${inv.number}')">
+        #${inv.number}
+      </button>
+    </td>
+    <td>${inv.date}</td>
+    <td>${inv.customer || ""}</td>
+    <td>${inv.vehicle || inv.job || ""}</td>
+    <td style="text-align:right;">
+      ${money(inv.total || 0)} $
+    </td>
+    <td style="
+      text-align:right;
+      font-weight:600;
+      color:${profit < 0 ? '#ff4d4d' : '#4CAF50'};
+    ">
+      ${money(profit)} $
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+});
 }
 
 
