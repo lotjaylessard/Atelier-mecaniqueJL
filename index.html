@@ -800,7 +800,7 @@ button.link:hover{
   <h3>📅 Revenus mensuels</h3>
   <div id="monthlyRevenueChart"
      style="
-       height:180px;
+       height:260px;
        display:flex;
        align-items:flex-end;
        gap:20px;
@@ -8245,7 +8245,7 @@ function renderMonthlyRevenueChart(){
     const data = months[key];
     const monthLabel = key;
 
-    const maxBarHeight = 150; // hauteur max en pixels
+    const maxBarHeight = 220; // hauteur max en pixels
 
 const revenueHeight = maxRevenue > 0
   ? (data.revenue / maxRevenue) * maxBarHeight
