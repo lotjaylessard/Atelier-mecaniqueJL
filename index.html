@@ -7689,6 +7689,10 @@ function renderHistoryTable(){
 
     return true;
   })
+
+    let totalFacture = 0;
+    let totalProfit = 0;
+    
   .forEach(inv => {
 
   const tr = document.createElement("tr");
@@ -7699,6 +7703,10 @@ function renderHistoryTable(){
   );
 
   const profit = wo ? calcWorkOrderProfit(wo) : 0;
+    
+    totalFacture += Number(inv.total || 0);
+    totalProfit += Number(profit || 0);
+
 
   tr.innerHTML = `
     <td>
@@ -7723,6 +7731,31 @@ function renderHistoryTable(){
 
   tbody.appendChild(tr);
 });
+
+// 🔥 Ligne TOTAL
+const totalRow = document.createElement("tr");
+
+totalRow.style.borderTop = "2px solid #444";
+totalRow.style.background = "rgba(255,255,255,0.03)";
+totalRow.style.fontWeight = "700";
+
+totalRow.innerHTML = `
+  <td colspan="4" style="text-align:right;padding-right:20px;">
+    TOTAL
+  </td>
+  <td style="text-align:right;">
+    ${money(totalFacture)} $
+  </td>
+  <td style="
+    text-align:right;
+    color:${totalProfit < 0 ? '#ff4d4d' : '#4CAF50'};
+  ">
+    ${money(totalProfit)} $
+  </td>
+`;
+
+tbody.appendChild(totalRow);
+  
 }
 
 
