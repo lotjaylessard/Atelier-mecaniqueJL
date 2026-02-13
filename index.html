@@ -739,13 +739,32 @@ button.link:hover{
     <div class="page" id="page-dashboard" style="display:block;">
       <h2>Tableau de bord</h2>
       <div class="stats-grid">
-        <div class="stat-card">
-  <div class="stat-label">Factures Impayées</div>
-  <div class="stat-value" id="statInvoices">0</div>
+      <div class="stat-card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
 
-  <div class="stat-label" style="margin-top:6px;">Work Orders en cours</div>
-  <div class="stat-value" id="statWOInProgress">0</div>
+    <div>
+      <div class="stat-label">Factures impayées</div>
+      <div class="stat-value" id="statInvoices">0</div>
+    </div>
+
+    <div>
+      <div class="stat-label">Work Orders en cours</div>
+      <div class="stat-value" id="statWOInProgress">0</div>
+    </div>
+
+    <div>
+      <div class="stat-label">Clients</div>
+      <div class="stat-value" id="statClients">0</div>
+    </div>
+
+    <div>
+      <div class="stat-label">Véhicules</div>
+      <div class="stat-value" id="statVehicles">0</div>
+    </div>
+
+  </div>
 </div>
+
         <div class="stat-card">
   <div class="stat-label">Revenus totaux</div>
   <div class="stat-value" id="dashTotalRevenue">0 $</div>
@@ -755,12 +774,6 @@ button.link:hover{
     0 $
   </div>
 </div>
-        <div class="stat-card">
-          <div class="stat-label">Clients</div>
-          <div class="stat-value" id="statClients">0</div>   
-          <div class="stat-label">Véhicules</div>
-          <div class="stat-value" id="statVehicles">0</div>
-        </div>
         </div>
       <div class="card">
   <h3>5 Dernières notes</h3>
