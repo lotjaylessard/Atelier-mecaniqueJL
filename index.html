@@ -1542,6 +1542,125 @@ function money(n){return Number(n||0).toFixed(2);}
 }
 
 
+  function initWorkOrderAttachments(wo){
+
+  const input = document.getElementById("woFileInput");
+  const list  = document.getElementById("woAttachmentsList");
+
+  if (!input || !list) return;
+
+  const locked = isWorkOrderLocked(wo);
+
+  // 🔒 facture payée → upload désactivé
+  input.disabled = locked;
+
+  if (locked){
+    input.style.opacity = "0.6";
+    input.title = "Facture payée — ajout verrouillé";
+  }
+
+  renderWorkOrderAttachments(wo);
+
+  if (locked) return;
+
+  input.onchange = function(){
+    const files = Array.from(this.files);
+
+    files.forEach(file => {
+
+      const reader = new FileReader();
+
+      reader.onload = function(e){
+
+        wo.attachments = wo.attachments || [];
+
+        wo.attachments.push({
+          id: Date.now() + Math.random(),
+          name: file.name,
+          type: file.type,
+          data: e.target.result,
+          date: new Date().toISOString()
+        });
+
+        saveWorkOrders();
+        renderWorkOrderAttachments(wo);
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    input.value = "";
+  };
+}
+
+
+  function renderWorkOrderAttachments(wo){
+
+  const list = document.getElementById("woAttachmentsList");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  if (!wo.attachments || !wo.attachments.length){
+    list.innerHTML = '<div class="muted">Aucun fichier ajouté.</div>';
+    return;
+  }
+
+  const locked = isWorkOrderLocked(wo);
+
+  wo.attachments.forEach(att => {
+
+    const div = document.createElement("div");
+    div.style.display = "flex";
+    div.style.justifyContent = "space-between";
+    div.style.alignItems = "center";
+    div.style.padding = "6px 0";
+
+    const isImage = att.type && att.type.startsWith("image");
+
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        ${isImage 
+          ? `<img src="${att.data}" style="height:60px;border-radius:6px;">`
+          : "📎"
+        }
+        <div>${att.name}</div>
+      </div>
+
+      <div>
+        <button class="ghost" onclick="window.open('${att.data}')">
+          Voir
+        </button>
+
+        ${
+          !locked
+          ? `<button class="ghost danger"
+               onclick="deleteWOAttachment('${wo.id}','${att.id}')">
+               Supprimer
+             </button>`
+          : ""
+        }
+      </div>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+
+  function deleteWOAttachment(woId, attId){
+
+  const idx = WORKORDERS.findIndex(w => String(w.id) === String(woId));
+  if (idx === -1) return;
+
+  WORKORDERS[idx].attachments =
+    (WORKORDERS[idx].attachments || []).filter(a => String(a.id) !== String(attId));
+
+  saveWorkOrders();
+  renderWorkOrderAttachments(WORKORDERS[idx]);
+}
+
+
   function calcMargin(cost, price){
   cost = Number(cost || 0);
   price = Number(price || 0);
@@ -3411,6 +3530,7 @@ const wo = {
     vehicleLabel: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
     description,
     notes: "",          // 📝 notes techniques
+    attachments: [],
     status: "en_cours",
     parts: [],
     labor: [],
@@ -3437,6 +3557,7 @@ setTimeout(() => {
   if (btn) btn.click();
 }, 0);
 }
+  
 
   function renderPartPicker() {
   const list = $("partPickerList");
@@ -4790,6 +4911,16 @@ const statusLabel =
 </div>
 
 
+<!-- PHOTOS & FICHIERS -->
+<div class="card">
+  <h3>📷 Photos & Fichiers</h3>
+
+  <input type="file" id="woFileInput" multiple />
+
+  <div id="woAttachmentsList" style="margin-top:12px;"></div>
+</div>
+
+
   <!-- ACTIONS -->
   <div class="card" style="display:flex;justify-content:flex-end;gap:10px;">
     <button id="woSaveBtn">💾 Enregistrer</button>
@@ -4849,6 +4980,7 @@ setTimeout(() => {
 
     
     woRenderLines(wo);
+    initWorkOrderAttachments(wo);
 
     // === AJOUT PIÈCE MANUELLE ===
 const manualBtn = document.getElementById("woAddPartManual");
