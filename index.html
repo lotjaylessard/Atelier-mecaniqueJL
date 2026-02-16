@@ -1570,21 +1570,45 @@ function money(n){return Number(n||0).toFixed(2);}
 
       const reader = new FileReader();
 
-      reader.onload = function(e){
+      input.onchange = async function(){
 
-        wo.attachments = wo.attachments || [];
+  const files = Array.from(this.files);
 
-        wo.attachments.push({
-          id: Date.now() + Math.random(),
-          name: file.name,
-          type: file.type,
-          data: e.target.result,
-          date: new Date().toISOString()
-        });
+  for (const file of files){
 
-        saveWorkOrders();
-        renderWorkOrderAttachments(wo);
-      };
+    const filePath = `wo-${wo.id}/${Date.now()}-${file.name}`;
+
+    const { error } = await sb.storage
+      .from("wo-files")
+      .upload(filePath, file);
+
+    if (error){
+      console.error("Upload error:", error);
+      alert("Erreur upload fichier");
+      continue;
+    }
+
+    // récupérer URL sécurisée
+    const { data } = sb.storage
+      .from("wo-files")
+      .getPublicUrl(filePath);
+
+    wo.attachments = wo.attachments || [];
+
+    wo.attachments.push({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      type: file.type,
+      url: data.publicUrl,  // 🔥 URL SUPABASE
+      date: new Date().toISOString()
+    });
+
+    saveWorkOrders();
+  }
+
+  renderWorkOrderAttachments(wo);
+  input.value = "";
+};
 
       reader.readAsDataURL(file);
     });
@@ -1694,7 +1718,7 @@ function money(n){return Number(n||0).toFixed(2);}
           </style>
         </head>
         <body>
-          <img src="${att.data}">
+          <img src="${att.url}">
         </body>
       </html>
     `);
