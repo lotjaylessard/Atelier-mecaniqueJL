@@ -1628,9 +1628,10 @@ function money(n){return Number(n||0).toFixed(2);}
       </div>
 
       <div>
-        <button class="ghost" onclick="window.open('${att.data}')">
-          Voir
-        </button>
+        <button class="ghost"
+  onclick="openWOAttachment('${att.id}','${wo.id}')">
+  Voir
+</button>
 
         ${
           !locked
@@ -1658,6 +1659,59 @@ function money(n){return Number(n||0).toFixed(2);}
 
   saveWorkOrders();
   renderWorkOrderAttachments(WORKORDERS[idx]);
+}
+
+
+  function openWOAttachment(attId, woId){
+
+  const wo = WORKORDERS.find(w => String(w.id) === String(woId));
+  if (!wo || !wo.attachments) return;
+
+  const att = wo.attachments.find(a => String(a.id) === String(attId));
+  if (!att) return;
+
+  const win = window.open("", "_blank");
+
+  if (!win) return;
+
+  if (att.type && att.type.startsWith("image")){
+    win.document.write(`
+      <html>
+        <head>
+          <title>${att.name}</title>
+          <style>
+            body{
+              margin:0;
+              background:#111;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+            }
+            img{
+              max-width:95%;
+              max-height:95vh;
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${att.data}">
+        </body>
+      </html>
+    `);
+  } else {
+    win.document.write(`
+      <html>
+        <body style="margin:0;">
+          <iframe 
+            src="${att.data}" 
+            style="width:100%;height:100vh;border:none;">
+          </iframe>
+        </body>
+      </html>
+    `);
+  }
+
+  win.document.close();
 }
 
 
