@@ -1603,7 +1603,7 @@ function initWorkOrderAttachments(wo){
 }
 
 
-  function renderWorkOrderAttachments(wo){
+function renderWorkOrderAttachments(wo){
 
   const list = document.getElementById("woAttachmentsList");
   if (!list) return;
@@ -1617,44 +1617,81 @@ function initWorkOrderAttachments(wo){
 
   const locked = isWorkOrderLocked(wo);
 
+  // 🔥 GRID CONTAINER
+  const grid = document.createElement("div");
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(140px, 1fr))";
+  grid.style.gap = "12px";
+
   wo.attachments.forEach(att => {
 
-    const div = document.createElement("div");
-    div.style.display = "flex";
-    div.style.justifyContent = "space-between";
-    div.style.alignItems = "center";
-    div.style.padding = "6px 0";
+    const card = document.createElement("div");
+    card.style.position = "relative";
+    card.style.background = "#111";
+    card.style.borderRadius = "8px";
+    card.style.overflow = "hidden";
+    card.style.cursor = "pointer";
+    card.style.aspectRatio = "1 / 1";
+    card.style.display = "flex";
+    card.style.alignItems = "center";
+    card.style.justifyContent = "center";
 
     const isImage = att.type && att.type.startsWith("image");
 
-    div.innerHTML = `
-      <div style="display:flex;align-items:center;gap:10px;">
-        ${isImage 
-          ? `<img src="${att.url}" style="height:60px;border-radius:6px;">`
-          : "📎"
-        }
-        <div>${att.name}</div>
-      </div>
+    if (isImage){
+      const img = document.createElement("img");
+      img.src = att.url;
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      img.onclick = () => openWOAttachment(att.id, wo.id);
+      card.appendChild(img);
+    } else {
+      const icon = document.createElement("div");
+      icon.innerHTML = "📄";
+      icon.style.fontSize = "40px";
+      icon.onclick = () => openWOAttachment(att.id, wo.id);
+      card.appendChild(icon);
+    }
 
-      <div>
-        <button class="ghost"
-  onclick="openWOAttachment('${att.id}','${wo.id}')">
-  Voir
-</button>
+    // 🔥 OVERLAY ACTIONS
+    const overlay = document.createElement("div");
+    overlay.style.position = "absolute";
+    overlay.style.top = "6px";
+    overlay.style.right = "6px";
+    overlay.style.display = "flex";
+    overlay.style.gap = "6px";
 
-        ${
-          !locked
-          ? `<button class="ghost danger"
-               onclick="deleteWOAttachment('${wo.id}','${att.id}')">
-               Supprimer
-             </button>`
-          : ""
-        }
-      </div>
-    `;
+    // Voir
+    const viewBtn = document.createElement("button");
+    viewBtn.className = "ghost";
+    viewBtn.innerText = "Voir";
+    viewBtn.style.fontSize = "12px";
+    viewBtn.onclick = (e) => {
+      e.stopPropagation();
+      openWOAttachment(att.id, wo.id);
+    };
 
-    list.appendChild(div);
+    overlay.appendChild(viewBtn);
+
+    // Supprimer si pas locked
+    if (!locked){
+      const delBtn = document.createElement("button");
+      delBtn.className = "ghost danger";
+      delBtn.innerText = "✕";
+      delBtn.style.fontSize = "12px";
+      delBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteWOAttachment(wo.id, att.id);
+      };
+      overlay.appendChild(delBtn);
+    }
+
+    card.appendChild(overlay);
+    grid.appendChild(card);
   });
+
+  list.appendChild(grid);
 }
 
 
@@ -1671,7 +1708,7 @@ function initWorkOrderAttachments(wo){
 }
 
 
-  function openWOAttachment(attId, woId){
+function openWOAttachment(attId, woId){
 
   const wo = WORKORDERS.find(w => String(w.id) === String(woId));
   if (!wo || !wo.attachments) return;
@@ -1679,48 +1716,36 @@ function initWorkOrderAttachments(wo){
   const att = wo.attachments.find(a => String(a.id) === String(attId));
   if (!att) return;
 
-  const win = window.open("", "_blank");
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.9)";
+  overlay.style.display = "flex";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = 9999;
 
-  if (!win) return;
+  overlay.onclick = () => document.body.removeChild(overlay);
 
   if (att.type && att.type.startsWith("image")){
-    win.document.write(`
-      <html>
-        <head>
-          <title>${att.name}</title>
-          <style>
-            body{
-              margin:0;
-              background:#111;
-              display:flex;
-              align-items:center;
-              justify-content:center;
-            }
-            img{
-              max-width:95%;
-              max-height:95vh;
-            }
-          </style>
-        </head>
-        <body>
-          <img src="${att.url}">
-        </body>
-      </html>
-    `);
+    const img = document.createElement("img");
+    img.src = att.url;
+    img.style.maxWidth = "95%";
+    img.style.maxHeight = "95%";
+    overlay.appendChild(img);
   } else {
-    win.document.write(`
-      <html>
-        <body style="margin:0;">
-          <iframe 
-            src="${att.url}" 
-            style="width:100%;height:100vh;border:none;">
-          </iframe>
-        </body>
-      </html>
-    `);
+    const iframe = document.createElement("iframe");
+    iframe.src = att.url;
+    iframe.style.width = "90%";
+    iframe.style.height = "90%";
+    iframe.style.border = "none";
+    overlay.appendChild(iframe);
   }
 
-  win.document.close();
+  document.body.appendChild(overlay);
 }
 
 
