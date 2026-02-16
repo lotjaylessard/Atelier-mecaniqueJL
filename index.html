@@ -1542,7 +1542,7 @@ function money(n){return Number(n||0).toFixed(2);}
 }
 
 
-  function initWorkOrderAttachments(wo){
+function initWorkOrderAttachments(wo){
 
   const input = document.getElementById("woFileInput");
   const list  = document.getElementById("woAttachmentsList");
@@ -1551,7 +1551,6 @@ function money(n){return Number(n||0).toFixed(2);}
 
   const locked = isWorkOrderLocked(wo);
 
-  // 🔒 facture payée → upload désactivé
   input.disabled = locked;
 
   if (locked){
@@ -1563,56 +1562,42 @@ function money(n){return Number(n||0).toFixed(2);}
 
   if (locked) return;
 
-  input.onchange = function(){
+  input.onchange = async function(){
+
     const files = Array.from(this.files);
 
-    files.forEach(file => {
+    for (const file of files){
 
-      const reader = new FileReader();
+      const filePath = `wo-${wo.id}/${Date.now()}-${file.name}`;
 
-      input.onchange = async function(){
+      const { error } = await sb.storage
+        .from("wo-files")
+        .upload(filePath, file);
 
-  const files = Array.from(this.files);
+      if (error){
+        console.error("Upload error:", error);
+        alert("Erreur upload fichier");
+        continue;
+      }
 
-  for (const file of files){
+      const { data } = sb.storage
+        .from("wo-files")
+        .getPublicUrl(filePath);
 
-    const filePath = `wo-${wo.id}/${Date.now()}-${file.name}`;
+      wo.attachments = wo.attachments || [];
 
-    const { error } = await sb.storage
-      .from("wo-files")
-      .upload(filePath, file);
+      wo.attachments.push({
+        id: Date.now() + Math.random(),
+        name: file.name,
+        type: file.type,
+        url: data.publicUrl,
+        date: new Date().toISOString()
+      });
 
-    if (error){
-      console.error("Upload error:", error);
-      alert("Erreur upload fichier");
-      continue;
+      saveWorkOrders();
     }
 
-    // récupérer URL sécurisée
-    const { data } = sb.storage
-      .from("wo-files")
-      .getPublicUrl(filePath);
-
-    wo.attachments = wo.attachments || [];
-
-    wo.attachments.push({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      type: file.type,
-      url: data.publicUrl,  // 🔥 URL SUPABASE
-      date: new Date().toISOString()
-    });
-
-    saveWorkOrders();
-  }
-
-  renderWorkOrderAttachments(wo);
-  input.value = "";
-};
-
-      reader.readAsDataURL(file);
-    });
-
+    renderWorkOrderAttachments(wo);
     input.value = "";
   };
 }
@@ -1645,7 +1630,7 @@ function money(n){return Number(n||0).toFixed(2);}
     div.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;">
         ${isImage 
-          ? `<img src="${att.data}" style="height:60px;border-radius:6px;">`
+          ? `<img src="${att.url}" style="height:60px;border-radius:6px;">`
           : "📎"
         }
         <div>${att.name}</div>
@@ -1727,7 +1712,7 @@ function money(n){return Number(n||0).toFixed(2);}
       <html>
         <body style="margin:0;">
           <iframe 
-            src="${att.data}" 
+            src="${att.url}" 
             style="width:100%;height:100vh;border:none;">
           </iframe>
         </body>
