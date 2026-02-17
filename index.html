@@ -4601,24 +4601,29 @@ function openWorkOrderDetail(wo){
 
   detail.appendChild(backBar);
 
-  // 🔹 Pré-remplir KM depuis le véhicule si WO vide
+// 🔹 Pré-remplir KM depuis le véhicule si WO vide
 let displayKm = wo.vehicleKm;
 
 if (!displayKm || Number(displayKm) <= 0){
 
-  const client =
-  CLIENTS.find(c => String(c.id) === String(wo.clientId)) ||
-  CLIENTS.find(c => c.name === wo.clientName);
+  let veh = null;
 
-  if (client && Array.isArray(client.vehicles)){
-    const veh = client.vehicles.find(v =>
-      String(v.id) === String(wo.vehicleId) ||
+  // 🔎 Chercher le véhicule dans TOUS les clients
+  for (const c of CLIENTS){
+    if (!Array.isArray(c.vehicles)) continue;
+
+    const found = c.vehicles.find(v =>
       `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
     );
 
-    if (veh && veh.km){
-      displayKm = veh.km;
+    if (found){
+      veh = found;
+      break;
     }
+  }
+
+  if (veh && veh.km){
+    displayKm = veh.km;
   }
 }
 
