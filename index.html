@@ -4623,6 +4623,9 @@ function openWorkOrderDetail(wo){
   // rendu des lignes
   woRenderLines(wo);
 
+  // 🔥 RENDU PHOTOS & FICHIERS
+initWorkOrderAttachments(wo);
+
 // 🔒 BLOQUER SI FACTURE PAYÉE
 if (locked){
 
