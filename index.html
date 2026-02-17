@@ -3009,25 +3009,6 @@ function getActiveWOById(woId){
 function persistActiveWO(wo){
   if (!wo || !wo.id) return;
 
-      // 🔒 VALIDATION KM AVANT TERMINÉ
-  if (String(wo.status) === "termine") {
-
-    const currentKm = Number(wo.vehicleKm || 0);
-
-    if (!currentKm || currentKm <= 0) {
-
-      const confirmContinue = confirm(
-        "⚠️ Aucun kilométrage actuel n'a été ajouté.\n\n" +
-        "Vous ne devriez pas terminer un bon de travail sans kilométrage.\n\n" +
-        "Voulez-vous continuer quand même ?"
-      );
-
-      if (!confirmContinue) {
-        return; // 🔥 stop la sauvegarde
-      }
-    }
-  }
-
     // 🔥 VALIDATION KM INTELLIGENTE
   if (!validateAndUpdateVehicleKM(wo)){
     return; // bloque la sauvegarde si invalide
@@ -4405,12 +4386,28 @@ function finishWorkOrder(id){
   const wo = WORKORDERS.find(w => String(w.id) === String(id));
   if(!wo) return alert("Bon de travail introuvable.");
 
+  // 🔒 VALIDATION KM AVANT TERMINER
+  const currentKm = Number(wo.vehicleKm || 0);
+
+  if (!currentKm || currentKm <= 0) {
+
+    const confirmContinue = confirm(
+      "⚠️ Aucun kilométrage actuel n'a été ajouté.\n\n" +
+      "Vous ne devriez pas terminer un bon de travail sans kilométrage.\n\n" +
+      "Voulez-vous continuer quand même ?"
+    );
+
+    if (!confirmContinue) {
+      return; // ⛔ Stop ici
+    }
+  }
+
   if (!confirm(`Terminer le bon de travail #${wo.number} et créer une facture ?`)) return;
 
-  // 1) Marquer le WO comme terminé (HISTORIQUE)
-wo.status = "termine";
-wo.completedAt = new Date().toISOString();
-saveWorkOrders();
+  // 1) Marquer le WO comme terminé
+  wo.status = "termine";
+  wo.completedAt = new Date().toISOString();
+  saveWorkOrders();
 
 // 2️⃣ Construire la facture PRO depuis le WO
 const invoice = {
