@@ -4640,6 +4640,25 @@ if (!wo.__originalVehicleKm){
   }
 }
 
+  // ✅ Définir displayKm AVANT le template
+let displayKm = wo.vehicleKm;
+
+if (!displayKm || Number(displayKm) <= 0){
+
+  for (const c of CLIENTS){
+    if (!Array.isArray(c.vehicles)) continue;
+
+    const found = c.vehicles.find(v =>
+      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
+    );
+
+    if (found && found.km){
+      displayKm = found.km;
+      break;
+    }
+  }
+}
+
   // 🔥 UI DU WO
   detail.innerHTML += `
     <div class="card">
