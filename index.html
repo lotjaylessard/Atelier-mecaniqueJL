@@ -4386,6 +4386,13 @@ function finishWorkOrder(id){
   const wo = WORKORDERS.find(w => String(w.id) === String(id));
   if(!wo) return alert("Bon de travail introuvable.");
 
+  // 🔄 Forcer lecture directe du champ KM (sécuritaire)
+const kmInput = document.getElementById("woVehicleKmInput");
+
+if (kmInput){
+  wo.vehicleKm = Number(kmInput.value || 0);
+}
+
 // ==========================
 // 🔒 VALIDATION KM OBLIGATOIRE
 // ==========================
