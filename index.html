@@ -4386,21 +4386,52 @@ function finishWorkOrder(id){
   const wo = WORKORDERS.find(w => String(w.id) === String(id));
   if(!wo) return alert("Bon de travail introuvable.");
 
-  // 🔒 VALIDATION KM AVANT TERMINER
-  const currentKm = Number(wo.vehicleKm || 0);
+// ==========================
+// 🔒 VALIDATION KM OBLIGATOIRE
+// ==========================
 
-  if (!currentKm || currentKm <= 0) {
+const currentKm = Number(wo.vehicleKm || 0);
 
-    const confirmContinue = confirm(
-      "⚠️ Aucun kilométrage actuel n'a été ajouté.\n\n" +
-      "Vous ne devriez pas terminer un bon de travail sans kilométrage.\n\n" +
-      "Voulez-vous continuer quand même ?"
-    );
+// 🔎 Trouver le client
+const clientObj = CLIENTS.find(c =>
+  String(c.id) === String(wo.clientId)
+);
 
-    if (!confirmContinue) {
-      return; // ⛔ Stop ici
-    }
+let previousKm = 0;
+
+if (clientObj && Array.isArray(clientObj.vehicles)){
+  const vehObj = clientObj.vehicles.find(v =>
+    String(v.id) === String(wo.vehicleId)
+  );
+
+  if (vehObj && vehObj.km){
+    previousKm = Number(vehObj.km);
   }
+}
+
+let errorMessage = null;
+
+if (!currentKm || currentKm <= 0){
+  errorMessage = "Vous devez entrer un kilométrage valide.";
+}
+else if (currentKm <= previousKm){
+  errorMessage =
+    "Le kilométrage actuel (" + currentKm + " km) doit être supérieur\n" +
+    "au kilométrage précédent (" + previousKm + " km).";
+}
+
+if (errorMessage){
+
+  const kmInput = document.getElementById("woVehicleKmInput");
+
+  if (kmInput){
+    kmInput.style.border = "2px solid #ff4d4d";
+    kmInput.style.background = "#2a0000";
+  }
+
+  alert("⚠️ " + errorMessage);
+  return; // ⛔ BLOQUE
+}
 
   if (!confirm(`Terminer le bon de travail #${wo.number} et créer une facture ?`)) return;
 
@@ -4408,6 +4439,18 @@ function finishWorkOrder(id){
   wo.status = "termine";
   wo.completedAt = new Date().toISOString();
   saveWorkOrders();
+
+  // 🔄 Mettre à jour le KM du véhicule principal
+if (clientObj && Array.isArray(clientObj.vehicles)){
+  const vehObj = clientObj.vehicles.find(v =>
+    String(v.id) === String(wo.vehicleId)
+  );
+
+  if (vehObj){
+    vehObj.km = currentKm;
+    localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
+  }
+}
 
 // 2️⃣ Construire la facture PRO depuis le WO
 const invoice = {
@@ -4710,18 +4753,26 @@ function openWorkOrderDetail(wo){
 
   // 🔁 BIND KM → SYNC CENTRALISÉ
   setTimeout(() => {
-    const kmInput = document.getElementById("woVehicleKmInput");
-    if (!kmInput) return;
+  const kmInput = document.getElementById("woVehicleKmInput");
+  if (!kmInput) return;
 
-    const saveKm = () => {
-      if (typeof syncKmEverywhereFromWO === "function"){
-        syncKmEverywhereFromWO(wo, kmInput.value);
-      }
-    };
+  const saveKm = () => {
 
-    kmInput.onchange = saveKm;
-    kmInput.onblur   = saveKm;
-  }, 0);
+    // 🔄 Sync central
+    if (typeof syncKmEverywhereFromWO === "function"){
+      syncKmEverywhereFromWO(wo, kmInput.value);
+    }
+
+    // 🔵 Reset visuel si l'utilisateur corrige
+    kmInput.style.border = "1px solid var(--border)";
+    kmInput.style.background = "#111";
+  };
+
+  kmInput.onchange = saveKm;
+  kmInput.onblur   = saveKm;
+  kmInput.oninput  = saveKm; // 🔥 IMPORTANT pour live reset
+
+}, 0);
 
   // rendu des lignes
   woRenderLines(wo);
