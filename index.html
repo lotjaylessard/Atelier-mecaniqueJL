@@ -4423,10 +4423,10 @@ let errorMessage = null;
 if (!currentKm || currentKm <= 0){
   errorMessage = "Vous devez entrer un kilométrage valide.";
 }
-else if (currentKm <= previousKm){
+else if (currentKm < previousKm){
   errorMessage =
-    "Le kilométrage actuel (" + currentKm + " km) doit être supérieur\n" +
-    "au kilométrage précédent (" + previousKm + " km).";
+    "Le kilométrage entré (" + currentKm + " km) est plus bas\n" +
+    "que le kilométrage actuel du véhicule (" + previousKm + " km).";
 }
 
 if (errorMessage){
