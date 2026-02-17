@@ -1705,6 +1705,23 @@ function renderWorkOrderAttachments(wo){
       overlay.appendChild(delBtn);
     }
 
+    // 🏷️ OVERLAY TITRE (en bas)
+const title = document.createElement("div");
+title.textContent = att.name || "Fichier";
+title.style.position = "absolute";
+title.style.left = "0";
+title.style.right = "0";
+title.style.bottom = "0";
+title.style.padding = "6px 8px";
+title.style.fontSize = "11px";
+title.style.background = "rgba(0,0,0,0.70)";
+title.style.color = "#fff";
+title.style.whiteSpace = "nowrap";
+title.style.overflow = "hidden";
+title.style.textOverflow = "ellipsis";
+title.style.pointerEvents = "none"; // ✅ ne bloque pas les clics sur l’image
+card.appendChild(title);
+
     card.appendChild(overlay);
     grid.appendChild(card);
   });
@@ -8134,6 +8151,9 @@ function openWorkOrderReadOnly(woId){
   if ($("woEditId")) $("woEditId").value = String(wo.id);
 
   openWorkOrderDetail(wo);
+
+  // ✅ AJOUTE ÇA ICI (affiche les attachments même en mode payé/lock)
+initWorkOrderAttachments(wo);
 
   setWorkOrderReadOnlyMode();
 }
