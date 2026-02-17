@@ -4601,9 +4601,6 @@ function openWorkOrderDetail(wo){
 
   detail.appendChild(backBar);
 
-// 🔹 Pré-remplir KM depuis le véhicule si WO vide
-let displayKm = wo.vehicleKm;
-
 if (!displayKm || Number(displayKm) <= 0){
 
   let veh = null;
@@ -4659,6 +4656,24 @@ if (!displayKm || Number(displayKm) <= 0){
   }
 }
 
+// ✅ Si WO sans KM → récupérer KM du véhicule
+if (!wo.vehicleKm || Number(wo.vehicleKm) <= 0){
+
+  for (const c of CLIENTS){
+    if (!Array.isArray(c.vehicles)) continue;
+
+    const found = c.vehicles.find(v =>
+      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
+    );
+
+    if (found && found.km){
+      wo.vehicleKm = found.km;
+      break;
+    }
+  }
+}
+
+  
   // 🔥 UI DU WO
   detail.innerHTML += `
     <div class="card">
@@ -4670,20 +4685,18 @@ if (!displayKm || Number(displayKm) <= 0){
       <p>
         <b>Kilométrage :</b>
         <input
-          id="woVehicleKmInput"
-          type="number"
-          min="0"
-          value="${displayKm || ''}"
-          style="
-            margin-left:6px;
-            width:120px;
-            padding:4px;
-            border-radius:4px;
-            border:1px solid var(--border);
-            background:#111;
-            color:#fff;
-          "
-        >
+  id="woKmInput"
+  type="number"
+  value="${wo.vehicleKm || ''}"
+  style="
+    width:120px;
+    padding:4px;
+    border-radius:4px;
+    border:1px solid var(--border);
+    background:#111;
+    color:#fff;
+  "
+>
         km
       </p>
     </div>
