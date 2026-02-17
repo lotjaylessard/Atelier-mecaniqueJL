@@ -1654,6 +1654,24 @@ function renderWorkOrderAttachments(wo){
       card.appendChild(icon);
     }
 
+        // 🔥 OVERLAY TITRE BAS
+    const titleOverlay = document.createElement("div");
+    titleOverlay.style.position = "absolute";
+    titleOverlay.style.bottom = "0";
+    titleOverlay.style.left = "0";
+    titleOverlay.style.width = "100%";
+    titleOverlay.style.padding = "6px 8px";
+    titleOverlay.style.background = "linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0))";
+    titleOverlay.style.color = "#fff";
+    titleOverlay.style.fontSize = "12px";
+    titleOverlay.style.whiteSpace = "nowrap";
+    titleOverlay.style.overflow = "hidden";
+    titleOverlay.style.textOverflow = "ellipsis";
+    titleOverlay.style.pointerEvents = "none"; // important
+    titleOverlay.innerText = att.name;
+
+    card.appendChild(titleOverlay);
+
     // 🔥 OVERLAY ACTIONS
     const overlay = document.createElement("div");
     overlay.style.position = "absolute";
