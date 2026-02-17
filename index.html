@@ -1596,12 +1596,13 @@ function initWorkOrderAttachments(wo){
       wo.attachments = wo.attachments || [];
 
       wo.attachments.push({
-        id: Date.now() + Math.random(),
-        name: file.name,
-        type: file.type,
-        url: data.publicUrl,
-        date: new Date().toISOString()
-      });
+  id: Date.now() + Math.random(),
+  name: file.name,
+  type: file.type,
+  url: data.publicUrl,
+  path: filePath, // 🔥 IMPORTANT
+  date: new Date().toISOString()
+});
 
       saveWorkOrders();
     }
@@ -1721,16 +1722,41 @@ card.appendChild(title);
 }
 
 
-  function deleteWOAttachment(woId, attId){
+  async function deleteWOAttachment(woId, attId){
 
-  const idx = WORKORDERS.findIndex(w => String(w.id) === String(woId));
-  if (idx === -1) return;
+  const wo = WORKORDERS.find(w => String(w.id) === String(woId));
+  if (!wo || !wo.attachments) return;
 
-  WORKORDERS[idx].attachments =
-    (WORKORDERS[idx].attachments || []).filter(a => String(a.id) !== String(attId));
+  const att = wo.attachments.find(a => String(a.id) === String(attId));
+  if (!att) return;
 
-  saveWorkOrders();
-  renderWorkOrderAttachments(WORKORDERS[idx]);
+  const confirmDelete = confirm("Supprimer ce fichier définitivement ?");
+  if (!confirmDelete) return;
+
+  try {
+
+    // 🔥 Supprimer du storage si path présent
+    if (att.path){
+      const { error } = await sb.storage
+        .from("wo-files")
+        .remove([att.path]);
+
+      if (error){
+        console.error("Erreur suppression storage:", error);
+      }
+    }
+
+    // 🔥 Supprimer du tableau local
+    wo.attachments = wo.attachments.filter(
+      a => String(a.id) !== String(attId)
+    );
+
+    saveWorkOrders();
+    renderWorkOrderAttachments(wo);
+
+  } catch (err){
+    console.error("Erreur suppression:", err);
+  }
 }
 
 
@@ -4425,20 +4451,52 @@ openInvoiceEditModal(invoice.number);
 }
 
   
-function deleteWorkOrder(id){
+async function deleteWorkOrder(id){
+
   const wo = WORKORDERS.find(w => String(w.id) === String(id));
-  if(!wo) return alert("Bon de travail introuvable.");
+  if (!wo) return alert("Bon de travail introuvable.");
 
-  if(!confirm(`Supprimer le bon de travail #${wo.number} ?`)) return;
+  if (!confirm(`Supprimer le bon de travail #${wo.number} et tous ses fichiers ?`)) return;
 
-  WORKORDERS = WORKORDERS.filter(w => String(w.id) !== String(id));
-  saveWorkOrders();
-  renderWorkOrders();
+  try {
 
-  // vider le panneau de droite si c'était ouvert
-  const detail = $("woDetailContent");
-  if (detail) detail.innerHTML = `<div class="muted">Bon de travail supprimé.</div>`;
+    // 🔥 Supprimer les fichiers dans Supabase
+    if (wo.attachments && wo.attachments.length){
+
+      const paths = wo.attachments
+        .filter(a => a.path)
+        .map(a => a.path);
+
+      if (paths.length){
+        const { error } = await sb.storage
+          .from("wo-files")
+          .remove(paths);
+
+        if (error){
+          console.error("Erreur suppression fichiers:", error);
+        }
+      }
+    }
+
+    // 🔥 Supprimer le WO localement
+    WORKORDERS = WORKORDERS.filter(
+      w => String(w.id) !== String(id)
+    );
+
+    saveWorkOrders();
+    renderWorkOrders();
+
+    // vider panneau
+    const detail = $("woDetailContent");
+    if (detail){
+      detail.innerHTML = `<div class="muted">Bon de travail supprimé.</div>`;
+    }
+
+  } catch (err){
+    console.error("Erreur suppression WO:", err);
+  }
 }
+
 
 // ===== Voir un BON DE TRAVAIL dans l'historique =====
 function openWorkOrderDetail(wo){
