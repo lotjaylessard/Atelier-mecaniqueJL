@@ -4399,20 +4399,22 @@ if (kmInput){
 
 const currentKm = Number(wo.vehicleKm || 0);
 
-// 🔎 Trouver le client
-const clientObj = CLIENTS.find(c =>
-  String(c.id) === String(wo.clientId)
-);
-
+// 🔎 Trouver le véhicule EXACTEMENT comme openWorkOrderDetail
 let previousKm = 0;
 
-if (clientObj && Array.isArray(clientObj.vehicles)){
-  const vehObj = clientObj.vehicles.find(v =>
-    String(v.id) === String(wo.vehicleId)
+const client = CLIENTS.find(c =>
+  c.name === wo.clientName
+);
+
+let veh = null;
+
+if (client && Array.isArray(client.vehicles)){
+  veh = client.vehicles.find(v =>
+    `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
   );
 
-  if (vehObj && vehObj.km){
-    previousKm = Number(vehObj.km);
+  if (veh && veh.km){
+    previousKm = Number(veh.km);
   }
 }
 
@@ -4447,16 +4449,10 @@ if (errorMessage){
   wo.completedAt = new Date().toISOString();
   saveWorkOrders();
 
-  // 🔄 Mettre à jour le KM du véhicule principal
-if (clientObj && Array.isArray(clientObj.vehicles)){
-  const vehObj = clientObj.vehicles.find(v =>
-    String(v.id) === String(wo.vehicleId)
-  );
-
-  if (vehObj){
-    vehObj.km = currentKm;
-    localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
-  }
+// 🔄 Mettre à jour le KM du véhicule
+if (veh){
+  veh.km = currentKm;
+  localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
 }
 
 // 2️⃣ Construire la facture PRO depuis le WO
@@ -4617,6 +4613,19 @@ function openWorkOrderDetail(wo){
       }
     }
   }
+
+  // 🧠 Sauvegarder KM original pour validation
+if (!wo.__originalVehicleKm){
+  const client = CLIENTS.find(c => c.name === wo.clientName);
+  if (client && Array.isArray(client.vehicles)){
+    const veh = client.vehicles.find(v =>
+      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
+    );
+    if (veh){
+      wo.__originalVehicleKm = Number(veh.km || 0);
+    }
+  }
+}
 
   // 🔥 UI DU WO
   detail.innerHTML += `
