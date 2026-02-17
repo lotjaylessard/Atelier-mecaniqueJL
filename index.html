@@ -1636,6 +1636,8 @@ function renderWorkOrderAttachments(wo){
     card.style.alignItems = "center";
     card.style.justifyContent = "center";
 
+    card.onclick = () => openWOAttachment(att.id, wo.id);
+
     const isImage = att.type && att.type.startsWith("image");
 
     if (isImage){
@@ -1644,13 +1646,11 @@ function renderWorkOrderAttachments(wo){
       img.style.width = "100%";
       img.style.height = "100%";
       img.style.objectFit = "cover";
-      img.onclick = () => openWOAttachment(att.id, wo.id);
       card.appendChild(img);
     } else {
       const icon = document.createElement("div");
       icon.innerHTML = "📄";
       icon.style.fontSize = "40px";
-      icon.onclick = () => openWOAttachment(att.id, wo.id);
       card.appendChild(icon);
     }
 
