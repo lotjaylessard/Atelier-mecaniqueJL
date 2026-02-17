@@ -5027,7 +5027,7 @@ if (cancelBtn){
 }
 };
 
-  const table = $("woTable");
+const table = $("woTable");
 if (table){
   table.onclick = (e) => {
     const btn = e.target.closest("button[data-action='open']");
@@ -5036,16 +5036,12 @@ if (table){
     const tr = btn.closest("tr");
     const id = tr?.dataset.id;
     const wo = WORKORDERS.find(w => String(w.id) === String(id));
-    const detail = $("woDetailContent");
-if(!detail){
-  showPage('workorders');
-  return;
+    if (!wo) return;
+
+    openWorkOrderDetail(wo);
+  };
 }
-if (!wo) return;
 
-
-    $("woListCard").style.display = "none";
-    $("woDetailCard").style.display = "block";
 
 const invoice = INVOICES.find(inv => String(inv.workOrderNumber) === String(wo.number));
 const isPaid = invoice && invoice.status === "paid";
