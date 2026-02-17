@@ -4786,7 +4786,6 @@ if (!wo.__originalVehicleKm){
 
   kmInput.onchange = saveKm;
   kmInput.onblur   = saveKm;
-  kmInput.oninput  = saveKm; // 🔥 IMPORTANT pour live reset
 
 }, 0);
 
@@ -10108,49 +10107,38 @@ function initLinksModule() {
 }
 
 
-  function syncKmEverywhereFromWO(wo, newKm){
+function syncKmEverywhereFromWO(wo, newKm){
+
   const km = Number(newKm);
   if (!wo || !km || km <= 0) return;
 
-  // 1️⃣ WO (source)
+  // 1️⃣ WO uniquement
   wo.vehicleKm = km;
 
-  // 2️⃣ Véhicule du client
-  const client = CLIENTS.find(c => String(c.id) === String(wo.clientId));
-  if (client && Array.isArray(client.vehicles)){
-    const vehicle = client.vehicles.find(v =>
-      String(v.id) === String(wo.vehicleId) ||
-      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
-    );
-    if (vehicle){
-      vehicle.km = km;
-    }
-  }
+  // 2️⃣ NE PAS toucher au véhicule ici
 
   // 3️⃣ Facture liée (si existe)
-let invoice = null;
+  let invoice = null;
 
-// Mode normal : facture liée à un BT
-invoice = INVOICES.find(inv => inv.workOrderNumber === wo.number);
+  invoice = INVOICES.find(inv => inv.workOrderNumber === wo.number);
 
-// Mode "facture ouverte comme WO"
-if (!invoice && wo && wo.__fromInvoice && wo.__invoiceNumber){
-  invoice = INVOICES.find(inv => String(inv.number) === String(wo.__invoiceNumber));
-}
+  if (!invoice && wo && wo.__fromInvoice && wo.__invoiceNumber){
+    invoice = INVOICES.find(inv => String(inv.number) === String(wo.__invoiceNumber));
+  }
 
-if (invoice){
-  invoice.vehicleKm = km;
-}
+  if (invoice){
+    invoice.vehicleKm = km;
+  }
 
   // 4️⃣ Persistance
   saveWorkOrders();
   saveInvoices();
-  localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
+
+  // ⚠️ IMPORTANT : supprimer cette ligne
+  // localStorage.setItem(STORAGE.clients, JSON.stringify(CLIENTS));
 
   // 5️⃣ UI refresh (safe)
   if (typeof renderWorkOrders === "function") renderWorkOrders();
-  if (typeof renderVehiclesPage === "function") renderVehiclesPage();
-  if (typeof renderClientsTable === "function") renderClientsTable();
   if (typeof renderInvoiceList === "function") renderInvoiceList();
 }
 
