@@ -4573,6 +4573,15 @@ function openWorkOrderDetail(wo){
   >${escapeHTML(wo.notes || "")}</textarea>
 </div>
 
+<!-- PHOTOS & FICHIERS -->
+<div class="card">
+  <h3>📷 Photos & Fichiers</h3>
+
+  <input type="file" id="woFileInput" multiple style="margin-bottom:10px;">
+
+  <div id="woAttachmentsList"></div>
+</div>
+
     <div class="card" style="text-align:right;">
   <h3>
     Total estimé :
