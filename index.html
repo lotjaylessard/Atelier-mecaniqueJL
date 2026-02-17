@@ -3009,6 +3009,25 @@ function getActiveWOById(woId){
 function persistActiveWO(wo){
   if (!wo || !wo.id) return;
 
+      // 🔒 VALIDATION KM AVANT TERMINÉ
+  if (String(wo.status) === "termine") {
+
+    const currentKm = Number(wo.vehicleKm || 0);
+
+    if (!currentKm || currentKm <= 0) {
+
+      const confirmContinue = confirm(
+        "⚠️ Aucun kilométrage actuel n'a été ajouté.\n\n" +
+        "Vous ne devriez pas terminer un bon de travail sans kilométrage.\n\n" +
+        "Voulez-vous continuer quand même ?"
+      );
+
+      if (!confirmContinue) {
+        return; // 🔥 stop la sauvegarde
+      }
+    }
+  }
+
     // 🔥 VALIDATION KM INTELLIGENTE
   if (!validateAndUpdateVehicleKM(wo)){
     return; // bloque la sauvegarde si invalide
