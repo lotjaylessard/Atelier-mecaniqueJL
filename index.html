@@ -5027,6 +5027,7 @@ if (cancelBtn){
 }
 };
 
+    
 const table = $("woTable");
 if (table){
   table.onclick = (e) => {
@@ -5035,6 +5036,7 @@ if (table){
 
     const tr = btn.closest("tr");
     const id = tr?.dataset.id;
+
     const wo = WORKORDERS.find(w => String(w.id) === String(id));
     if (!wo) return;
 
