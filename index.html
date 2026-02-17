@@ -1568,7 +1568,16 @@ function initWorkOrderAttachments(wo){
 
     for (const file of files){
 
-      const filePath = `wo-${wo.id}/${Date.now()}-${file.name}`;
+      const safeClient  = sanitize(wo.clientName);
+      const safeVehicle = sanitize(wo.vehicleLabel);
+      const safeWO      = sanitize(wo.number);
+
+      const filePath =
+  `clients/${safeClient}/` +
+  `${safeVehicle}/` +
+  `${safeWO}/` +
+  `${Date.now()}-${file.name}`;
+
 
       const { error } = await sb.storage
         .from("wo-files")
@@ -2509,6 +2518,18 @@ function openInvoiceEditModal(number){
   const modal = document.getElementById("invoiceEditModal");
   modal.style.display = "flex";
 }
+
+
+  function sanitize(str){
+  return (str || "")
+    .normalize("NFD")                 // enlever accents
+    .replace(/[\u0300-\u036f]/g, "")  // enlever diacritiques
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 
 
   /* ======================================================
