@@ -8663,7 +8663,7 @@ if ($("lastWorkOrdersBox")) {
 
 function renderMonthlyRevenueChart(){
 
-  let globalTooltip = document.getElementById("dashboardTooltip");
+let globalTooltip = document.getElementById("dashboardTooltip");
 
 if (!globalTooltip){
   globalTooltip = document.createElement("div");
@@ -8671,13 +8671,31 @@ if (!globalTooltip){
   globalTooltip.style.position = "fixed";
   globalTooltip.style.background = "#111";
   globalTooltip.style.border = "1px solid #333";
-  globalTooltip.style.padding = "8px 12px";
-  globalTooltip.style.borderRadius = "8px";
+  globalTooltip.style.padding = "10px 14px";
+  globalTooltip.style.borderRadius = "10px";
   globalTooltip.style.fontSize = "13px";
   globalTooltip.style.pointerEvents = "none";
-  globalTooltip.style.display = "none";
+  globalTooltip.style.opacity = "0";
+  globalTooltip.style.transition = "opacity 0.15s ease";
   globalTooltip.style.zIndex = "9999";
-  globalTooltip.style.boxShadow = "0 8px 24px rgba(0,0,0,0.6)";
+  globalTooltip.style.boxShadow = "0 10px 28px rgba(0,0,0,0.7)";
+
+  // Flèche
+  const arrow = document.createElement("div");
+  arrow.id = "dashboardTooltipArrow";
+  arrow.style.position = "absolute";
+  arrow.style.bottom = "-6px";
+  arrow.style.left = "50%";
+  arrow.style.transform = "translateX(-50%)";
+  arrow.style.width = "12px";
+  arrow.style.height = "12px";
+  arrow.style.background = "#111";
+  arrow.style.borderRight = "1px solid #333";
+  arrow.style.borderBottom = "1px solid #333";
+  arrow.style.transform += " rotate(45deg)";
+
+  globalTooltip.appendChild(arrow);
+
   document.body.appendChild(globalTooltip);
 }
 
@@ -8795,6 +8813,10 @@ if (!globalTooltip){
 
 barWrap.onmousemove = (e) => {
 
+  const margin = revenue > 0
+    ? ((profit / revenue) * 100).toFixed(1)
+    : 0;
+
   globalTooltip.innerHTML = `
     <div style="color:#f5c542;font-weight:600;">
       Revenu: ${money(revenue)} $
@@ -8802,15 +8824,22 @@ barWrap.onmousemove = (e) => {
     <div style="color:#4CAF50;font-weight:600;">
       Profit: ${money(profit)} $
     </div>
+    <div style="margin-top:4px;color:#ccc;">
+      Marge: <b>${margin} %</b>
+    </div>
   `;
 
   globalTooltip.style.display = "block";
+  globalTooltip.style.opacity = "1";
   globalTooltip.style.left = (e.clientX + 15) + "px";
-  globalTooltip.style.top  = (e.clientY - 40) + "px";
+  globalTooltip.style.top  = (e.clientY - 50) + "px";
 };
 
 barWrap.onmouseleave = () => {
-  globalTooltip.style.display = "none";
+  globalTooltip.style.opacity = "0";
+  setTimeout(() => {
+    globalTooltip.style.display = "none";
+  }, 150);
 };
 
     /* ===== LABELS ===== */
