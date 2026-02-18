@@ -8663,6 +8663,24 @@ if ($("lastWorkOrdersBox")) {
 
 function renderMonthlyRevenueChart(){
 
+  let globalTooltip = document.getElementById("dashboardTooltip");
+
+if (!globalTooltip){
+  globalTooltip = document.createElement("div");
+  globalTooltip.id = "dashboardTooltip";
+  globalTooltip.style.position = "fixed";
+  globalTooltip.style.background = "#111";
+  globalTooltip.style.border = "1px solid #333";
+  globalTooltip.style.padding = "8px 12px";
+  globalTooltip.style.borderRadius = "8px";
+  globalTooltip.style.fontSize = "13px";
+  globalTooltip.style.pointerEvents = "none";
+  globalTooltip.style.display = "none";
+  globalTooltip.style.zIndex = "9999";
+  globalTooltip.style.boxShadow = "0 8px 24px rgba(0,0,0,0.6)";
+  document.body.appendChild(globalTooltip);
+}
+
   const chart = $("monthlyRevenueChart");
   const yearSelect = $("revenueYearFilter");
 
@@ -8773,31 +8791,27 @@ function renderMonthlyRevenueChart(){
     barWrap.appendChild(revenueBar);
     barWrap.appendChild(profitBar);
 
-    /* ===== TOOLTIP ===== */
+/* ===== TOOLTIP GLOBAL PRO ===== */
 
-    const tooltip = document.createElement("div");
-tooltip.style.position = "absolute";
-tooltip.style.bottom = "190px";
-tooltip.style.left = "50%";
-tooltip.style.transform = "translateX(-50%)";
-tooltip.style.background = "#0f0f0f";
-tooltip.style.border = "1px solid #333";
-tooltip.style.padding = "6px 10px";
-tooltip.style.borderRadius = "6px";
-tooltip.style.fontSize = "12px";
-tooltip.style.whiteSpace = "nowrap";
-tooltip.style.display = "none";
-tooltip.style.zIndex = "1000";
-tooltip.style.boxShadow = "0 4px 12px rgba(0,0,0,0.5)";
-tooltip.innerHTML = `
-  <div style="color:#f5c542;">Revenu: ${money(revenue)} $</div>
-  <div style="color:#4CAF50;">Profit: ${money(profit)} $</div>
-`;
+barWrap.onmousemove = (e) => {
 
-    barWrap.onmouseenter = () => tooltip.style.display = "block";
-    barWrap.onmouseleave = () => tooltip.style.display = "none";
+  globalTooltip.innerHTML = `
+    <div style="color:#f5c542;font-weight:600;">
+      Revenu: ${money(revenue)} $
+    </div>
+    <div style="color:#4CAF50;font-weight:600;">
+      Profit: ${money(profit)} $
+    </div>
+  `;
 
-    barWrap.appendChild(tooltip);
+  globalTooltip.style.display = "block";
+  globalTooltip.style.left = (e.clientX + 15) + "px";
+  globalTooltip.style.top  = (e.clientY - 40) + "px";
+};
+
+barWrap.onmouseleave = () => {
+  globalTooltip.style.display = "none";
+};
 
     /* ===== LABELS ===== */
 
