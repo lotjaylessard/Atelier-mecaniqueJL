@@ -4562,49 +4562,42 @@ async function deleteWorkOrder(id){
 
 // ===== Voir un BON DE TRAVAIL dans l'historique =====
 function openWorkOrderDetail(wo){
-
-  const invoice = INVOICES.find(inv =>
-  String(inv.workOrderNumber) === String(wo.number)
-);
-
-const isPaid = invoice && invoice.status === "paid";
-
-const statusLabel =
-  wo.status === "en_cours" ? "En cours" :
-  wo.status === "termine" && isPaid ? "Terminé • Payé" :
-  wo.status === "termine" ? "Terminé" :
-  wo.status;
-
-// KM fallback sécurisé
-let displayKm = Number(wo.vehicleKm || 0);
-
-if (!displayKm || displayKm <= 0){
-
-  const clientObj = CLIENTS.find(c =>
-    String(c.id) === String(wo.clientId)
-  );
-
-  if (clientObj && Array.isArray(clientObj.vehicles)){
-    const vehObj = clientObj.vehicles.find(v =>
-      String(v.id) === String(wo.vehicleId)
-    );
-    if (vehObj && Number(vehObj.km || 0) > 0){
-      displayKm = Number(vehObj.km);
-    }
-  }
-}
-
   if (!wo) return;
 
-    loadInvoices(); // 🔒 important
+  loadInvoices(); // 🔒 important
 
+  // 🔗 Facture liée au WO (1 seule fois, 1 seul nom)
   const linkedInvoice = INVOICES.find(inv =>
-  String(inv.workOrderNumber) === String(wo.number)
-);
+    String(inv.workOrderNumber) === String(wo.number)
+  );
 
-const isPaid = linkedInvoice && linkedInvoice.status === "paid";
+  const isPaid = linkedInvoice && linkedInvoice.status === "paid";
 
-  const locked = invoice && invoice.status === "paid";
+  const statusLabel =
+    wo.status === "en_cours" ? "En cours" :
+    wo.status === "termine" && isPaid ? "Terminé • Payé" :
+    wo.status === "termine" ? "Terminé" :
+    wo.status;
+
+  const locked = !!isPaid;
+
+  // ✅ KM fallback sécurisé
+  let displayKm = Number(wo.vehicleKm || 0);
+
+  if (!displayKm || displayKm <= 0){
+    const clientObj = CLIENTS.find(c =>
+      String(c.id) === String(wo.clientId)
+    );
+
+    if (clientObj && Array.isArray(clientObj.vehicles)){
+      const vehObj = clientObj.vehicles.find(v =>
+        String(v.id) === String(wo.vehicleId)
+      );
+      if (vehObj && Number(vehObj.km || 0) > 0){
+        displayKm = Number(vehObj.km);
+      }
+    }
+  }
 
   // afficher la page WO
   showPage("page-workorders");
