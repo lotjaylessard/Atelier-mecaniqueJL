@@ -4562,6 +4562,38 @@ async function deleteWorkOrder(id){
 
 // ===== Voir un BON DE TRAVAIL dans l'historique =====
 function openWorkOrderDetail(wo){
+
+  const invoice = INVOICES.find(inv =>
+  String(inv.workOrderNumber) === String(wo.number)
+);
+
+const isPaid = invoice && invoice.status === "paid";
+
+const statusLabel =
+  wo.status === "en_cours" ? "En cours" :
+  wo.status === "termine" && isPaid ? "Terminé • Payé" :
+  wo.status === "termine" ? "Terminé" :
+  wo.status;
+
+// KM fallback sécurisé
+let displayKm = Number(wo.vehicleKm || 0);
+
+if (!displayKm || displayKm <= 0){
+
+  const clientObj = CLIENTS.find(c =>
+    String(c.id) === String(wo.clientId)
+  );
+
+  if (clientObj && Array.isArray(clientObj.vehicles)){
+    const vehObj = clientObj.vehicles.find(v =>
+      String(v.id) === String(wo.vehicleId)
+    );
+    if (vehObj && Number(vehObj.km || 0) > 0){
+      displayKm = Number(vehObj.km);
+    }
+  }
+}
+
   if (!wo) return;
 
     loadInvoices(); // 🔒 important
@@ -5043,45 +5075,6 @@ if (table){
     openWorkOrderDetail(wo);
   };
 }
-
-const invoice = INVOICES.find(inv => String(inv.workOrderNumber) === String(wo.number));
-const isPaid = invoice && invoice.status === "paid";
-
-const statusLabel =
-  wo.status === "en_cours" ? "En cours" :
-  wo.status === "termine" && isPaid ? "Terminé • Payé" :
-  wo.status === "termine" ? "Terminé" :
-  wo.status;
-
-    // ✅ KM à afficher dans le champ (fallback si wo.vehicleKm vide)
-let displayKm = Number(wo.vehicleKm || 0);
-
-if (!displayKm || displayKm <= 0){
-
-  // 1) essayer par clientId/vehicleId
-  const clientObj = CLIENTS.find(c => String(c.id) === String(wo.clientId));
-  if (clientObj && Array.isArray(clientObj.vehicles)){
-    const vehObj = clientObj.vehicles.find(v => String(v.id) === String(wo.vehicleId));
-    if (vehObj && Number(vehObj.km || 0) > 0){
-      displayKm = Number(vehObj.km);
-    }
-  }
-
-  // 2) fallback par label si pas trouvé
-  if (!displayKm || displayKm <= 0){
-    for (const c of CLIENTS){
-      if (!Array.isArray(c.vehicles)) continue;
-
-      const found = c.vehicles.find(v =>
-        `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
-      );
-
-      if (found && Number(found.km || 0) > 0){
-        displayKm = Number(found.km);
-        break;
-      }
-    }
-  }
 }
 
     detail.innerHTML = `
@@ -5275,11 +5268,20 @@ if (!displayKm || displayKm <= 0){
   <!-- ACTIONS -->
   <div class="card" style="display:flex;justify-content:flex-end;gap:10px;">
     <button id="woSaveBtn">💾 Enregistrer</button>
-    <button class="ghost" onclick="finishWorkOrder(${wo.id})">✅ Terminé</button>
-    <button class="danger" onclick="deleteWorkOrder(${wo.id})">🗑 Supprimer</button>
+    <button id="woFinishBtn" class="ghost">✅ Terminé</button>
+    <button id="woDeleteBtn" class="danger">🗑 Supprimer</button>
   </div>
 `;
 
+    const finishBtn = $("woFinishBtn");
+if (finishBtn){
+  finishBtn.onclick = () => finishWorkOrder(wo.id);
+}
+
+const deleteBtn = $("woDeleteBtn");
+if (deleteBtn){
+  deleteBtn.onclick = () => deleteWorkOrder(wo.id);
+}
 
     // Bind boutons (safe) — DOIT ÊTRE DANS LE SCOPE DE wo
 const btnAddPart  = $("woAddPart");
