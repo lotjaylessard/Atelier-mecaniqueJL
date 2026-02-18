@@ -806,12 +806,14 @@ button.link:hover{
 </div>
   <div id="monthlyRevenueChart"
      style="
-       height:260px;
+       height:220px;
        display:flex;
        align-items:flex-end;
        gap:20px;
        padding:10px;
        overflow-x:auto;
+       overflow-y:visible;
+       position:relative;
      ">
 </div>
     </div>
@@ -8774,22 +8776,23 @@ function renderMonthlyRevenueChart(){
     /* ===== TOOLTIP ===== */
 
     const tooltip = document.createElement("div");
-    tooltip.style.position = "absolute";
-    tooltip.style.bottom = "100%";
-    tooltip.style.left = "50%";
-    tooltip.style.transform = "translateX(-50%)";
-    tooltip.style.background = "#111";
-    tooltip.style.border = "1px solid var(--border)";
-    tooltip.style.padding = "6px 8px";
-    tooltip.style.borderRadius = "6px";
-    tooltip.style.fontSize = "12px";
-    tooltip.style.whiteSpace = "nowrap";
-    tooltip.style.display = "none";
-    tooltip.style.pointerEvents = "none";
-    tooltip.innerHTML = `
-      <div style="color:#f5c542;">Revenu: ${money(revenue)} $</div>
-      <div style="color:#4CAF50;">Profit: ${money(profit)} $</div>
-    `;
+tooltip.style.position = "absolute";
+tooltip.style.bottom = "190px";
+tooltip.style.left = "50%";
+tooltip.style.transform = "translateX(-50%)";
+tooltip.style.background = "#0f0f0f";
+tooltip.style.border = "1px solid #333";
+tooltip.style.padding = "6px 10px";
+tooltip.style.borderRadius = "6px";
+tooltip.style.fontSize = "12px";
+tooltip.style.whiteSpace = "nowrap";
+tooltip.style.display = "none";
+tooltip.style.zIndex = "1000";
+tooltip.style.boxShadow = "0 4px 12px rgba(0,0,0,0.5)";
+tooltip.innerHTML = `
+  <div style="color:#f5c542;">Revenu: ${money(revenue)} $</div>
+  <div style="color:#4CAF50;">Profit: ${money(profit)} $</div>
+`;
 
     barWrap.onmouseenter = () => tooltip.style.display = "block";
     barWrap.onmouseleave = () => tooltip.style.display = "none";
