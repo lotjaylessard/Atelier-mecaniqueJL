@@ -4947,10 +4947,14 @@ if (typeof calcWorkOrderProfit === "function") {
   // Création de Work-Order + rentrer pièces, main-d'oeuvre, LE MAIN EN FAIT
   // ===============================
 function initWorkOrdersModule(){
+
+  const detail = $("woDetailContent");
+  const listCard = $("woListCard");
+  const detailCard = $("woDetailCard");
+
   loadWorkOrders();
   loadInvoices();
   renderWorkOrders();
-
 
   $("woStatusFilter").onchange = renderWorkOrders;
 $("woSearch").oninput = renderWorkOrders;
