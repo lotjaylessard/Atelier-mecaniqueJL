@@ -4665,7 +4665,7 @@ if (!wo.__originalVehicleKm){
 }
 
   // ✅ Définir displayKm AVANT le template
-let displayKm = wo.vehicleKm;
+  displayKm = wo.vehicleKm;
 
 if (!displayKm || Number(displayKm) <= 0){
 
@@ -4841,7 +4841,7 @@ if (!wo.vehicleKm || Number(wo.vehicleKm) <= 0){
 
   // 🔁 BIND KM → SYNC CENTRALISÉ
   setTimeout(() => {
-  const kmInput = document.getElementById("woVehicleKmInput");
+  const kmInput = document.getElementById("woKmInput");
   if (!kmInput) return;
 
   const saveKm = () => {
