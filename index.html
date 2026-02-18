@@ -8750,7 +8750,11 @@ if (months.length === 0){
   return;
 }
 
-const maxRevenue = Math.max(...months.map(m => monthMap[m].revenue));
+const maxRevenueRaw = Math.max(...months.map(m => monthMap[m].revenue));
+
+// 👇 On ajoute 15% d'espace visuel
+const maxRevenue = maxRevenueRaw * 1.15;
+
 
 /* ===================== RENDU ===================== */
 
