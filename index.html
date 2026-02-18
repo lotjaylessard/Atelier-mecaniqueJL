@@ -797,7 +797,13 @@ button.link:hover{
 </div>
 
     <div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
   <h3>📅 Revenus mensuels</h3>
+
+  <select id="revenueYearFilter"
+          style="width:120px;height:32px;">
+  </select>
+</div>
   <div id="monthlyRevenueChart"
      style="
        height:260px;
@@ -8656,11 +8662,12 @@ if ($("lastWorkOrdersBox")) {
 function renderMonthlyRevenueChart(){
 
   const chart = $("monthlyRevenueChart");
+  const yearSelect = $("revenueYearFilter");
+
   if (!chart) return;
 
   chart.innerHTML = "";
 
-  // ===== FACTURES PAYÉES SEULEMENT =====
   const paidInvoices = (INVOICES || []).filter(inv =>
     (inv.status || "").toLowerCase() === "paid"
   );
@@ -8670,33 +8677,63 @@ function renderMonthlyRevenueChart(){
     return;
   }
 
-  // ===== GROUPER PAR MOIS =====
+  /* ===================== EXTRAIRE ANNÉES ===================== */
+
+  const years = [...new Set(
+    paidInvoices.map(inv => inv.date?.slice(0,4))
+  )].sort().reverse();
+
+  if (yearSelect){
+
+    const current = yearSelect.value;
+
+    yearSelect.innerHTML =
+      years.map(y => `<option value="${y}">${y}</option>`).join("");
+
+    if (current && years.includes(current)){
+      yearSelect.value = current;
+    }
+
+    yearSelect.onchange = renderMonthlyRevenueChart;
+  }
+
+  const selectedYear = yearSelect?.value || years[0];
+
+  /* ===================== GROUPER PAR MOIS ===================== */
+
   const monthMap = {};
 
-  paidInvoices.forEach(inv => {
+  paidInvoices
+    .filter(inv => inv.date?.startsWith(selectedYear))
+    .forEach(inv => {
 
-    if (!inv.date) return;
+      const month = inv.date.slice(0,7);
 
-    const month = inv.date.slice(0,7); // YYYY-MM
+      if (!monthMap[month]){
+        monthMap[month] = { revenue:0, profit:0 };
+      }
 
-    if (!monthMap[month]){
-      monthMap[month] = { revenue:0, profit:0 };
-    }
+      monthMap[month].revenue += Number(inv.total || 0);
 
-    monthMap[month].revenue += Number(inv.total || 0);
+      const wo = WORKORDERS.find(w =>
+        String(w.number) === String(inv.workOrderNumber)
+      );
 
-    // profit basé sur WO
-    const wo = WORKORDERS.find(w =>
-      String(w.number) === String(inv.workOrderNumber)
-    );
-
-    if (wo){
-      monthMap[month].profit += calcWorkOrderProfit(wo);
-    }
-  });
+      if (wo){
+        monthMap[month].profit += calcWorkOrderProfit(wo);
+      }
+    });
 
   const months = Object.keys(monthMap).sort();
+
+  if (months.length === 0){
+    chart.innerHTML = `<span class="muted">Aucune donnée pour ${selectedYear}</span>`;
+    return;
+  }
+
   const maxRevenue = Math.max(...months.map(m => monthMap[m].revenue));
+
+  /* ===================== RENDU ===================== */
 
   months.forEach(month => {
 
@@ -8710,18 +8747,14 @@ function renderMonthlyRevenueChart(){
     col.style.minWidth = "80px";
 
     /* ===== BARS ===== */
+
     const barWrap = document.createElement("div");
     barWrap.style.height = "180px";
     barWrap.style.display = "flex";
     barWrap.style.flexDirection = "column";
     barWrap.style.justifyContent = "flex-end";
     barWrap.style.width = "100%";
-
-    const profitBar = document.createElement("div");
-    profitBar.style.height = ((profit / maxRevenue) * 180) + "px";
-    profitBar.style.background = "#4CAF50";
-    profitBar.style.width = "100%";
-    profitBar.style.borderRadius = "4px 4px 0 0";
+    barWrap.style.position = "relative";
 
     const revenueBar = document.createElement("div");
     revenueBar.style.height = ((revenue / maxRevenue) * 180) + "px";
@@ -8729,10 +8762,41 @@ function renderMonthlyRevenueChart(){
     revenueBar.style.width = "100%";
     revenueBar.style.borderRadius = "4px 4px 0 0";
 
+    const profitBar = document.createElement("div");
+    profitBar.style.height = ((profit / maxRevenue) * 180) + "px";
+    profitBar.style.background = "#4CAF50";
+    profitBar.style.width = "100%";
+    profitBar.style.borderRadius = "4px 4px 0 0";
+
     barWrap.appendChild(revenueBar);
     barWrap.appendChild(profitBar);
 
-    /* ===== LABELS TOUJOURS VISIBLES ===== */
+    /* ===== TOOLTIP ===== */
+
+    const tooltip = document.createElement("div");
+    tooltip.style.position = "absolute";
+    tooltip.style.bottom = "100%";
+    tooltip.style.left = "50%";
+    tooltip.style.transform = "translateX(-50%)";
+    tooltip.style.background = "#111";
+    tooltip.style.border = "1px solid var(--border)";
+    tooltip.style.padding = "6px 8px";
+    tooltip.style.borderRadius = "6px";
+    tooltip.style.fontSize = "12px";
+    tooltip.style.whiteSpace = "nowrap";
+    tooltip.style.display = "none";
+    tooltip.style.pointerEvents = "none";
+    tooltip.innerHTML = `
+      <div style="color:#f5c542;">Revenu: ${money(revenue)} $</div>
+      <div style="color:#4CAF50;">Profit: ${money(profit)} $</div>
+    `;
+
+    barWrap.onmouseenter = () => tooltip.style.display = "block";
+    barWrap.onmouseleave = () => tooltip.style.display = "none";
+
+    barWrap.appendChild(tooltip);
+
+    /* ===== LABELS ===== */
 
     const monthLabel = document.createElement("div");
     monthLabel.textContent = month;
