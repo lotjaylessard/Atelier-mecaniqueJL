@@ -4564,40 +4564,13 @@ async function deleteWorkOrder(id){
 function openWorkOrderDetail(wo){
   if (!wo) return;
 
-  loadInvoices(); // 🔒 important
+    loadInvoices(); // 🔒 important
 
-  // 🔗 Facture liée au WO (1 seule fois, 1 seul nom)
-  const linkedInvoice = INVOICES.find(inv =>
+  const invoice = INVOICES.find(inv =>
     String(inv.workOrderNumber) === String(wo.number)
   );
 
-  const isPaid = linkedInvoice && linkedInvoice.status === "paid";
-
-  const statusLabel =
-    wo.status === "en_cours" ? "En cours" :
-    wo.status === "termine" && isPaid ? "Terminé • Payé" :
-    wo.status === "termine" ? "Terminé" :
-    wo.status;
-
-  const locked = !!isPaid;
-
-  // ✅ KM fallback sécurisé
-  let displayKm = Number(wo.vehicleKm || 0);
-
-  if (!displayKm || displayKm <= 0){
-    const clientObj = CLIENTS.find(c =>
-      String(c.id) === String(wo.clientId)
-    );
-
-    if (clientObj && Array.isArray(clientObj.vehicles)){
-      const vehObj = clientObj.vehicles.find(v =>
-        String(v.id) === String(wo.vehicleId)
-      );
-      if (vehObj && Number(vehObj.km || 0) > 0){
-        displayKm = Number(vehObj.km);
-      }
-    }
-  }
+  const locked = invoice && invoice.status === "paid";
 
   // afficher la page WO
   showPage("page-workorders");
@@ -4628,28 +4601,18 @@ function openWorkOrderDetail(wo){
 
   detail.appendChild(backBar);
 
-if (!displayKm || Number(displayKm) <= 0){
-
-  let veh = null;
-
-  // 🔎 Chercher le véhicule dans TOUS les clients
-  for (const c of CLIENTS){
-    if (!Array.isArray(c.vehicles)) continue;
-
-    const found = c.vehicles.find(v =>
-      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
-    );
-
-    if (found){
-      veh = found;
-      break;
+  // 🔹 Pré-remplir KM depuis le véhicule client si absent dans le WO
+  if (!wo.vehicleKm){
+    const client = CLIENTS.find(c => c.name === wo.clientName);
+    if (client && Array.isArray(client.vehicles)){
+      const veh = client.vehicles.find(v =>
+        `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
+      );
+      if (veh && veh.km){
+        wo.vehicleKm = veh.km;
+      }
     }
   }
-
-  if (veh && veh.km){
-    displayKm = veh.km;
-  }
-}
 
   // 🧠 Sauvegarder KM original pour validation
 if (!wo.__originalVehicleKm){
@@ -4664,43 +4627,6 @@ if (!wo.__originalVehicleKm){
   }
 }
 
-  // ✅ Définir displayKm AVANT le template
-  displayKm = wo.vehicleKm;
-
-if (!displayKm || Number(displayKm) <= 0){
-
-  for (const c of CLIENTS){
-    if (!Array.isArray(c.vehicles)) continue;
-
-    const found = c.vehicles.find(v =>
-      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
-    );
-
-    if (found && found.km){
-      displayKm = found.km;
-      break;
-    }
-  }
-}
-
-// ✅ Si WO sans KM → récupérer KM du véhicule
-if (!wo.vehicleKm || Number(wo.vehicleKm) <= 0){
-
-  for (const c of CLIENTS){
-    if (!Array.isArray(c.vehicles)) continue;
-
-    const found = c.vehicles.find(v =>
-      `${v.year} ${v.make} ${v.model}` === wo.vehicleLabel
-    );
-
-    if (found && found.km){
-      wo.vehicleKm = found.km;
-      break;
-    }
-  }
-}
-
-  
   // 🔥 UI DU WO
   detail.innerHTML += `
     <div class="card">
@@ -4712,18 +4638,20 @@ if (!wo.vehicleKm || Number(wo.vehicleKm) <= 0){
       <p>
         <b>Kilométrage :</b>
         <input
-  id="woKmInput"
-  type="number"
-  value="${wo.vehicleKm || ''}"
-  style="
-    width:120px;
-    padding:4px;
-    border-radius:4px;
-    border:1px solid var(--border);
-    background:#111;
-    color:#fff;
-  "
->
+          id="woVehicleKmInput"
+          type="number"
+          min="0"
+          value="${wo.vehicleKm || ''}"
+          style="
+            margin-left:6px;
+            width:120px;
+            padding:4px;
+            border-radius:4px;
+            border:1px solid var(--border);
+            background:#111;
+            color:#fff;
+          "
+        >
         km
       </p>
     </div>
@@ -4841,7 +4769,7 @@ if (!wo.vehicleKm || Number(wo.vehicleKm) <= 0){
 
   // 🔁 BIND KM → SYNC CENTRALISÉ
   setTimeout(() => {
-  const kmInput = document.getElementById("woKmInput");
+  const kmInput = document.getElementById("woVehicleKmInput");
   if (!kmInput) return;
 
   const saveKm = () => {
@@ -4947,14 +4875,10 @@ if (typeof calcWorkOrderProfit === "function") {
   // Création de Work-Order + rentrer pièces, main-d'oeuvre, LE MAIN EN FAIT
   // ===============================
 function initWorkOrdersModule(){
-
-  const detail = $("woDetailContent");
-  const listCard = $("woListCard");
-  const detailCard = $("woDetailCard");
-
   loadWorkOrders();
   loadInvoices();
   renderWorkOrders();
+
 
   $("woStatusFilter").onchange = renderWorkOrders;
 $("woSearch").oninput = renderWorkOrders;
@@ -5058,8 +4982,7 @@ if (cancelBtn){
 }
 };
 
-    
-const table = $("woTable");
+  const table = $("woTable");
 if (table){
   table.onclick = (e) => {
     const btn = e.target.closest("button[data-action='open']");
@@ -5067,14 +4990,26 @@ if (table){
 
     const tr = btn.closest("tr");
     const id = tr?.dataset.id;
-
     const wo = WORKORDERS.find(w => String(w.id) === String(id));
-    if (!wo) return;
+    const detail = $("woDetailContent");
+if(!detail){
+  showPage('workorders');
+  return;
+}
+if (!wo) return;
 
-    openWorkOrderDetail(wo);
-  };
-}
-}
+
+    $("woListCard").style.display = "none";
+    $("woDetailCard").style.display = "block";
+
+const invoice = INVOICES.find(inv => String(inv.workOrderNumber) === String(wo.number));
+const isPaid = invoice && invoice.status === "paid";
+
+const statusLabel =
+  wo.status === "en_cours" ? "En cours" :
+  wo.status === "termine" && isPaid ? "Terminé • Payé" :
+  wo.status === "termine" ? "Terminé" :
+  wo.status;
 
     detail.innerHTML = `
   <button class="ghost" onclick="backToWorkOrdersList()" style="margin-bottom:10px;">
@@ -5267,20 +5202,11 @@ if (table){
   <!-- ACTIONS -->
   <div class="card" style="display:flex;justify-content:flex-end;gap:10px;">
     <button id="woSaveBtn">💾 Enregistrer</button>
-    <button id="woFinishBtn" class="ghost">✅ Terminé</button>
-    <button id="woDeleteBtn" class="danger">🗑 Supprimer</button>
+    <button class="ghost" onclick="finishWorkOrder(${wo.id})">✅ Terminé</button>
+    <button class="danger" onclick="deleteWorkOrder(${wo.id})">🗑 Supprimer</button>
   </div>
 `;
 
-    const finishBtn = $("woFinishBtn");
-if (finishBtn){
-  finishBtn.onclick = () => finishWorkOrder(wo.id);
-}
-
-const deleteBtn = $("woDeleteBtn");
-if (deleteBtn){
-  deleteBtn.onclick = () => deleteWorkOrder(wo.id);
-}
 
     // Bind boutons (safe) — DOIT ÊTRE DANS LE SCOPE DE wo
 const btnAddPart  = $("woAddPart");
@@ -5399,6 +5325,9 @@ if (notesField){
 initWorkOrderSaveButton();
 
   }; // ✅ fin table.onclick
+} // ✅ fin if(table)
+} // ✅ fin initWorkOrdersModule
+}
 
     
 // ===== TIMER MAIN-D’ŒUVRE (VERSION STABLE) =====
