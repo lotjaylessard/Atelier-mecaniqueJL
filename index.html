@@ -8679,196 +8679,184 @@ if (!globalTooltip){
   globalTooltip.style.transition = "opacity 0.15s ease";
   globalTooltip.style.zIndex = "9999";
   globalTooltip.style.boxShadow = "0 10px 28px rgba(0,0,0,0.7)";
-
-  // Flèche
-  const arrow = document.createElement("div");
-  arrow.id = "dashboardTooltipArrow";
-  arrow.style.position = "absolute";
-  arrow.style.bottom = "-6px";
-  arrow.style.left = "50%";
-  arrow.style.transform = "translateX(-50%)";
-  arrow.style.width = "12px";
-  arrow.style.height = "12px";
-  arrow.style.background = "#111";
-  arrow.style.borderRight = "1px solid #333";
-  arrow.style.borderBottom = "1px solid #333";
-  arrow.style.transform += " rotate(45deg)";
-
-  globalTooltip.appendChild(arrow);
-
   document.body.appendChild(globalTooltip);
 }
 
-  const chart = $("monthlyRevenueChart");
-  const yearSelect = $("revenueYearFilter");
+const chart = $("monthlyRevenueChart");
+const yearSelect = $("revenueYearFilter");
+if (!chart) return;
 
-  if (!chart) return;
+chart.innerHTML = "";
 
-  chart.innerHTML = "";
+const paidInvoices = (INVOICES || []).filter(inv =>
+  (inv.status || "").toLowerCase() === "paid"
+);
 
-  const paidInvoices = (INVOICES || []).filter(inv =>
-    (inv.status || "").toLowerCase() === "paid"
-  );
+if (paidInvoices.length === 0){
+  chart.innerHTML = `<span class="muted">Aucune donnée.</span>`;
+  return;
+}
 
-  if (paidInvoices.length === 0){
-    chart.innerHTML = `<span class="muted">Aucune donnée.</span>`;
-    return;
+/* ===================== EXTRAIRE ANNÉES ===================== */
+
+const years = [...new Set(
+  paidInvoices.map(inv => inv.date?.slice(0,4))
+)].sort().reverse();
+
+if (yearSelect){
+  const current = yearSelect.value;
+
+  yearSelect.innerHTML =
+    years.map(y => `<option value="${y}">${y}</option>`).join("");
+
+  if (current && years.includes(current)){
+    yearSelect.value = current;
   }
 
-  /* ===================== EXTRAIRE ANNÉES ===================== */
+  yearSelect.onchange = renderMonthlyRevenueChart;
+}
 
-  const years = [...new Set(
-    paidInvoices.map(inv => inv.date?.slice(0,4))
-  )].sort().reverse();
+const selectedYear = yearSelect?.value || years[0];
 
-  if (yearSelect){
+/* ===================== GROUPER PAR MOIS ===================== */
 
-    const current = yearSelect.value;
+const monthMap = {};
 
-    yearSelect.innerHTML =
-      years.map(y => `<option value="${y}">${y}</option>`).join("");
+paidInvoices
+  .filter(inv => inv.date?.startsWith(selectedYear))
+  .forEach(inv => {
 
-    if (current && years.includes(current)){
-      yearSelect.value = current;
+    const month = inv.date.slice(0,7);
+
+    if (!monthMap[month]){
+      monthMap[month] = { revenue:0, profit:0 };
     }
 
-    yearSelect.onchange = renderMonthlyRevenueChart;
-  }
+    monthMap[month].revenue += Number(inv.total || 0);
 
-  const selectedYear = yearSelect?.value || years[0];
+    const wo = WORKORDERS.find(w =>
+      String(w.number) === String(inv.workOrderNumber)
+    );
 
-  /* ===================== GROUPER PAR MOIS ===================== */
-
-  const monthMap = {};
-
-  paidInvoices
-    .filter(inv => inv.date?.startsWith(selectedYear))
-    .forEach(inv => {
-
-      const month = inv.date.slice(0,7);
-
-      if (!monthMap[month]){
-        monthMap[month] = { revenue:0, profit:0 };
-      }
-
-      monthMap[month].revenue += Number(inv.total || 0);
-
-      const wo = WORKORDERS.find(w =>
-        String(w.number) === String(inv.workOrderNumber)
-      );
-
-      if (wo){
-        monthMap[month].profit += calcWorkOrderProfit(wo);
-      }
-    });
-
-  const months = Object.keys(monthMap).sort();
-
-  if (months.length === 0){
-    chart.innerHTML = `<span class="muted">Aucune donnée pour ${selectedYear}</span>`;
-    return;
-  }
-
-  const maxRevenue = Math.max(...months.map(m => monthMap[m].revenue));
-
-  /* ===================== RENDU ===================== */
-
-  months.forEach(month => {
-
-    const revenue = monthMap[month].revenue;
-    const profit  = monthMap[month].profit;
-
-    const col = document.createElement("div");
-    col.style.display = "flex";
-    col.style.flexDirection = "column";
-    col.style.alignItems = "center";
-    col.style.minWidth = "80px";
-
-    /* ===== BARS ===== */
-
-    const barWrap = document.createElement("div");
-    barWrap.style.height = "180px";
-    barWrap.style.display = "flex";
-    barWrap.style.flexDirection = "column";
-    barWrap.style.justifyContent = "flex-end";
-    barWrap.style.width = "100%";
-    barWrap.style.position = "relative";
-
-    const revenueBar = document.createElement("div");
-    revenueBar.style.height = ((revenue / maxRevenue) * 180) + "px";
-    revenueBar.style.background = "#f5c542";
-    revenueBar.style.width = "100%";
-    revenueBar.style.borderRadius = "4px 4px 0 0";
-
-    const profitBar = document.createElement("div");
-    profitBar.style.height = ((profit / maxRevenue) * 180) + "px";
-    profitBar.style.background = "#4CAF50";
-    profitBar.style.width = "100%";
-    profitBar.style.borderRadius = "4px 4px 0 0";
-
-    barWrap.appendChild(revenueBar);
-    barWrap.appendChild(profitBar);
-
-/* ===== TOOLTIP GLOBAL PRO ===== */
-
-barWrap.onmousemove = (e) => {
-
-  const margin = revenue > 0
-    ? ((profit / revenue) * 100).toFixed(1)
-    : 0;
-
-  globalTooltip.innerHTML = `
-    <div style="color:#f5c542;font-weight:600;">
-      Revenu: ${money(revenue)} $
-    </div>
-    <div style="color:#4CAF50;font-weight:600;">
-      Profit: ${money(profit)} $
-    </div>
-    <div style="margin-top:4px;color:#ccc;">
-      Marge: <b>${margin} %</b>
-    </div>
-  `;
-
-  globalTooltip.style.display = "block";
-  globalTooltip.style.opacity = "1";
-  globalTooltip.style.left = (e.clientX + 15) + "px";
-  globalTooltip.style.top  = (e.clientY - 50) + "px";
-};
-
-barWrap.onmouseleave = () => {
-  globalTooltip.style.opacity = "0";
-  setTimeout(() => {
-    globalTooltip.style.display = "none";
-  }, 150);
-};
-
-    /* ===== LABELS ===== */
-
-    const monthLabel = document.createElement("div");
-    monthLabel.textContent = month;
-    monthLabel.style.marginTop = "8px";
-    monthLabel.style.fontSize = "12px";
-    monthLabel.style.opacity = "0.8";
-
-    const revenueLabel = document.createElement("div");
-    revenueLabel.textContent = money(revenue) + " $";
-    revenueLabel.style.color = "#f5c542";
-    revenueLabel.style.fontWeight = "700";
-    revenueLabel.style.fontSize = "12px";
-
-    const profitLabel = document.createElement("div");
-    profitLabel.textContent = money(profit) + " $";
-    profitLabel.style.color = "#4CAF50";
-    profitLabel.style.fontWeight = "700";
-    profitLabel.style.fontSize = "12px";
-
-    col.appendChild(barWrap);
-    col.appendChild(monthLabel);
-    col.appendChild(revenueLabel);
-    col.appendChild(profitLabel);
-
-    chart.appendChild(col);
+    if (wo){
+      monthMap[month].profit += calcWorkOrderProfit(wo);
+    }
   });
+
+const months = Object.keys(monthMap).sort();
+
+if (months.length === 0){
+  chart.innerHTML = `<span class="muted">Aucune donnée pour ${selectedYear}</span>`;
+  return;
+}
+
+const maxRevenue = Math.max(...months.map(m => monthMap[m].revenue));
+
+/* ===================== RENDU ===================== */
+
+months.forEach(month => {
+
+  const revenue = monthMap[month].revenue;
+  const profit  = monthMap[month].profit;
+
+  const col = document.createElement("div");
+  col.style.display = "flex";
+  col.style.flexDirection = "column";
+  col.style.alignItems = "center";
+  col.style.minWidth = "80px";
+
+  /* ===== BARS ===== */
+
+  const barWrap = document.createElement("div");
+  barWrap.style.height = "180px";
+  barWrap.style.display = "flex";
+  barWrap.style.flexDirection = "column";
+  barWrap.style.justifyContent = "flex-end";
+  barWrap.style.width = "100%";
+
+  // Hauteur totale basée sur revenu vs mois max
+  const totalHeight = (revenue / maxRevenue) * 180;
+
+  // Ratio de marge réel
+  const marginRatio = revenue > 0 ? (profit / revenue) : 0;
+
+  const profitHeight  = totalHeight * marginRatio;
+  const revenueHeight = totalHeight - profitHeight;
+
+  const revenueBar = document.createElement("div");
+  revenueBar.style.height = revenueHeight + "px";
+  revenueBar.style.background = "#f5c542";
+  revenueBar.style.width = "100%";
+  revenueBar.style.borderRadius = "4px 4px 0 0";
+
+  const profitBar = document.createElement("div");
+  profitBar.style.height = profitHeight + "px";
+  profitBar.style.background = "#4CAF50";
+  profitBar.style.width = "100%";
+
+  barWrap.appendChild(revenueBar);
+  barWrap.appendChild(profitBar);
+
+  /* ===== TOOLTIP GLOBAL PRO ===== */
+
+  barWrap.onmousemove = (e) => {
+
+    const margin = revenue > 0
+      ? ((profit / revenue) * 100).toFixed(1)
+      : 0;
+
+    globalTooltip.innerHTML = `
+      <div style="color:#f5c542;font-weight:600;">
+        Revenu: ${money(revenue)} $
+      </div>
+      <div style="color:#4CAF50;font-weight:600;">
+        Profit: ${money(profit)} $
+      </div>
+      <div style="margin-top:4px;color:#ccc;">
+        Marge: <b>${margin} %</b>
+      </div>
+    `;
+
+    globalTooltip.style.display = "block";
+    globalTooltip.style.opacity = "1";
+    globalTooltip.style.left = (e.clientX + 15) + "px";
+    globalTooltip.style.top  = (e.clientY - 50) + "px";
+  };
+
+  barWrap.onmouseleave = () => {
+    globalTooltip.style.opacity = "0";
+    setTimeout(() => {
+      globalTooltip.style.display = "none";
+    }, 150);
+  };
+
+  /* ===== LABELS ===== */
+
+  const monthLabel = document.createElement("div");
+  monthLabel.textContent = month;
+  monthLabel.style.marginTop = "8px";
+  monthLabel.style.fontSize = "12px";
+  monthLabel.style.opacity = "0.8";
+
+  const revenueLabel = document.createElement("div");
+  revenueLabel.textContent = money(revenue) + " $";
+  revenueLabel.style.color = "#f5c542";
+  revenueLabel.style.fontWeight = "700";
+  revenueLabel.style.fontSize = "12px";
+
+  const profitLabel = document.createElement("div");
+  profitLabel.textContent = money(profit) + " $";
+  profitLabel.style.color = "#4CAF50";
+  profitLabel.style.fontWeight = "700";
+  profitLabel.style.fontSize = "12px";
+
+  col.appendChild(barWrap);
+  col.appendChild(monthLabel);
+  col.appendChild(revenueLabel);
+  col.appendChild(profitLabel);
+
+  chart.appendChild(col);
+});
 }
 
   
