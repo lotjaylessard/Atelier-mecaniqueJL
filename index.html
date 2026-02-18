@@ -8655,133 +8655,113 @@ if ($("lastWorkOrdersBox")) {
 
 function renderMonthlyRevenueChart(){
 
-  const container = document.getElementById("monthlyRevenueChart");
-  if (!container) return;
+  const chart = $("monthlyRevenueChart");
+  if (!chart) return;
 
-  container.innerHTML = "";
+  chart.innerHTML = "";
 
-  // 🔒 On prend seulement les factures archivées
-  const archivedInvoices = (INVOICES || []).filter(inv => inv.archived === true);
+  // ===== FACTURES PAYÉES SEULEMENT =====
+  const paidInvoices = (INVOICES || []).filter(inv =>
+    (inv.status || "").toLowerCase() === "paid"
+  );
 
-  const months = {};
-
-  archivedInvoices.forEach(inv => {
-
-    if (!inv.date) return;
-
-    const d = new Date(inv.date);
-    const key = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
-
-    if (!months[key]){
-      months[key] = {
-        revenue: 0,
-        profit: 0
-      };
-    }
-
-    const total = Number(inv.total || 0);
-
-    // 🔎 Trouver le WO lié pour calculer profit
-    const wo = WORKORDERS.find(w => String(w.number) === String(inv.workOrderNumber));
-    const profit = wo ? calcWorkOrderProfit(wo) : 0;
-
-    months[key].revenue += total;
-    months[key].profit  += profit;
-  });
-
-  const sortedKeys = Object.keys(months).sort();
-
-  if (sortedKeys.length === 0){
-    container.innerHTML = `<span class="muted">Aucune donnée.</span>`;
+  if (paidInvoices.length === 0){
+    chart.innerHTML = `<span class="muted">Aucune donnée.</span>`;
     return;
   }
 
-  const maxRevenue = Math.max(...sortedKeys.map(k => months[k].revenue));
+  // ===== GROUPER PAR MOIS =====
+  const monthMap = {};
 
-  sortedKeys.forEach(key => {
+  paidInvoices.forEach(inv => {
 
-    const data = months[key];
-    const monthLabel = key;
+    if (!inv.date) return;
 
-    const maxBarHeight = 220; // hauteur max en pixels
+    const month = inv.date.slice(0,7); // YYYY-MM
 
-const revenueHeight = maxRevenue > 0
-  ? (data.revenue / maxRevenue) * maxBarHeight
-  : 0;
+    if (!monthMap[month]){
+      monthMap[month] = { revenue:0, profit:0 };
+    }
 
-const profitHeight = maxRevenue > 0
-  ? (data.profit / maxRevenue) * maxBarHeight
-  : 0;
+    monthMap[month].revenue += Number(inv.total || 0);
 
-    const bar = document.createElement("div");
-    bar.style.display = "flex";
-    bar.style.flexDirection = "column";
-    bar.style.alignItems = "center";
-    bar.style.width = "60px";
+    // profit basé sur WO
+    const wo = WORKORDERS.find(w =>
+      String(w.number) === String(inv.workOrderNumber)
+    );
 
-    bar.innerHTML = `
+    if (wo){
+      monthMap[month].profit += calcWorkOrderProfit(wo);
+    }
+  });
 
-  <div style="
-    width:40px;
-    display:flex;
-    flex-direction:column;
-    justify-content:flex-end;
-  ">
+  const months = Object.keys(monthMap).sort();
+  const maxRevenue = Math.max(...months.map(m => monthMap[m].revenue));
 
-<!-- REVENUE (TOP) -->
-<div style="
-  background:linear-gradient(to top,#ff9800,#ffc107);
-  height:${revenueHeight}px;
-  min-height:5px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:6px 4px;
-  box-sizing:border-box;
-  font-size:12px;
-  font-weight:700;
-  color:#111;
-  text-shadow:0 1px 2px rgba(255,255,255,0.6);
-  border-radius:8px 8px 0 0;
-">
-  ${revenueHeight > 35 ? money(data.revenue) + " $" : ""}
-</div>
+  months.forEach(month => {
 
-<!-- PROFIT (BOTTOM) -->
-<div style="
-  background:#4CAF50;
-  height:${profitHeight}px;
-  min-height:5px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:6px 4px;
-  box-sizing:border-box;
-  font-size:12px;
-  font-weight:700;
-  color:white;
-  text-shadow:0 1px 2px rgba(0,0,0,0.6);
-">
-  ${profitHeight > 35 ? money(data.profit) + " $" : ""}
-</div>
+    const revenue = monthMap[month].revenue;
+    const profit  = monthMap[month].profit;
 
-  </div>
+    const col = document.createElement("div");
+    col.style.display = "flex";
+    col.style.flexDirection = "column";
+    col.style.alignItems = "center";
+    col.style.minWidth = "80px";
 
-  <div style="
-    font-size:0.75rem;
-    margin-top:6px;
-    color:var(--muted);
-    text-align:center;
-  ">
-    ${monthLabel}
-  </div>
-`;
+    /* ===== BARS ===== */
+    const barWrap = document.createElement("div");
+    barWrap.style.height = "180px";
+    barWrap.style.display = "flex";
+    barWrap.style.flexDirection = "column";
+    barWrap.style.justifyContent = "flex-end";
+    barWrap.style.width = "100%";
 
-    container.appendChild(bar);
+    const profitBar = document.createElement("div");
+    profitBar.style.height = ((profit / maxRevenue) * 180) + "px";
+    profitBar.style.background = "#4CAF50";
+    profitBar.style.width = "100%";
+    profitBar.style.borderRadius = "4px 4px 0 0";
+
+    const revenueBar = document.createElement("div");
+    revenueBar.style.height = ((revenue / maxRevenue) * 180) + "px";
+    revenueBar.style.background = "#f5c542";
+    revenueBar.style.width = "100%";
+    revenueBar.style.borderRadius = "4px 4px 0 0";
+
+    barWrap.appendChild(profitBar);
+    barWrap.appendChild(revenueBar);
+
+    /* ===== LABELS TOUJOURS VISIBLES ===== */
+
+    const monthLabel = document.createElement("div");
+    monthLabel.textContent = month;
+    monthLabel.style.marginTop = "8px";
+    monthLabel.style.fontSize = "12px";
+    monthLabel.style.opacity = "0.8";
+
+    const revenueLabel = document.createElement("div");
+    revenueLabel.textContent = money(revenue) + " $";
+    revenueLabel.style.color = "#f5c542";
+    revenueLabel.style.fontWeight = "700";
+    revenueLabel.style.fontSize = "12px";
+
+    const profitLabel = document.createElement("div");
+    profitLabel.textContent = money(profit) + " $";
+    profitLabel.style.color = "#4CAF50";
+    profitLabel.style.fontWeight = "700";
+    profitLabel.style.fontSize = "12px";
+
+    col.appendChild(barWrap);
+    col.appendChild(monthLabel);
+    col.appendChild(revenueLabel);
+    col.appendChild(profitLabel);
+
+    chart.appendChild(col);
   });
 }
 
-
+  
   function monthLabel(index){
   const months = [
     "Jan","Fév","Mar","Avr","Mai","Juin",
