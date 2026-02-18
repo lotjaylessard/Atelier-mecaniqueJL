@@ -4598,9 +4598,9 @@ if (!displayKm || displayKm <= 0){
 
     loadInvoices(); // 🔒 important
 
-  const invoice = INVOICES.find(inv =>
-    String(inv.workOrderNumber) === String(wo.number)
-  );
+  let invoice = INVOICES.find(inv =>
+  String(inv.workOrderNumber) === String(wo.number)
+);
 
   const locked = invoice && invoice.status === "paid";
 
