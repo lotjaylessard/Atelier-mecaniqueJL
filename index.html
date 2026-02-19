@@ -25,30 +25,88 @@
 
     
 /* =========================
-   TIMEOUT D'INACTIVITÉ
+   TIMEOUT D'INACTIVITÉ PRO
 ========================= */
 
 let inactivityTimer;
+let countdownInterval;
+let remainingTime;
 
-// ⏱ Choisis la durée ici
 const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
-// exemple 5 minutes : 5 * 60 * 1000
+const WARNING_TIME = 60 * 1000;         // 1 minute avant logout
 
+// 🔔 Message visuel
+function showWarningBanner() {
+
+  if (document.getElementById("sessionWarning")) return;
+
+  const banner = document.createElement("div");
+  banner.id = "sessionWarning";
+  banner.style.position = "fixed";
+  banner.style.bottom = "20px";
+  banner.style.right = "20px";
+  banner.style.background = "#1a1a1a";
+  banner.style.border = "1px solid #333";
+  banner.style.padding = "12px 16px";
+  banner.style.borderRadius = "10px";
+  banner.style.boxShadow = "0 8px 24px rgba(0,0,0,0.6)";
+  banner.style.color = "#fff";
+  banner.style.fontSize = "13px";
+  banner.style.zIndex = "9999";
+  banner.innerHTML = `
+    ⚠️ Session expire dans <b><span id="sessionCountdown">60</span></b> secondes
+  `;
+
+  document.body.appendChild(banner);
+}
+
+function removeWarningBanner() {
+  const banner = document.getElementById("sessionWarning");
+  if (banner) banner.remove();
+}
+
+// 🔁 Reset timer
 function resetInactivityTimer() {
+
   clearTimeout(inactivityTimer);
+  clearInterval(countdownInterval);
+  removeWarningBanner();
+
+  remainingTime = INACTIVITY_LIMIT;
 
   inactivityTimer = setTimeout(async () => {
     await supabase.auth.signOut();
     window.location.replace("login.html");
   }, INACTIVITY_LIMIT);
+
+  // ⏳ Console countdown
+  countdownInterval = setInterval(() => {
+    remainingTime -= 1000;
+
+    const secondsLeft = Math.floor(remainingTime / 1000);
+
+    console.log("⏳ Session expire dans:", secondsLeft, "secondes");
+
+    // 🔔 Afficher warning à 60 secondes
+    if (remainingTime === WARNING_TIME) {
+      showWarningBanner();
+    }
+
+    // 🔄 Mettre à jour affichage si visible
+    const countdownEl = document.getElementById("sessionCountdown");
+    if (countdownEl) {
+      countdownEl.innerText = secondsLeft;
+    }
+
+  }, 1000);
 }
 
-// Événements considérés comme activité
+// Activité utilisateur
 ["click","mousemove","keydown","scroll","touchstart"].forEach(event => {
   document.addEventListener(event, resetInactivityTimer);
 });
 
-// Démarrer le timer au chargement
+// Démarrer au chargement
 resetInactivityTimer();
 
 </script>
