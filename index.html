@@ -22,6 +22,35 @@
   if (!session){
     window.location.replace("login.html");
   }
+
+    
+/* =========================
+   TIMEOUT D'INACTIVITÉ
+========================= */
+
+let inactivityTimer;
+
+// ⏱ Choisis la durée ici
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+// exemple 5 minutes : 5 * 60 * 1000
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+
+  inactivityTimer = setTimeout(async () => {
+    await supabase.auth.signOut();
+    window.location.replace("login.html");
+  }, INACTIVITY_LIMIT);
+}
+
+// Événements considérés comme activité
+["click","mousemove","keydown","scroll","touchstart"].forEach(event => {
+  document.addEventListener(event, resetInactivityTimer);
+});
+
+// Démarrer le timer au chargement
+resetInactivityTimer();
+
 </script>
 
   <meta charset="utf-8" />
