@@ -4,12 +4,141 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Connexion — Garage-Mecanik</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: radial-gradient(circle at center, #111 0%, #000 70%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    .portal-wrapper {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .portal-ring {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #222 40%, #111 70%);
+      box-shadow:
+        0 0 60px rgba(255, 200, 0, 0.3),
+        inset 0 0 40px rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: slowRotate 40s linear infinite;
+    }
+
+    .portal-glow {
+      position: absolute;
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,215,0,0.3), transparent 70%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .login-core {
+      position: relative;
+      width: 260px;
+      background: rgba(15,15,15,0.95);
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      z-index: 2;
+      box-shadow: 0 0 40px rgba(0,0,0,0.7);
+    }
+
+    .login-core h2 {
+      color: #FFD400;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+
+    .login-core input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: white;
+    }
+
+    .login-core button {
+      width: 100%;
+      padding: 10px;
+      background: #FFD400;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .login-core button:hover {
+      background: #ffea00;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    }
+
+    .error {
+      margin-top: 10px;
+      color: #ff4d4d;
+      font-size: 13px;
+      min-height: 16px;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.4; }
+    }
+
+    @keyframes slowRotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 
-<body style="background:#0f0f0f;color:#fff;font-family:system-ui,Segoe UI,Arial;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;">
 
-  <div style="background:#151515;border:1px solid #2a2a2a;border-radius:12px;padding:22px;width:320px;box-shadow:0 10px 30px rgba(0,0,0,.6);">
-    <div style="font-size:18px;font-weight:700;margin-bottom:14px;">Connexion</div>
+<body>
+
+  <div class="portal-wrapper">
+  <div class="portal-ring">
+    <div class="portal-glow"></div>
+
+    <div class="login-core">
+      <h2>Garage-Mecanik</h2>
+      <p class="subtitle">Accès sécurisé à l'atelier</p>
+
+      <input id="loginEmail" type="email" placeholder="Email">
+      <input id="loginPassword" type="password" placeholder="Mot de passe">
+
+      <button id="btnLogin">Entrer dans l’atelier</button>
+
+      <div id="loginError" class="error"></div>
+    </div>
+  </div>
+</div>
 
     <label style="display:block;font-size:12px;opacity:.8;margin-bottom:6px;">Email</label>
     <input id="loginEmail" type="email" autocomplete="username"
