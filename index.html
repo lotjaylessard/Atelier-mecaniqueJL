@@ -2,6 +2,22 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+  <script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const supabase = createClient(
+    https://feeapfylfzlvgnqtglnh.supabase.co,
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZWFwZnlsZnpsdmducXRnbG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NDk3MDUsImV4cCI6MjA4MzAyNTcwNX0._ZQc89gbY5DFqFboR9fL8efeOZ2TZLG0zG8_5lzOOUY
+  );
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  // Pas connecté -> dehors
+  if (!session){
+    window.location.replace("login.html");
+  }
+</script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Atelier Mécanique J.L — Gestion</title>
