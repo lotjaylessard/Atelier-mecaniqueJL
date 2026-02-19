@@ -6,8 +6,8 @@
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
   const supabase = createClient(
-    https://feeapfylfzlvgnqtglnh.supabase.co,
-    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZWFwZnlsZnpsdmducXRnbG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NDk3MDUsImV4cCI6MjA4MzAyNTcwNX0._ZQc89gbY5DFqFboR9fL8efeOZ2TZLG0zG8_5lzOOUY
+    "https://feeapfylfzlvgnqtglnh.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZWFwZnlsZnpsdmducXRnbG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NDk3MDUsImV4cCI6MjA4MzAyNTcwNX0._ZQc89gbY5DFqFboR9fL8efeOZ2TZLG0zG8_5lzOOUY"
   );
 
   const { data: { session } } = await supabase.auth.getSession();
