@@ -38,7 +38,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      animation: slowRotate 40s linear infinite;
     }
 
     .portal-glow {
@@ -47,7 +46,6 @@
       height: 80%;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(255,215,0,0.3), transparent 70%);
-      animation: pulse 3s ease-in-out infinite;
     }
 
     .login-core {
@@ -116,11 +114,49 @@
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
+
+    /* ===============================
+   JUNKYARD CAR PILLARS
+=============================== */
+
+.junkyard-left,
+.junkyard-right {
+  position: fixed;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  z-index: 0;
+  background-repeat: repeat-y;
+  background-size: contain;
+  opacity: 0.15;
+  filter: grayscale(100%) contrast(120%);
+  pointer-events: none;
+}
+
+/* pile de chars pressés gauche */
+.junkyard-left {
+  left: 0;
+  background-image: url('./img/crushed-cars-left.png');
+}
+
+/* pile de chars pressés droite */
+.junkyard-right {
+  right: 0;
+  background-image: url('./img/crushed-cars-right.png');
+}
+
+/* centre au-dessus */
+.portal-wrapper {
+  z-index: 2;
+}
   </style>
 </head>
 
 
 <body>
+
+  <div class="junkyard-left"></div>
+<div class="junkyard-right"></div>
 
   <div class="portal-wrapper">
   <div class="portal-ring">
@@ -148,9 +184,8 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZWFwZnlsZnpsdmducXRnbG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NDk3MDUsImV4cCI6MjA4MzAyNTcwNX0._ZQc89gbY5DFqFboR9fL8efeOZ2TZLG0zG8_5lzOOUY",
         {
     auth: {
-      persistSession: true,
-      storage: window.sessionStorage
-    }
+  persistSession: true
+}
   }
     );
 
