@@ -126,7 +126,9 @@
   width: 320px;
   height: 100vh;
   z-index: 0;
-  background-repeat: repeat-y;
+  background-repeat: no-repeat;
+  background-position: bottom;
+  background-size: 300px auto;
   background-size: contain;
   opacity: 0.15;
   filter: grayscale(100%) contrast(120%);
@@ -136,13 +138,19 @@
 /* pile de chars pressés gauche */
 .junkyard-left {
   left: 0;
-background-image: url('/Atelier-mecaniqueJL/img/crushed-cars-left.jpg');
+  background-image: url('/Atelier-mecaniqueJL/img/crushed-cars-left.jpg');
+
+  mask-image: linear-gradient(to right, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 40%, transparent 100%);
 }
 
 /* pile de chars pressés droite */
 .junkyard-right {
   right: 0;
-background-image: url('/Atelier-mecaniqueJL/img/crushed-cars-right.jpg');
+  background-image: url('/Atelier-mecaniqueJL/img/crushed-cars-right.jpg');
+
+  mask-image: linear-gradient(to left, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 40%, transparent 100%);
 }
 
 /* centre au-dessus */
