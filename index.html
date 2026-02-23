@@ -237,7 +237,10 @@ input[type="checkbox"]{
       flex-direction:column;
       gap:10px;
       z-index:10;
+      overflow-y:auto;
+      padding-bottom:10px;
     }
+    
     #sidebar h2{
       color:var(--accent);
       margin-bottom:20px;
@@ -875,24 +878,32 @@ button.link:hover{
 </head>
 <body>
 
-  <!-- SIDEBAR -->
-    <button class="navBtn" data-page="page-dashboard">📊 Dashboard</button>
-    <button class="navBtn" data-page="page-workorders">📋 Work Order</button>
-    <button class="navBtn" data-page="page-invoice-list">🧾 Factures</button>
-    <button class="navBtn" data-page="page-clients">👤 Clients</button>
-    <button class="navBtn" data-page="page-vehicles">🚗 Véhicules</button>
-    <button class="navBtn" data-page="page-services">🛠️ Services</button>
-    <button class="navBtn" data-page="page-parts">🔩 Pièces</button>
-    <button class="navBtn" data-page="page-history">📜 Historique</button>
-    <button class="navBtn" data-page="page-notes">📝 Notes</button>
-    <button class="navBtn" data-page="page-links">🔗 Liens Rapides</button>
-    <button class="navBtn" data-page="page-settings">⚙️ Paramètres</button>
-    <div class="sidebar-footer">
-    <button id="btnLogout" class="logout-sidebar-btn">
-    Déconnecter
-    </button>
-</div>
+<!-- SIDEBAR -->
+<div id="sidebar">
+
+  <div class="sidebar-header">
+    <h2>Menu</h2>
   </div>
+
+  <button class="navBtn" data-page="page-dashboard">📊 Dashboard</button>
+  <button class="navBtn" data-page="page-workorders">📋 Work Order</button>
+  <button class="navBtn" data-page="page-invoice-list">🧾 Factures</button>
+  <button class="navBtn" data-page="page-clients">👤 Clients</button>
+  <button class="navBtn" data-page="page-vehicles">🚗 Véhicules</button>
+  <button class="navBtn" data-page="page-services">🛠️ Services</button>
+  <button class="navBtn" data-page="page-parts">🔩 Pièces</button>
+  <button class="navBtn" data-page="page-history">📜 Historique</button>
+  <button class="navBtn" data-page="page-notes">📝 Notes</button>
+  <button class="navBtn" data-page="page-links">🔗 Liens Rapides</button>
+  <button class="navBtn" data-page="page-settings">⚙️ Paramètres</button>
+
+  <div class="sidebar-footer">
+    <button id="btnLogout" class="logout-sidebar-btn">
+      Déconnecter
+    </button>
+  </div>
+
+</div>
 
   <!-- HEADER -->
   <div class="topbar">
