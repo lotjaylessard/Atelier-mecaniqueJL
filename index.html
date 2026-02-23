@@ -17,6 +17,19 @@
 
   const { data: { session } } = await supabase.auth.getSession();
 
+    document.addEventListener("DOMContentLoaded", ()=>{
+
+  const btnLogout = document.getElementById("btnLogout");
+
+  if (btnLogout){
+    btnLogout.onclick = async () => {
+      await supabase.auth.signOut();
+      window.location.replace("login.html");
+    };
+  }
+
+});
+
   // Pas connecté -> dehors
   if (!session){
     window.location.replace("login.html");
@@ -810,7 +823,29 @@ button.link:hover{
   gap:20px; /* espace horizontal ET vertical interne */
 }
 
+.sidebar-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
 
+#btnLogout{
+  background:transparent;
+  border:1px solid var(--accent);
+  color:var(--accent);
+  padding:4px 8px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+  transition:all .2s ease;
+}
+
+#btnLogout:hover{
+  background:var(--accent);
+  color:black;
+  transform:scale(1.05);
+}
     
   </style>
 
@@ -824,7 +859,13 @@ button.link:hover{
 
   <!-- SIDEBAR -->
   <div id="sidebar">
-    <h2>Menu</h2>
+    <div class="sidebar-header">
+  <h2>Menu</h2>
+
+  <button id="btnLogout" title="Déconnexion">
+    ⎋
+  </button>
+</div>
     <button class="navBtn" data-page="page-dashboard">📊 Dashboard</button>
     <button class="navBtn" data-page="page-workorders">📋 Work Order</button>
     <button class="navBtn" data-page="page-invoice-list">🧾 Factures</button>
