@@ -15,7 +15,17 @@
   }
 );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  supabase.auth.onAuthStateChange((event, session) => {
+
+  if (event === "SIGNED_OUT"){
+    window.location.href = "login.html";
+  }
+
+  if (!session){
+    window.location.href = "login.html";
+  }
+
+});
 
     document.addEventListener("DOMContentLoaded", ()=>{
 
@@ -23,9 +33,8 @@
 
   if (btnLogout){
     btnLogout.onclick = async () => {
-      await supabase.auth.signOut();
-      window.location.replace("login.html");
-    };
+  await supabase.auth.signOut();
+};
   }
 
 });
