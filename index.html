@@ -830,15 +830,18 @@ button.link:hover{
   margin-bottom:10px;
 }
 
-#btnLogout{
-  background:transparent;
-  border:1px solid var(--accent);
-  color:var(--accent);
-  padding:4px 8px;
-  border-radius:6px;
+.logout-btn{
+  background:none;
+  border:none;
+  color:#999;
+  font-size:13px;
   cursor:pointer;
-  font-size:14px;
+  padding:4px 6px;
   transition:all .2s ease;
+}
+
+.logout-btn:hover{
+  color:#ff4d4d;
 }
 
 #btnLogout:hover{
@@ -862,9 +865,7 @@ button.link:hover{
     <div class="sidebar-header">
   <h2>Menu</h2>
 
-  <button id="btnLogout" title="Déconnexion">
-    ⎋
-  </button>
+  <button id="btnLogout" title="Déconnexion">Déconnection</button>
 </div>
     <button class="navBtn" data-page="page-dashboard">📊 Dashboard</button>
     <button class="navBtn" data-page="page-workorders">📋 Work Order</button>
