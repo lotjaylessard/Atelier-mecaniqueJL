@@ -282,9 +282,17 @@ input[type="checkbox"]{
 }
     
     .navBtn.active{
-      background:var(--accent);
-      color:#000;
-      transform:translateX(4px);
+  background:#4CAF50;
+  color:white;
+  transform:translateX(4px);
+}
+
+.navBtn.active::before{
+  background:rgba(255,255,255,0.1);
+}
+
+    .navBtn.active:hover{
+  background:#4CAF50;
 }
 
     .topbar{
