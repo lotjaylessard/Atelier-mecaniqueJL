@@ -15,13 +15,18 @@
   }
 );
 
+    // 🔒 Auth guard
+supabase.auth.onAuthStateChange((event, session) => {
+
+  if (!session){
+    window.location.replace("login.html");
+  }
+
+});
+
   supabase.auth.onAuthStateChange((event, session) => {
 
   if (event === "SIGNED_OUT"){
-    window.location.href = "login.html";
-  }
-
-  if (!session){
     window.location.href = "login.html";
   }
 
