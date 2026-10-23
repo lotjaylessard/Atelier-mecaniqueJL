@@ -10999,11 +10999,13 @@ async function initApp() {
 }
 
 if (window.garageSupabase) {
+  sb = window.garageSupabase;
   initApp();
 } else {
-  window.addEventListener("garage-supabase-ready", initApp, {
-    once: true
-  });
+  window.addEventListener("garage-supabase-ready", () => {
+    sb = window.garageSupabase;
+    initApp();
+  }, { once: true });
 }
 
   
