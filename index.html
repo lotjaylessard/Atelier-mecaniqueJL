@@ -44,10 +44,13 @@ supabase.auth.onAuthStateChange((event, session) => {
 
 });
 
-  // Pas connecté -> dehors
-  if (!session){
-    window.location.replace("login.html");
-  }
+  // Vérifier la session Supabase au chargement
+const { data: { session }, error: sessionError } =
+  await supabase.auth.getSession();
+
+if (sessionError || !session) {
+  window.location.replace("login.html");
+}
 
     
 /* =========================
