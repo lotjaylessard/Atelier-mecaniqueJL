@@ -16,6 +16,7 @@
 );
 
     window.garageSupabase = supabase;
+window.dispatchEvent(new Event("garage-supabase-ready"));
 
     // 🔒 Auth guard
 supabase.auth.onAuthStateChange((event, session) => {
@@ -2103,7 +2104,11 @@ function updateInvoiceTotalsLive(inv){
 const SUPABASE_URL = "https://feeapfylfzlvgnqtglnh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlZWFwZnlsZnpsdmducXRnbG5oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NDk3MDUsImV4cCI6MjA4MzAyNTcwNX0._ZQc89gbY5DFqFboR9fL8efeOZ2TZLG0zG8_5lzOOUY";
 
-const sb = window.garageSupabase;
+let sb = window.garageSupabase || null;
+
+window.addEventListener("garage-supabase-ready", () => {
+  sb = window.garageSupabase;
+}, { once: true });
 
 let SUPABASE_USER = null;
 
@@ -10984,13 +10989,22 @@ function formatVehicleLabel(v){
 
 
   /* ===================== APP INIT (SUPABASE) ===================== */
-(async function initApp() {
+
+async function initApp() {
   const connected = await supabaseLogin();
 
   if (!connected) return;
 
   await loadCloudData();
-})();
+}
+
+if (window.garageSupabase) {
+  initApp();
+} else {
+  window.addEventListener("garage-supabase-ready", initApp, {
+    once: true
+  });
+}
 
   
 </script>
