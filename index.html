@@ -2043,7 +2043,7 @@ body.jl-hide-part-number-preview .jl-invoice-preview-table td:nth-child(3){displ
       <img src="./img/logov2.png"
            alt="Garage JL"
      style="height:32px;">
-      <h1 style="font-size:18px;">Garage-Atelier Mécanique J.L</h1>
+      <h1 style="font-size:18px;">Atelier Mécanique J.L</h1>
     </div>
     <div style="display:flex;gap:10px;align-items:center;">
   <span id="headerGreeting" class="header-greeting">
@@ -6431,7 +6431,7 @@ if (error) {
   
 /* ===================== GLOBAL DATA ===================== */
 let SETTINGS = {
-  garageName: 'Garage-Atelier Mécanique J.L',
+  garageName: 'Atelier Mécanique J.L',
   gst: 5,
   qst: 9.975,
   defaultHourlyRate: 90,  // Taux existant
@@ -9457,12 +9457,7 @@ function openWorkOrderDetail(wo){
 
     <div class="card">
   <h3>Notes techniques</h3>
-
-  <textarea 
-    id="woNotes"
-    placeholder="Notes du bon de travail..."
-    style="min-height:120px;"
-  >${escapeHTML(wo.notes || "")}</textarea>
+  <div id="jlWoNotesHistory"></div>
 </div>
 
 <!-- PHOTOS & FICHIERS -->
@@ -9543,6 +9538,7 @@ function openWorkOrderDetail(wo){
 
   // rendu des lignes
   woRenderLines(wo);
+  jlWoRenderNotes(wo);
 
   // 🔥 RENDU PHOTOS & FICHIERS
 initWorkOrderAttachments(wo);
@@ -13612,13 +13608,12 @@ function renderHistoryTable(){
 }
 
 
-  // S04 audit : un BT n'entre dans l'historique definitif que lorsque
-  // sa facture liee est payee ET archivee. Aucune mutation des donnees.
+  // Stabilisation : un BT payé est consultable immédiatement, sans attendre l’archivage de la facture.
   function isWorkOrderArchivedInHistory(wo, invoices = INVOICES){
     if (!wo || !wo.number || !["termine","billed"].includes(wo.status)) return false;
     return Array.isArray(invoices) && invoices.some(inv =>
       String(inv.workOrderNumber) === String(wo.number) &&
-      inv.status === "paid" && inv.archived === true
+      inv.status === "paid"
     );
   }
 
@@ -16197,6 +16192,13 @@ function renderMonthlyRevenueChart(){
 
   /* ===================== Ouvrir WO a partir du Dashboard ===================== */
 function openWorkOrderFromDashboard(id){
+  loadWorkOrders();
+  loadInvoices();
+  const target=WORKORDERS.find(w=>String(w.id)===String(id));
+  if(target && isWorkOrderArchivedInHistory(target)){
+    openWorkOrderReadOnly(target.id);
+    return;
+  }
   showPage("page-workorders");
   setTimeout(()=>{
     const row=Array.from(document.querySelectorAll("#woTable tbody tr[data-id]"))
@@ -17888,7 +17890,7 @@ function initLinksModule() {
 
   // Nom affiché tel qu'enregistré dans Paramètres (sans suffixe ajouté).
   function updateGarageNameUI(){
-    const name=String(SETTINGS.garageName||"").trim()||"Garage";
+    const name=String(SETTINGS.garageName||"").trim().replace(/^Garage\s*-\s*/i,"")||"Garage";
     const title=document.querySelector(".topbar h1");
     if(title)title.textContent=name;
     document.title=name;
@@ -18436,9 +18438,9 @@ clone.querySelectorAll("h3").forEach(h=>{
       </style>
     </head>
     <body>
-      <header class="jl-print-header"><span>Garage-Atelier Mécanique J.L</span><span class="jl-print-kind">Facture</span></header>
+      <header class="jl-print-header"><span>Atelier Mécanique J.L</span><span class="jl-print-kind">Facture</span></header>
       <main class="jl-print-body">${clone.innerHTML}</main>
-      <footer class="jl-print-footer"><span>Garage-Atelier Mécanique J.L</span><span>Facture</span></footer>
+      <footer class="jl-print-footer"><span>Atelier Mécanique J.L</span><span>Facture</span></footer>
 </body>
     </html>
   `);
@@ -19995,9 +19997,9 @@ if (window.garageSupabase) {
       '.s08-view-total{text-align:right;font-size:16px;font-weight:700;margin:12px 0 5px}'+
       '.muted{color:#555;font-size:10px}button{display:none}'+
       '</style></head><body>'+
-      '<header class="jl-print-header"><span>Garage-Atelier Mécanique J.L</span><span class="jl-print-kind">Soumission</span></header>'+
+      '<header class="jl-print-header"><span>Atelier Mécanique J.L</span><span class="jl-print-kind">Soumission</span></header>'+
       '<main class="jl-print-body">'+noScripts+'</main>'+
-      '<footer class="jl-print-footer"><span>Garage-Atelier Mécanique J.L</span><span>Soumission</span></footer>'+
+      '<footer class="jl-print-footer"><span>Atelier Mécanique J.L</span><span>Soumission</span></footer>'+
       '</body></html>');
     popup.document.close();
     popup.focus();
