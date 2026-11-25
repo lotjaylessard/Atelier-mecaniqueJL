@@ -7816,7 +7816,36 @@ function jlWoRenderNotes(wo){
   const list=document.getElementById("jlWoNotesHistory");
   if(!list)return;
   const actor=jlWoNoteAuthor();
-  const entries=jlWoNotes(wo).slice().sort((a,b)=>
+  // Présentation uniquement : conserver le journal original de la RPC.
+  const storedEntries=Array.isArray(wo.technicalNoteEntries)?wo.technicalNoteEntries:[];
+  let legacy=String(wo.notes||"");
+  const timerEntries=[];
+  const seen=new Set();
+  for(const line of (Array.isArray(wo.labor)?wo.labor:[])){
+    const sid=String(line.timerSessionId||"");
+    if(!/^[0-9a-f-]{36}$/i.test(sid)||seen.has(sid))continue;
+    seen.add(sid);
+    const marker="[S06 minuterie : "+sid+"]";
+    const start=legacy.indexOf(marker);
+    let text=String(line.description||"");
+    let authorId=String(line.actor_id||"");
+    let createdAt=String(line.confirmed_at||"");
+    if(start>=0){
+      const rest=legacy.slice(start+marker.length);
+      const match=rest.match(/^\r?\nDate UTC : ([^\r\n]+)\r?\nCompte auteur : ([^\r\n]+)\r?\nTravail effectue : ([\s\S]*?)\r?\nTemps confirme : (\d+) ms\r?\nMain-d'oeuvre : [^\r\n]+/);
+      if(match){
+        createdAt=createdAt||match[1];authorId=authorId||match[2];
+        text=match[3]||text;
+        legacy=legacy.slice(0,start)+legacy.slice(start+marker.length+match[0].length);
+      }
+    }
+    if(!storedEntries.some(n=>String(n.timerSessionId||"")===sid)){
+      const ms=Number(line.confirmedMs);
+      const duration=Number.isFinite(ms)&&ms>=0?formatDuration(ms):"Durée non disponible";
+      timerEntries.push({id:"timer-"+sid,timerSessionId:sid,authorId,authorName:"Employé",createdAt,text:text+"\nTemps confirmé : "+duration+" · "+money(s06LaborLineAmount(line))+" $",timerReadOnly:true});
+    }
+  }
+  const entries=storedEntries.concat(timerEntries).sort((a,b)=>
     String(b.createdAt||"").localeCompare(String(a.createdAt||"")) ||
     String(b.id||"").localeCompare(String(a.id||"")));
   const cards=entries.map(note=>{
@@ -7831,18 +7860,18 @@ function jlWoRenderNotes(wo){
       +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b>'+name+'</b>'
       +'<span class="muted" style="font-size:12px">'+escapeHTML(jlWoDate(note.createdAt))+changed+'</span></div>'
       +'<div style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px">'+body+'</div>'
-      +(own&&woCanEditNotes(wo)?'<button type="button" class="ghost" data-jl-note-edit="'+id+'" style="margin-top:6px">✏️ Modifier</button>':'')
+      +(own&&!note.timerReadOnly&&woCanEditNotes(wo)?'<button type="button" class="ghost" data-jl-note-edit="'+id+'" style="margin-top:6px">✏️ Modifier</button>':'')
       +'</div>';
   });
   // Les notes originales n'ont pas d'auteur individuel connu : ne jamais en inventer un.
-  if(String(wo.notes||"").trim())cards.push(
+  if(legacy.trim())cards.push(
     '<div class="card" style="margin:8px 0;padding:12px"><b>Anciennes notes techniques</b>'
     +'<div class="muted" style="font-size:12px">Historique antérieur au nouveau module</div>'
     +'<div style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px">'
-    +escapeHTML(wo.notes)+'</div></div>');
+    +escapeHTML(legacy.trim())+'</div></div>');
   list.innerHTML=cards.join("")||'<div class="muted">Aucune note enregistrée.</div>';
   const count=document.getElementById("jlWoNotesCount");
-  if(count)count.textContent=entries.length+" note"+(entries.length>1?"s":"")+(String(wo.notes||"").trim()?" + anciennes notes":"");
+  if(count)count.textContent=entries.length+" note"+(entries.length>1?"s":"")+(legacy.trim()?" + anciennes notes":"");
 }
 function jlWoInitNotes(wo){
   const field=document.getElementById("jlWoNewNote");
