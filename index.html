@@ -7079,13 +7079,14 @@ function woRequireFinancialEdit(wo){
 function woInvoiceItemsFromWO(wo){
   return [
     ...(wo.parts || []).map(p=>({
-      type:"Pièce",desc:`${p.name || ""}${p.number ? " (#"+p.number+")" : ""}`.trim(),
+      type:"Pièce",desc:String(p.name || "").trim(),
       number:p.number||"",supplier:p.supplier||"",
       qty:Number(p.qty),rate:Number(p.rate),total:Number(p.qty)*Number(p.rate)
     })),
     ...(wo.labor || []).map(l=>({
       type:"Main-d'œuvre",desc:String(l.description || ""),
-      qty:Number(l.hours),rate:Number(l.rate),total:Number(l.hours)*Number(l.rate)
+      qty:Number(l.hours),rate:Number(l.rate),total:s06LaborLineAmount(l),
+      ...(l.timerSessionId?{timerSessionId:l.timerSessionId,confirmedMs:l.confirmedMs}:{})
     }))
   ];
 }
@@ -7095,9 +7096,19 @@ function woInvoiceMatchesWO(wo,invoice){
   if (!Array.isArray(current) || expected.length !== current.length) return false;
   return expected.every((item,i)=>{
     const saved=current[i];
-    return !!saved && String(saved.type || "") === item.type &&
-      String(saved.desc || "").trim() === item.desc &&
-      Number(saved.qty) === item.qty && Number(saved.rate) === item.rate;
+    if(!saved || String(saved.type||"").trim()!==item.type ||
+       Number(saved.qty)!==item.qty || Number(saved.rate)!==item.rate) return false;
+    const desc=String(saved.desc||"").trim();
+    const number=String(item.number||"").trim();
+    const legacyDesc=number?item.desc+" (#"+number+")":item.desc;
+    if(desc!==item.desc && desc!==legacyDesc)return false;
+    if(item.type==="Pièce"){
+      if(String(saved.number||"").trim()!==number && !(number&&!saved.number&&desc===legacyDesc))return false;
+      if(String(saved.supplier||"").trim()!==String(item.supplier||"").trim())return false;
+    }
+    if(String(saved.timerSessionId||"")!==String(item.timerSessionId||""))return false;
+    if(item.timerSessionId && Number(saved.confirmedMs)!==Number(item.confirmedMs))return false;
+    return Math.round(s06InvoiceItemAmount(saved)*100)===Math.round(item.total*100);
   });
 }
 function woSyncUnpaidInvoice(wo){
