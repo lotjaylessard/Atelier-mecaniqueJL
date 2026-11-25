@@ -26,6 +26,17 @@ BEGIN
   IF received IS NULL OR total IS NULL OR received<COALESCE((old_i->>'paidAmount')::numeric,0) OR abs(received-history)>0.009 OR received>total+0.009 THEN RAISE EXCEPTION 'Solde ou paiements incohérents'; END IF;
   IF new_i->>'status' NOT IN ('paid','partial') OR (new_i->>'status'='paid' AND abs(total-received)>0.009) OR (new_i->>'status'='partial' AND received>=total-0.009) THEN RAISE EXCEPTION 'Statut paiement incohérent'; END IF;
  END LOOP;
+ FOR new_i IN SELECT value FROM jsonb_array_elements(NEW.data->'invoices') LOOP
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(OLD.data->'invoices','[]'::jsonb)) x WHERE x=new_i) THEN CONTINUE; END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(OLD.data->'invoices','[]'::jsonb)) x WHERE x->>'number'=new_i->>'number' AND x->>'status'='paid') THEN CONTINUE; END IF;
+  IF COALESCE((new_i->>'paidAmount')::numeric,0)=0 AND COALESCE(jsonb_array_length(new_i->'payments'),0)=0 AND COALESCE(new_i->>'status','') NOT IN ('paid','partial') THEN CONTINUE; END IF;
+  IF jsonb_typeof(new_i->'payments') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'Historique paiements invalide'; END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(new_i->'payments') x WHERE (x->>'amount') IS NULL OR (x->>'amount')::numeric<=0) THEN RAISE EXCEPTION 'Montant paiement invalide'; END IF;
+  received:=(new_i->>'paidAmount')::numeric; total:=(new_i->>'total')::numeric;
+  SELECT COALESCE(sum((value->>'amount')::numeric),0) INTO history FROM jsonb_array_elements(new_i->'payments');
+  IF received IS NULL OR total IS NULL OR received<0 OR total<0 OR abs(received-history)>0.009 OR received>total+0.009 THEN RAISE EXCEPTION 'Solde ou paiements incohérents'; END IF;
+  IF COALESCE(new_i->>'status','') NOT IN ('paid','partial') OR (new_i->>'status'='paid' AND abs(total-received)>0.009) OR (new_i->>'status'='partial' AND (received<=0 OR received>=total-0.009)) THEN RAISE EXCEPTION 'Statut paiement incohérent'; END IF;
+ END LOOP;
  RETURN NEW;
 END $$;
 CREATE TRIGGER guard_garage_invoice_payments_trigger BEFORE UPDATE ON public.garage_data FOR EACH ROW EXECUTE FUNCTION public.guard_garage_invoice_payments();
