@@ -13905,6 +13905,12 @@ function jlScheduleMonthStart(){
   return first;
 }
 function jlScheduleISO(date){return jlCalendarISO(date);}
+function jlQuoteLinkedWorkOrder(q){
+  if(!q||q.status!=="converted"||!Array.isArray(WORKORDERS))return null;
+  return WORKORDERS.find(w=>String(w.sourceQuoteId||"")===String(q.id)||String(w.sourceQuoteNumber||"")===String(q.quote_number)|| (q.converted_bt_id&&[w.id,w.number].some(v=>String(v)===String(q.converted_bt_id))))||null;
+}
+function jlQuoteCompleted(q){const wo=jlQuoteLinkedWorkOrder(q);return !!wo&&(["termine","billed"].includes(wo.status)||INVOICES.some(i=>String(i.workOrderNumber)===String(wo.number)&&i.status==="paid"));}
+function jlQuoteArchived(q){const wo=jlQuoteLinkedWorkOrder(q);return ["declined","expired"].includes(q.status)||!!wo&&INVOICES.some(i=>String(i.workOrderNumber)===String(wo.number)&&i.status==="paid");}
 function jlScheduleJobsFor(date){
   return jlScheduleQuotes.filter(q=>q.content?.appointment?.date===date)
     .sort((a,b)=>String(a.content.appointment.time||"").localeCompare(String(b.content.appointment.time||"")));
@@ -14339,7 +14345,7 @@ function jlScheduleDayRender(){
     const link=document.createElement("button");link.type="button";
     const first=document.createElement("strong"),desc=document.createElement("span");
     first.textContent=String(ap.time||"—")+" · "+String(q.quote_number||"SO")+" · "+
-      String(q.content.clientName||"Client");
+      String(q.content.clientName||"Client")+(jlQuoteCompleted(q)?" · ✓ Terminé":"");
     desc.textContent="\n"+[q.content.vehicleLabel,q.content.description].filter(Boolean).join(" · ");
     link.append(first,desc);
     link.addEventListener("click",()=>jlAppointmentOpen(q));
@@ -14348,7 +14354,7 @@ function jlScheduleDayRender(){
     edit.textContent="Modifier / annuler";edit.addEventListener("click",()=>jlAppointmentOpen(q));
     const quote=document.createElement("button");quote.type="button";quote.className="ghost";
     quote.textContent="Soumission";quote.addEventListener("click",()=>jlDashboardOpenQuote(q.id));
-    actions.append(edit,quote);entry.append(link,actions);jobs.append(entry);
+    if(jlQuoteCompleted(q)){link.disabled=true;actions.append(quote);entry.style.opacity=".7";}else actions.append(edit,quote);entry.append(link,actions);jobs.append(entry);
   }
   if(!jobs.childElementCount)jlScheduleText(jobs,jlScheduleLoaded?
     "Aucun travail planifié.":"Travaux en cours de chargement.");
@@ -14428,7 +14434,8 @@ function jlScheduleRender(){
     for(const q of visibleJobs){
       const el=document.createElement("button");el.type="button";
       el.className="jl-schedule-mini work";
-      el.textContent=String(q.content.appointment.time||"—")+" · "+String(q.content.clientName||"Client");
+      el.textContent=String(q.content.appointment.time||"—")+" · "+String(q.content.clientName||"Client")+(jlQuoteCompleted(q)?" · ✓ Terminé":"");
+      if(jlQuoteCompleted(q)){el.style.opacity=".7";el.disabled=true;}
       el.title=String(q.quote_number||"SO")+" · "+String(q.content.description||"");
       el.addEventListener("click",()=>jlAppointmentOpen(q));cell.append(el);
     }
@@ -14653,6 +14660,7 @@ function jlScheduleEventConflict(){
   };
   const eventConflicts=candidates.filter(e=>overlaps(candidate,e)).length;
   const jobConflicts=jlScheduleQuotes.filter(q=>{
+    if(jlQuoteCompleted(q))return false;
     const ap=q.content?.appointment||{},date=String(ap.date||"");
     if(date<candidate.start_date||date>candidate.end_date)return false;
     if(candidate.all_day||candidate.start_date!==candidate.end_date)return true;
@@ -15287,7 +15295,8 @@ function jlDayAgendaRender(){
     time.textContent=(start||"—")+finish;
     const open=document.createElement("button");open.type="button";
     const title=document.createElement("strong");
-    title.textContent=String(q.quote_number||"SO")+" · "+String(q.content.clientName||"Client");
+    title.textContent=String(q.quote_number||"SO")+" · "+String(q.content.clientName||"Client")+(jlQuoteCompleted(q)?" · ✓ Terminé":"");
+    if(jlQuoteCompleted(q))open.disabled=true;
     const description=document.createElement("span");description.style.display="block";
     description.textContent=[q.content.vehicleLabel,q.content.description].filter(Boolean).join(" · ");
     open.append(title,description);
@@ -15460,7 +15469,8 @@ function jlCalendarRender(){
       const vehicle=String(q.content.vehicleLabel||"").trim().split(/\s+/).slice(0,4).join(" ");
       const description=String(q.content.description||"").trim()||"Travail non précisé";
       const heading=document.createElement("strong");
-      heading.textContent=String(ap.time||"—")+" · "+String(q.content.clientName||"Client");
+      heading.textContent=String(ap.time||"—")+" · "+String(q.content.clientName||"Client")+(jlQuoteCompleted(q)?" · ✓ Terminé":"");
+      if(jlQuoteCompleted(q)){event.style.opacity=".7";event.disabled=true;}
       const work=document.createElement("span");
       work.textContent=description;
       work.style.cssText="display:block;margin-top:3px;font-weight:600;color:var(--accent);";
@@ -20140,7 +20150,7 @@ if (window.garageSupabase) {
         .update({content:newContent,version:Number(q.version)+1,updated_at:new Date().toISOString()})
         .eq("id",q.id).eq("garage_id",garageId).eq("user_id",auth.user.id)
         .eq("status",q.status).eq("version",q.version)
-        .select("id,quote_number,status,version,content,created_at,converted_bt_id").maybeSingle();
+        .select("id,user_id,quote_number,status,version,content,created_at,converted_bt_id").maybeSingle();
       if(error||!updated||Number(updated.version)!==Number(q.version)+1)
         throw Error("Conflit de version : aucune modification confirmée. Rouvre la soumission.");
       selectedQuote=updated;
@@ -20256,7 +20266,7 @@ if (window.garageSupabase) {
       if(token!==s09BookingsToken||scheduleDate.value!==date)return;
       s09BookingsPartial=rows.length>=500;
       s09Bookings=rows.filter(q=>String(q.id)!==String(selectedQuote?.id)&&
-        q.content?.approvalConfirmedAt&&q.content?.appointment?.date===date)
+        !jlQuoteCompleted(q)&&q.content?.approvalConfirmedAt&&q.content?.appointment?.date===date)
         .sort((a,b)=>String(a.content.appointment.time||"").localeCompare(String(b.content.appointment.time||"")));
       s09DisplayBookings();
     }catch(error){
@@ -20597,8 +20607,8 @@ if (window.garageSupabase) {
     const search=(get("s08QuoteSearch").value||"").toLocaleLowerCase("fr");
     const filter=get("s08QuoteStatus").value;
     const rows=quotes.filter(q=>(
-      filter==="active"?!["declined","expired"].includes(q.status):
-      filter==="archived"?["declined","expired"].includes(q.status):
+      filter==="active"?!jlQuoteArchived(q):
+      filter==="archived"?jlQuoteArchived(q):
       !filter||(
         filter==="approved"?q.status==="sent"&&!!q.content?.approvalConfirmedAt:q.status===filter
       )
@@ -20831,7 +20841,7 @@ function jlHistoryRenderQuotes(){
   if(!table||!count)return;
   table.replaceChildren();
   const search=String(document.getElementById("historySearch")?.value||"").toLocaleLowerCase("fr");
-  const rows=jlHistoryQuotes.filter(q=>["declined","expired"].includes(q.status)).filter(q=>
+  const rows=jlHistoryQuotes.filter(jlQuoteArchived).filter(q=>
     [q.quote_number,q.content?.clientName,q.content?.vehicleLabel,q.content?.description,q.status]
       .join(" ").toLocaleLowerCase("fr").includes(search));
   count.textContent=jlHistoryQuotesLoaded
@@ -20846,7 +20856,7 @@ function jlHistoryRenderQuotes(){
   const statuses={draft:"Brouillon",sent:"Envoyée",converted:"Convertie",declined:"Refusée",expired:"Expirée"};
   for(const q of rows){
     const d=q.content||{},tr=document.createElement("tr");
-    const label=q.status==="sent"&&d.approvalConfirmedAt?"Approuvée":(statuses[q.status]||q.status);
+    const label=q.status==="converted"&&jlQuoteArchived(q)?"Terminée — payée":q.status==="sent"&&d.approvalConfirmedAt?"Approuvée":(statuses[q.status]||q.status);
     const total=Number(d.totalCents);
     const amount=Number.isFinite(total)?(total/100).toLocaleString("fr-CA",{minimumFractionDigits:2,maximumFractionDigits:2})+" $":"—";
     for(const value of [q.quote_number,String(q.created_at||"").slice(0,10),
@@ -20883,9 +20893,9 @@ async function jlHistoryLoadQuotes(){
     const {data:auth,error:authError}=await db.auth.getUser();
     if(authError||!auth?.user?.id)throw Error("Session indisponible");
     const {data,error,count}=await db.from("garage_quotes")
-      .select("id,quote_number,status,created_at,content",{count:"exact"})
+      .select("id,quote_number,status,created_at,content,converted_bt_id",{count:"exact"})
       .eq("garage_id",ACTIVE_GARAGE_ID)
-      .in("status",["declined","expired"])
+      .in("status",["declined","expired","converted"])
       .order("created_at",{ascending:false}).limit(1000);
     if(error)throw error;
     if(token!==jlHistoryQuotesRequest)return;
