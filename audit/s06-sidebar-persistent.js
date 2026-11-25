@@ -211,30 +211,36 @@
     actionPending=true;paint();
     // Libérer le verrou après la synchronisation serveur ou, en cas de
     // confirmation annulée, après le délai maximal de l'interface.
+    let watcher=null, released=false;
+    const requestedId=String(current.id);
     const release=()=>{
+      if(released)return;
+      released=true;
       actionPending=false;
       pendingAction=null;
-      refresh();
+      paint();
+      void refresh();
     };
-    const timeout=setTimeout(()=>{cleanup();release();},12000);
+    const timeout=setTimeout(()=>{cleanup();release();if(hint)hint.textContent="Commande non confirmée. Vérifie la session avant de réessayer.";},35000);
     const handleAck=event=>{
       const d=event.detail;
-      if(!d||d.sessionId!==current?.id||d.action!==action)return;
+      if(!d||String(d.sessionId)!==requestedId||d.action!==action)return;
       cleanup();release();
     };
     function cleanup(){
       clearTimeout(timeout);
+      if(watcher!==null)clearInterval(watcher);
       window.removeEventListener("s06-timer-ack",handleAck);
     }
     window.addEventListener("s06-timer-ack",handleAck);
     // Toujours ouvrir le BT. Le pilote revérifie le compte, la session
     // et la révision auprès du serveur avant toute mutation.
-    const requestedId=String(current.id);
     if(typeof openWorkOrderFromDashboard==="function")
       openWorkOrderFromDashboard(selected.id);
     let attempts=0;
-    const watcher=setInterval(()=>{
-      if(++attempts>30){
+    watcher=setInterval(()=>{
+      if(released){clearInterval(watcher);return;}
+      if(++attempts>60){
         clearInterval(watcher);
         cleanup();
         release();
@@ -258,7 +264,6 @@
         action==="recover"?"s06Recover":
         action==="pause"?"s06Pause":"s06Start"));
       if(!button||button.disabled||button.hidden){
-        if(attempts>=30)clearInterval(watcher);
         return;
       }
       clearInterval(watcher);
