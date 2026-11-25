@@ -6800,7 +6800,7 @@ function addServiceToCurrentWO(serviceId){
   });
 
   // 5️⃣ Sauvegarde + rafraîchissement
-  persistActiveWO(wo);
+  if(persistActiveWO(wo)===false){wo.labor.pop();woRenderLines(wo);return;}
   woRenderLines(wo);
 
   alert(`Service "${srv.name}" ajouté au bon de travail.`);
@@ -6844,7 +6844,7 @@ function addServiceToCurrentWO(serviceId){
 });
 
   // 5️⃣ Sauvegarde + rafraîchissement
-  persistActiveWO(wo);
+  if(persistActiveWO(wo)===false){wo.parts.pop();woRenderLines(wo);return;}
   woRenderLines(wo);
 
   alert(`Pièce "${part.name}" ajoutée au bon de travail.`);
@@ -7065,8 +7065,7 @@ function woCanEditFinancials(wo){
   }
   const inv = woLinkedInvoice(wo);
   if (wo.status === "en_cours") return !inv;
-  return wo.status === "termine" && !!inv && inv.status === "unpaid" &&
-    !woInvoiceHasPayment(inv) && CLOUD_DATA_READY && !CLOUD_SYNC_FAILED &&
+  return ["termine","billed"].includes(wo.status) && !!inv && (invoiceMayEditFinancials(inv)||invoiceMayCorrectPartial(inv)) && CLOUD_DATA_READY && !CLOUD_SYNC_FAILED &&
     String(window.__woClosedEditId) === String(wo.id);
 }
 function woCanEditNotes(wo){
@@ -7077,7 +7076,7 @@ function woCanEditNotes(wo){
 }
 function woRequireFinancialEdit(wo){
   if (woCanEditFinancials(wo)) return true;
-  alert("Modification refusée : active Modifier le BT et vérifie que la facture est impayée.");
+  alert("Modification refusée : active Modifier le BT et vérifie que la facture conserve un solde à payer.");
   return false;
 }
 // Les lignes de la facture peuvent avoir ete modifiees directement.
@@ -7153,7 +7152,7 @@ function persistActiveWO(wo){
   if (wo.status !== "en_cours" && !wo.__fromInvoice) {
     if (!woRequireFinancialEdit(wo)) return false;
     if (!woSyncUnpaidInvoice(wo)) {
-      alert("Synchronisation BT/facture refusée. Aucune nouvelle sauvegarde confirmée.");
+      alert("Correction refusée : vérifie le solde restant après les paiements et la synchronisation.");
       return false;
     }
     return true;
@@ -7747,7 +7746,7 @@ function saveManualLabor(){
     rate
   });
 
-  persistActiveWO(wo);
+  if(persistActiveWO(wo)===false){wo.labor.pop();woRenderLines(wo);return;}
   woRenderLines(wo);
 
   // reset + fermer
@@ -8214,7 +8213,7 @@ function woAddPartLine(wo) {
         total: qty * Number(part.price || 0)
       });
 
-      persistActiveWO(wo);
+      if(persistActiveWO(wo)===false){wo.parts.pop();woRenderLines(wo);return;}
       woRenderLines(wo);
 
       modal.style.display = "none";
@@ -8290,7 +8289,7 @@ function woAddLaborLine(wo) {
         total: hours * rate
       });
 
-      persistActiveWO(wo);
+      if(persistActiveWO(wo)===false){wo.labor.pop();woRenderLines(wo);return;}
       woRenderLines(wo);
 
       modal.style.display = "none";
@@ -8403,7 +8402,7 @@ if (manualLaborSave){
       total: hours * rate
     });
 
-    persistActiveWO(wo);
+    if(persistActiveWO(wo)===false){wo.labor.pop();woRenderLines(wo);return;}
     woRenderLines(wo);
 
     // reset + fermer
@@ -8712,16 +8711,16 @@ function woEditLine(woId, type, index) {
 function woRemovePart(woId,index){
   const wo = getActiveWOById(woId);
   if (!wo || !woRequireFinancialEdit(wo)) return;
-  wo.parts.splice(index,1);
-  persistActiveWO(wo);
+  const removed=wo.parts.splice(index,1);
+  if(persistActiveWO(wo)===false)wo.parts.splice(index,0,...removed);
   woRenderLines(wo);
 }
 
 function woRemoveLabor(woId,index){
   const wo = getActiveWOById(woId);
   if (!wo || !woRequireFinancialEdit(wo)) return;
-  wo.labor.splice(index,1);
-  persistActiveWO(wo);
+  const removed=wo.labor.splice(index,1);
+  if(persistActiveWO(wo)===false)wo.labor.splice(index,0,...removed);
   woRenderLines(wo);
 }
 
@@ -9694,8 +9693,7 @@ if (typeof calcWorkOrderProfit === "function") {
 // demandees explicitement sur facture impayee activent les commandes financieres.
 function woCanStartClosedEdit(wo){
   const inv = woLinkedInvoice(wo);
-  return wo?.status === "termine" && !!inv && inv.status === "unpaid" &&
-    !woInvoiceHasPayment(inv) && CLOUD_DATA_READY && !CLOUD_SYNC_FAILED;
+  return ["termine","billed"].includes(wo?.status) && !!inv && (invoiceMayEditFinancials(inv)||invoiceMayCorrectPartial(inv)) && CLOUD_DATA_READY && !CLOUD_SYNC_FAILED;
 }
 function applyClosedWOControls(wo,detail){
   if (!detail || wo?.status === "en_cours" && !woLinkedInvoice(wo)) return;
@@ -9735,7 +9733,7 @@ function beginClosedWOEdit(woId){
   const wo = WORKORDERS.find(w=>String(w.id)===String(woId));
   loadInvoices();
   if (!wo || !woCanStartClosedEdit(wo)) {
-    alert("Modification indisponible : facture payée, partiellement payée ou synchronisation bloquée.");
+    alert("Modification indisponible : facture payée, paiements incohérents ou synchronisation bloquée.");
     return;
   }
   if (!woInvoiceMatchesWO(wo,woLinkedInvoice(wo))) {
@@ -9743,12 +9741,14 @@ function beginClosedWOEdit(woId){
     return;
   }
   window.__woClosedEditId = String(wo.id);
+  woRenderLines(wo);
   applyClosedWOControls(wo,document.getElementById("woDetailContent"));
 }
 function endClosedWOEdit(woId){
   const wo = WORKORDERS.find(w=>String(w.id)===String(woId));
   if (!wo) return;
   window.__woClosedEditId = null;
+  woRenderLines(wo);
   applyClosedWOControls(wo,document.getElementById("woDetailContent"));
 }
 
@@ -10249,7 +10249,7 @@ wo.parts.push({
 });
 
     // TEST #22E : recalculer le total AVANT la sauvegarde
-persistActiveWO(wo);
+if(persistActiveWO(wo)===false){wo.parts.pop();woRenderLines(wo);return;}
 woRenderLines(wo);
 
     // reset + fermer
