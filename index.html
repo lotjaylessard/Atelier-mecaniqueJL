@@ -1992,6 +1992,22 @@ body.jl-hide-part-number-preview .jl-invoice-preview-table td:nth-child(3){displ
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
 
 
+
+<style id="jlPostMigrationLayoutFix">
+#s08QuoteViewer .s08-viewer-panel{max-width:1120px}
+#s08QuoteViewer .s08-viewer-head{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px 12px}
+#s08QuoteViewer .s08-viewer-controls{margin-left:auto;justify-content:flex-end;flex:0 1 auto}
+#s08QuoteViewer .s08-viewer-head h2{flex:0 1 auto;min-width:0;overflow-wrap:anywhere}
+#woPartsTable td:nth-child(n+4):nth-child(-n+7),#woLaborTable td:nth-child(3),#woLaborTable td:nth-child(4){white-space:nowrap}
+#woPartsTable td input,#woLaborTable td input{min-width:0!important}
+#woPartsTable td:last-child,#woLaborTable td:last-child{width:1%;white-space:nowrap}
+.jl-wo-inline-actions{display:flex;align-items:center;gap:5px;flex-wrap:nowrap}
+.jl-wo-inline-actions button{padding:7px 9px;white-space:nowrap}
+#invoiceEditContent .jl-invoice-preview-table :is(th,td):first-child{min-width:105px;white-space:nowrap}
+#invoiceEditContent .jl-invoice-preview-table :is(th,td):nth-last-child(-n+3){white-space:nowrap;min-width:64px}
+#invoiceEditContent .jl-invoice-preview-table :is(th,td):nth-child(2){overflow-wrap:anywhere}
+@media(max-width:720px){#s08QuoteViewer .s08-viewer-head{align-items:flex-start;flex-direction:column}#s08QuoteViewer .s08-viewer-controls{margin-left:0;justify-content:flex-start;width:100%}}
+</style>
 </head>
 <body>
 
@@ -2838,7 +2854,7 @@ body.jl-hide-part-number-preview .jl-invoice-preview-table td:nth-child(3){displ
           </select>
         </div>
       </div>
-      <h2>Soumissions archivées (refusées / expirées)</h2>
+      <h2>Soumissions archivées</h2>
       <div class="card">
         <div id="historyQuoteResultCount" class="module-result-count" role="status" aria-live="polite">Chargement des soumissions…</div>
         <div class="s08-quotes-table" role="region" aria-label="Historique des soumissions" style="overflow-x:auto">
@@ -2849,7 +2865,7 @@ body.jl-hide-part-number-preview .jl-invoice-preview-table td:nth-child(3){displ
             <tbody><tr><td colspan="6" class="muted">Chargement…</td></tr></tbody>
           </table>
         </div>
-        <p class="muted" style="font-size:12px">Seules les soumissions refusées ou expirées apparaissent ici. Les factures payées archivées sont dans « Historique des factures » ci-dessous. Les données sont conservées sans suppression.</p>
+        <p class="muted" style="font-size:12px">Les soumissions refusées, expirées, archivées ou terminées et payées sont présentées ici selon leur statut. Les factures payées archivées figurent dans « Historique des factures » ci-dessous.</p>
       </div>
       <h2>Historique des bons de travail</h2>
       <div class="card">
@@ -3413,6 +3429,13 @@ function money(n){
 }
 
 
+// Profit réel sur facture : inclure l'escompte et exclure les taxes.
+function jlActualInvoiceProfit(inv,wo){
+  if(!inv||!wo)return 0;
+  const net=Number(inv.total)-Number(inv.gst??0)-Number(inv.qst??0);
+  const cost=(wo.parts||[]).reduce((sum,p)=>sum+Number(p.qty||0)*Number(p.cost||0),0);
+  return Number.isFinite(net)&&Number.isFinite(cost)?Math.round((net-cost)*100)/100:0;
+}
 function initWorkOrderAttachments(wo){
 
   const input = document.getElementById("woFileInput");
@@ -8590,7 +8613,9 @@ function woInlineEditLine(woId,type,index,focusColumn=0){
   const ok=document.createElement("button"),cancel=document.createElement("button");
   ok.type="button";ok.textContent="✓";ok.title="Confirmer";
   cancel.type="button";cancel.textContent="Annuler";cancel.className="ghost";
-  actions.replaceChildren(ok,cancel);
+  const actionGroup=document.createElement('div');
+  actionGroup.className='jl-wo-inline-actions';
+  actionGroup.append(ok,cancel);actions.replaceChildren(actionGroup);
   function finishCancel(){woInlineEditing=false;woRenderLines(wo);}
   function confirm(){
     if(!woCanEditFinancials(wo)){alert("Ce BT n'est plus modifiable.");finishCancel();return;}
@@ -10034,7 +10059,7 @@ const statusLabel =
 
     <table id="woLaborTable" style="margin-top:10px;">
       <thead>
-        <tr><th>Description</th><th>Heures</th><th>Taux</th><th>Total</th><th></th></tr>
+        <tr><th>Description</th><th>Heures</th><th>Taux</th><th>Total</th><th>Profit</th><th></th></tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -13599,7 +13624,7 @@ function historyInvoiceValue(inv,key){
     case "total":return Number(inv.total)||0;
     case "profit":{
       const wo=WORKORDERS.find(w=>String(w.number)===String(inv.workOrderNumber));
-      return wo?calcWorkOrderProfit(wo):0;
+      return jlActualInvoiceProfit(inv,wo);
     }
     default:return "";
   }
@@ -13640,7 +13665,7 @@ function renderHistoryTable(){
         String(w.number) === String(inv.workOrderNumber)
       );
 
-      const profit = wo ? calcWorkOrderProfit(wo) : 0;
+      const profit = jlActualInvoiceProfit(inv,wo);
 
       totalFacture += Number(inv.total || 0);
       totalProfit += Number(profit || 0);
@@ -15772,7 +15797,7 @@ const paidWorkOrders = WORKORDERS.filter(wo => {
 });
 
 const totalProfit = paidWorkOrders.reduce((sum, wo) => {
-  return sum + calcWorkOrderProfit(wo);
+  return sum + jlActualInvoiceProfit(INVOICES.find(inv=>String(inv.workOrderNumber)===String(wo.number)&&inv.status==='paid'),wo);
 }, 0);
 
 
@@ -16368,7 +16393,7 @@ if (clientObj && Array.isArray(clientObj.vehicles)){
   paymentsHtml += `
     <tr>
       <td>${i+1}</td>
-      <td>${p.date}</td>
+      <td>${escapeHTML(String(p.date||'').slice(0,10))}</td>
       <td>${invoicePaymentMethodLabel(p.method)}</td>
       <td style="text-align:right;">${money(p.amount)} $</td>
     </tr>
@@ -18499,7 +18524,8 @@ clone.querySelectorAll("h3").forEach(h=>{
 .jl-print-body .jl-invoice-preview-table td{padding:6px 6px!important;border-bottom:1px solid #ddd;font-size:10px}
 .jl-print-body .jl-invoice-preview-table th{background:#eee!important;border-bottom:1px solid #bbb}
 .jl-print-body .jl-invoice-preview-table th:nth-last-child(-n+3),
-.jl-print-body .jl-invoice-preview-table td:nth-last-child(-n+3){text-align:right}
+.jl-print-body .jl-invoice-preview-table td:nth-last-child(-n+3){text-align:right;white-space:nowrap}
+.jl-print-body .jl-invoice-preview-table td:first-child{white-space:nowrap}
 .jl-print-body thead{display:table-header-group}
 .jl-print-body tr{break-inside:avoid;page-break-inside:avoid}
 .jl-print-body .jl-invoice-totals-shell{margin:4px 0 0!important;display:block!important}
