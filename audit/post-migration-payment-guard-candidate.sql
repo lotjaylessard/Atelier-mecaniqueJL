@@ -18,7 +18,7 @@ BEGIN
    IF new_i->'payments'->idx IS DISTINCT FROM old_i->'payments'->idx THEN RAISE EXCEPTION 'Modification paiement historique interdite'; END IF;
   END LOOP;
   IF old_i->>'status'='paid' THEN
-   IF (new_i - ARRAY['archived','archivedAt','updatedAt']) IS DISTINCT FROM (old_i - ARRAY['archived','archivedAt','updatedAt']) THEN RAISE EXCEPTION 'Facture payée verrouillée'; END IF;
+   IF (new_i - ARRAY['archived','archivedDate','archivedAt','updatedAt']) IS DISTINCT FROM (old_i - ARRAY['archived','archivedDate','archivedAt','updatedAt']) THEN RAISE EXCEPTION 'Facture payée verrouillée'; END IF;
    CONTINUE;
   END IF;
   received:=(new_i->>'paidAmount')::numeric; total:=(new_i->>'total')::numeric;
