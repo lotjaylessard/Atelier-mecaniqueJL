@@ -4015,7 +4015,7 @@ function s06LaborHoursLabel(l){
   // Uniformiser la présentation des heures sans arrondir la valeur stockée.
   return Number.isFinite(hours)?hours.toFixed(2):String(l?.hours??"");
 }
-function recalcInvoice(inv, explicitPartialEdit=false){
+function recalcInvoice(inv, explicitPartialEdit=false, taxSettings=SETTINGS){
   if (invoiceHasPaymentActivity(inv) && !(explicitPartialEdit && inv.status==="partial" && !inv.archived)) return; // Verrouiller le total historique.
 
   const baseSubTotal = (inv.items || []).reduce(
@@ -4041,11 +4041,11 @@ function recalcInvoice(inv, explicitPartialEdit=false){
   const applyQST = inv.applyQST !== false;
 
   const gst = applyGST
-    ? taxableSubTotal * (Number(SETTINGS.gst || 0) / 100)
+    ? taxableSubTotal * (Number(taxSettings.gst || 0) / 100)
     : 0;
 
   const qst = applyQST
-    ? taxableSubTotal * (Number(SETTINGS.qst || 0) / 100)
+    ? taxableSubTotal * (Number(taxSettings.qst || 0) / 100)
     : 0;
 
   // Arrondir chaque taxe au cent avant la somme (ex. 100 $ -> 5,00 + 9,98).
@@ -4651,6 +4651,7 @@ function hydrateLocalFromCloud(data){
   }
 
   // 🔁 Recharger les variables mémoire
+  loadSettings(); // Les taux cloud doivent remplacer les valeurs par défaut, même à 0 %.
   loadInvoices();
   loadWorkOrders();
   CLIENTS = loadArrayFromStorage(STORAGE.clients);
@@ -9324,7 +9325,13 @@ invoice.subTotal = invoice.items.reduce(
 // S04 audit final : reutiliser le calcul fiscal central de la facture.
 // Evite une TVQ calculee sur TPS+montant alors que le resume
 // et les corrections ulterieures utilisent la base taxable seule.
-recalcInvoice(invoice);
+const confirmedTaxes = CLOUD_LAST_CONFIRMED_SNAPSHOT?.settings;
+  if (!confirmedTaxes || ![confirmedTaxes.gst, confirmedTaxes.qst].every(v =>
+      v !== null && v !== undefined && String(v).trim() !== "" &&
+      Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 100)) {
+    throw Error("Taux de taxes du garage non confirmés : actualise avant de terminer le BT.");
+  }
+  recalcInvoice(invoice, false, confirmedTaxes);
 
   // S10 : transaction atomique pour le proprietaire du garage actif.
   // Les autres roles conservent temporairement le parcours existant.
