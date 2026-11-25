@@ -61,6 +61,13 @@ border:1px solid #80bbff;border-radius:7px;display:grid;grid-template-columns:mi
 @media(max-width:560px){#s06WoPilot{grid-template-columns:1fr}#s06WoPilot .s06clock{grid-column:1;text-align:left}}`;
   document.head.append(style);
   const app={user:null,garage:null,woId:null,session:null,rows:[],panel:null,busy:false,beat:null,displayTick:null,displayAnchor:null,ownRunning:null,lastVerified:null,heartbeatBusy:false,queuedAction:null};
+  // Seule une session en cours, confirmée récemment et appartenant à cet onglet,
+  // reporte la déconnexion pour inactivité. Une pause ou un brouillon ne suffit pas.
+  window.jlTimerHasActiveWork=()=>!!(app.session?.status==="running" &&
+    app.ownRunning===app.session.id && navigator.onLine &&
+    app.lastVerified?.id===app.session.id &&
+    Date.now()-Date.parse(app.session.last_heartbeat_at||"")<20000 &&
+    Date.now()-Date.parse(app.session.last_heartbeat_at||"")>=0);
   // S06 : après un POST validé, conserver le rechargement de sécurité
   // et rouvrir uniquement le BT du même garage et du même compte.
   const restoreKey="s06-posted-return-v1";
