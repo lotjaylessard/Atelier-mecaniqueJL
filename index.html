@@ -9646,9 +9646,10 @@ function applyClosedWOControls(wo,detail){
     // S04-F14-Fix : permettre la saisie des formulaires de pieces et services
     // UNIQUEMENT en mode correction de la facture impayee.
     // Le KM, la description historique et les fichiers restent verrouilles.
-    const financialField = Boolean(el.closest("#woManualPartBox, #woManualLaborBox"));
+    const financialField = Boolean(el.closest("#woManualPartBox, #woManualLaborBox, #woPartsTable, #woLaborTable"));
+    const metadataField = ["woKmInput","woDescriptionEdit"].includes(el.id) && ["unpaid","partial"].includes(woLinkedInvoice(wo)?.status) && CLOUD_DATA_READY && !CLOUD_SYNC_FAILED;
     const allowedNote = el.id === "jlWoNewNote" && woCanEditNotes(wo);
-    el.disabled = !(allowedNote || (isEditing && financialField));
+    el.disabled = !(allowedNote || metadataField || (isEditing && financialField));
   });
   const editBtn = detail.querySelector("#woEditClosedBtn");
   const finishBtn = detail.querySelector("#woFinishClosedEditBtn");
@@ -10098,7 +10099,17 @@ setTimeout(() => {
   if (!kmInput) return;
 
   const saveKm = () => {
-    if (woReadOnly) return;
+    if (woReadOnly) {
+      const inv=woLinkedInvoice(wo);
+      const km=Number(kmInput.value);
+      if (!inv || !["unpaid","partial"].includes(inv.status) || !CLOUD_DATA_READY || CLOUD_SYNC_FAILED || !Number.isSafeInteger(km) || km<=0) return;
+      if(Number(wo.vehicleKm)===km && Number(inv.vehicleKm)===km)return;
+      wo.vehicleKm=km;inv.vehicleKm=km;
+      localStorage.setItem(STORAGE.workorders,JSON.stringify(WORKORDERS));
+      localStorage.setItem(STORAGE.invoices,JSON.stringify(INVOICES));
+      scheduleCloudSync();
+      return;
+    }
     syncKmEverywhereFromWO(wo, kmInput.value);
 
     // 🔥 INVALIDATION CACHE VÉHICULES (OBLIGATOIRE)
@@ -10129,6 +10140,15 @@ setTimeout(() => {
 }, 0);
 
     
+    const descriptionField=$("woDescriptionEdit");
+    if(woReadOnly && descriptionField)descriptionField.addEventListener("change",()=>{
+      const inv=woLinkedInvoice(wo);
+      if(!inv || !["unpaid","partial"].includes(inv.status) || !CLOUD_DATA_READY || CLOUD_SYNC_FAILED)return;
+      const value=descriptionField.value.trim();
+      if(value===String(wo.description||""))return;
+      wo.description=value;
+      saveWorkOrders();
+    });
     woRenderLines(wo);
     initWorkOrderAttachments(wo);
 
