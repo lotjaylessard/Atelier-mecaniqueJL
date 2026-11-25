@@ -147,6 +147,12 @@ function resetInactivityTimer() {
     if (myGeneration !== inactivityGeneration) {
       return;
     }
+    // Une intervention active dans cet onglet reste une activité de travail.
+    // Ne pas prolonger la session pour un simple brouillon abandonné.
+    if(window.jlTimerHasActiveWork?.()===true){
+      resetInactivityTimer();
+      return;
+    }
     clearInterval(countdownInterval);
     removeWarningBanner();
 
@@ -160,7 +166,7 @@ function resetInactivityTimer() {
 
     try {
       const success = await window.attemptSafeLogout(
-        () => myGeneration === inactivityGeneration
+        () => myGeneration === inactivityGeneration && window.jlTimerHasActiveWork?.()!==true
       );
 
       if (success) {
@@ -203,7 +209,7 @@ function resetInactivityTimer() {
 
 
 // Activité utilisateur
-["click","mousemove","keydown","scroll","touchstart"].forEach(event => {
+["click","mousemove","keydown","scroll","touchstart","input"].forEach(event => {
   document.addEventListener(event, resetInactivityTimer);
 });
 
