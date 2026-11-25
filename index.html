@@ -19498,7 +19498,7 @@ if (window.garageSupabase) {
     }
     cells[9].replaceChildren(confirmButton,cancelButton);
     cells[9].style.whiteSpace="nowrap";
-    ({1:desc,2:partNumber,3:qty,4:cost,5:price,8:supplier})[focusedCell]?.focus();
+    fields.find(([position])=>position===focusedCell)?.[1]?.focus();
   }
   start.addEventListener("click",()=>{
     if(!editor.hidden)return;
