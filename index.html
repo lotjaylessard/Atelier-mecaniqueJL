@@ -2395,7 +2395,7 @@ body.jl-hide-part-number-preview .jl-invoice-preview-table td:nth-child(3){displ
           <label>Service existant
             <select id="s08CatalogService" aria-label="Choisir un service enregistré"><option value="">— Sélectionner un service —</option></select>
           </label>
-          <p class="muted">Le choix préremplit les champs ci-dessous. Clique ensuite sur « Ajouter la ligne ». Les catalogues et le stock restent inchangés.</p>
+          <p class="muted">Le choix préremplit les champs ci-dessous. Clique ensuite sur « Ajouter la ligne ». Les catalogues restent inchangés.</p>
         </div>
         <div class="s08-line-add">
           <label>Type<select id="s08LineType"><option value="part">Pièce</option><option value="labor">Main-d’œuvre / Service</option><option value="other">Autre</option></select></label>
@@ -2779,7 +2779,7 @@ body.jl-hide-part-number-preview .jl-invoice-preview-table td:nth-child(3){displ
           <option value="Divers">Divers</option>
             </select>
           </label>
-          <label>Quantité en stock<input id="partInvQty" type="number" value="1" /></label>
+          <label id="jlStockField">Quantité en stock<input id="partInvQty" type="number" value="1" /></label>
           <label>Prix coûtant ($)<input id="partInvCost" type="number" step="0.01" /></label>
           <label>Prix de vente ($)<input id="partInvPrice" type="number" step="0.01" /></label>
         </div>
@@ -2789,7 +2789,7 @@ body.jl-hide-part-number-preview .jl-invoice-preview-table td:nth-child(3){displ
 
       <div class="card s05-catalog"><div class="module-search-toolbar">
       <button type="button" id="s08NewPart">➕ Nouvelle pièce</button>
-      <input id="partInvSearch" type="search" placeholder="🔎 Rechercher : nom, numéro, catégorie, stock..." aria-label="Rechercher une pièce" />
+      <input id="partInvSearch" type="search" placeholder="🔎 Rechercher : nom, numéro, catégorie..." aria-label="Rechercher une pièce" />
       <select id="partInvFilter">
         <option value="">Toutes catégories</option>
         <option value="Moteur">Moteur</option>
@@ -3396,6 +3396,8 @@ function configureGarageStorage(garageId) {
    Preserve old localStorage keys; require verified PROD backup before cutover. */
 
 const $ = id => document.getElementById(id);
+// Gestion du stock suspendue : conserver les quantités et le code pour réactivation future.
+const JL_STOCK_ENABLED = false;
 // S04 audit : formatage monetaire identique aux montants encaisses.
 // Number.toFixed(2) sur 114.975 peut afficher 114.97 en binaire.
 function money(n){
@@ -4330,15 +4332,15 @@ function showPage(id){
         name: $("partInvName").value.trim(),
         number: $("partInvNumber").value.trim(),
         category: $("partInvCategory").value,
-        qty: Number($("partInvQty").value || 0),
+        qty: JL_STOCK_ENABLED ? Number($("partInvQty").value || 0) : (PARTS.find(p=>String(p.id)===String(EDITING_PART_ID))?.qty ?? 1),
         cost: Number($("partInvCost").value || 0),
         price: Number($("partInvPrice").value || 0)
       };
       if(!data.name){show("Nom de la pièce requis.","#ff8080");return;}
-      if(!Number.isFinite(data.qty)||data.qty<0||
+      if((JL_STOCK_ENABLED && (!Number.isFinite(data.qty)||data.qty<0))||
          !Number.isFinite(data.cost)||data.cost<0||
          !Number.isFinite(data.price)||data.price<0){
-        show("Stock et prix doivent être des valeurs positives ou zéro.","#ff8080");return;
+        show(JL_STOCK_ENABLED?"Stock et prix doivent être des valeurs positives ou zéro.":"Les prix doivent être des valeurs positives ou zéro.","#ff8080");return;
       }
       const previous=PARTS.slice();
       const editing=EDITING_PART_ID;
@@ -8201,7 +8203,7 @@ function woAddPartLine(wo) {
       <div style="border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px;">
         <b>${partIcon(p.category)} ${p.name}</b> <span class="muted">#${p.number || ""}</span><br>
         <span class="muted">Catégorie : ${p.category || "Divers"}</span><br>
-        <span class="muted">Stock : ${stock}</span><br>
+        ${JL_STOCK_ENABLED?`<span class="muted">Stock : ${stock}</span><br>`:""}
         <span class="muted">Coûtant : ${money(p.cost || 0)} $</span><br>
         <span class="muted">Vente : ${money(p.price || 0)} $</span><br>
         <button class="ghost" data-wo-part-index="${idx}">➕ Utiliser pour ce bon</button>
@@ -8222,7 +8224,7 @@ function woAddPartLine(wo) {
       if (!qty || qty <= 0) return;
 
       const stock = Number(part.qty || 0);
-      if (qty > stock) {
+      if (JL_STOCK_ENABLED && qty > stock) {
         alert("Attention : la quantité demandée dépasse le stock actuel (" + stock + ").");
       }
 
@@ -11359,6 +11361,7 @@ function findInventoryPartFromText(text){
 
   
 function adjustStockForLinkedItem(item, deltaQty){
+  if(!JL_STOCK_ENABLED)return;
   if(!item || !item.invNumber) return;
   const num = String(item.invNumber);
   const part = PARTS.find(p=>String(p.number)===num);
@@ -11372,6 +11375,7 @@ function adjustStockForLinkedItem(item, deltaQty){
 
   
 function linkNewItemToInventory(item){
+  if(!JL_STOCK_ENABLED)return true;
   if(!item || !item.desc || !item.type || !item.type.toLowerCase().includes('pièce')) return;
   const part = findInventoryPartFromText(item.desc);
   if(!part) return;
@@ -12766,7 +12770,7 @@ function renderParts_OLD_DO_NOT_USE(){
       <h3 style="margin-bottom:10px;color:var(--accent);">${PART_ICONS[p.category] || "📦"} ${p.name}</h3>
       <div class="small"># Pièce : <b>${p.number||''}</b></div>
       <div class="small">Catégorie : <b>${p.category||'Divers'}</b></div>
-      <div class="small">Stock : <b>${p.qty}</b></div>
+      ${JL_STOCK_ENABLED?`<div class="small">Stock : <b>${p.qty}</b></div>`:""}
       <div class="small">Coût : <b>${money(p.cost)} $</b></div>
       <div class="small">Prix : <b>${money(p.price)} $</b></div>
       <div class="small">Marge : <b>${profit}%</b></div>
@@ -12798,7 +12802,7 @@ function renderParts_OLD_DO_NOT_USE(){
       const newName=prompt("Nom de la pièce :",p.name)||p.name;
       const newNumber=prompt("Numéro de pièce :",p.number||"")||p.number;
       const newCat=prompt("Catégorie :",p.category||'Divers')||p.category||'Divers';
-      const newQty=Number(prompt("Quantité :",p.qty)||p.qty);
+      const newQty=JL_STOCK_ENABLED?Number(prompt("Quantité :",p.qty)||p.qty):p.qty;
       const newCost=Number(prompt("Prix coûtant :",p.cost)||p.cost);
       const newPrice=Number(prompt("Prix de vente :",p.price)||p.price);
       PARTS[id]={name:newName,number:newNumber,category:newCat,qty:newQty,cost:newCost,price:newPrice};
@@ -12812,13 +12816,11 @@ function renderParts_OLD_DO_NOT_USE(){
       const p=PARTS[id];
       if(!p) return;
       const currentQty=Number(p.qty||0);
-      if(currentQty<=0){
+      if(JL_STOCK_ENABLED && currentQty<=0){
         alert("Stock insuffisant pour cette pièce.");
         return;
       }
-      p.qty=currentQty-1;
-      saveParts();
-      renderDashboard();
+      if(JL_STOCK_ENABLED){p.qty=currentQty-1;saveParts();renderDashboard();}
       const newItem={
         type:"Pièce (Inventaire)",
         desc:`${p.name} (#${p.number})`,
@@ -12854,7 +12856,7 @@ function initPartsModule(){
       return;
     }
 
-    if (qty < 0){
+    if (JL_STOCK_ENABLED && qty < 0){
       alert("Quantité invalide");
       return;
     }
@@ -13064,7 +13066,7 @@ function renderServicesList(){
 let S07_PART_SORT_KEY="name";
 let S07_PART_SORT_DIRECTION="asc";
 function s07SortPartsBy(key){
-  const allowed=["name","number","category","qty","cost","price","margin"];
+  const allowed=["name","number","category",...(JL_STOCK_ENABLED?["qty"]:[]),"cost","price","margin"];
   if(!allowed.includes(key))return;
   if(S07_PART_SORT_KEY===key){
     S07_PART_SORT_DIRECTION=S07_PART_SORT_DIRECTION==="asc"?"desc":"asc";
@@ -13076,6 +13078,8 @@ function s07SortPartsBy(key){
 }
 function renderPartsList(){
   const list = $("partsInventoryList");
+  if($("jlStockField"))$("jlStockField").style.display=JL_STOCK_ENABLED?"":"none";
+  if (!JL_STOCK_ENABLED && S07_PART_SORT_KEY==="qty") S07_PART_SORT_KEY="name";
   if (!list) return;
 
   const search = $("partInvSearch")?.value || "";
@@ -13084,7 +13088,7 @@ function renderPartsList(){
   list.innerHTML = "";
 
   const filtered = PARTS.filter(p=>{
-    if (search && !moduleMatchesSearch([p.name,p.number,p.category,p.qty,p.cost,p.price],search)) return false;
+    if (search && !moduleMatchesSearch([p.name,p.number,p.category,...(JL_STOCK_ENABLED?[p.qty]:[]),p.cost,p.price],search)) return false;
     if (category && p.category !== category) return false;
     return true;
   });
@@ -13102,7 +13106,7 @@ function renderPartsList(){
   );
   // S07-F09a : mêmes colonnes et dimensions pour toutes les pièces.
   // Ne modifier que le rendu : recherche, tri, stock et actions restent intacts.
-  const colStyle="display:grid;grid-template-columns: minmax(185px,2fr) minmax(110px,1.1fr) minmax(115px,1.1fr) 75px 100px 100px 85px minmax(305px,auto);gap:12px;align-items:center;min-width:1180px;";
+  const colStyle="display:grid;grid-template-columns: minmax(185px,2fr) minmax(110px,1.1fr) minmax(115px,1.1fr) "+(JL_STOCK_ENABLED?"75px ":"")+"100px 100px 85px minmax(305px,auto);gap:12px;align-items:center;min-width:"+(JL_STOCK_ENABLED?"1180":"1093")+"px;";
   list.style.overflowX="auto";
   const header=(key,label,align="left")=>{
     const active=S07_PART_SORT_KEY===key;
@@ -13111,7 +13115,7 @@ function renderPartsList(){
   };
   list.innerHTML=`<div style="${colStyle}padding:10px 8px;background:#333;border-radius:6px;font-weight:700;color:var(--accent);">
     ${header("name","Nom")}${header("number","No pièce")}${header("category","Catégorie")}
-    ${header("qty","Stock","right")}${header("cost","Coûtant","right")}${header("price","Vente","right")}
+    ${JL_STOCK_ENABLED?header("qty","Stock","right"):""}${header("cost","Coûtant","right")}${header("price","Vente","right")}
     ${header("margin","Marge","right")}<span style="text-align:right">Actions</span>
   </div>`;
   sorted.forEach(p=>{
@@ -13121,7 +13125,7 @@ function renderPartsList(){
         <strong style="color:var(--accent);overflow-wrap:anywhere">${escapeHTML(p.name||"")}</strong>
         <span style="overflow-wrap:anywhere">${escapeHTML(p.number||"—")}</span>
         <span>${escapeHTML(p.category||"—")}</span>
-        <span style="text-align:right;white-space:nowrap">${Number(p.qty||0)}</span>
+        ${JL_STOCK_ENABLED?`<span style="text-align:right;white-space:nowrap">${Number(p.qty||0)}</span>`:""}
         <span style="text-align:right;white-space:nowrap">${money(p.cost)} $</span>
         <span style="text-align:right;white-space:nowrap">${money(p.price)} $</span>
         <span style="text-align:right;white-space:nowrap">${calcMargin(p.cost,p.price)}%</span>
@@ -13496,10 +13500,10 @@ function renderPartPicker() {
         <b>${partIcon(p.category)} ${p.name}</b> (#${p.number})<br>
         Catégorie : ${p.category}<br>
         Prix : ${money(p.price)} $<br>
-        Stock : ${p.qty}<br>
+        ${JL_STOCK_ENABLED?`Stock : ${p.qty}<br>`:""}
 
         <label style="font-size:0.8rem; color:var(--muted);">Quantité :</label>
-        <input type="number" min="1" max="${p.qty}" value="1"
+        <input type="number" min="1" ${JL_STOCK_ENABLED?`max="${p.qty}"`:""} value="1"
                id="qty_${p.number}"
                style="width:70px; padding:4px; margin-top:4px; background:#111; color:white; border:1px solid var(--border); border-radius:4px;">
 
@@ -13526,15 +13530,13 @@ let qtyToAdd = Number(qField?.value || 1);
 if (qtyToAdd < 1) qtyToAdd = 1;
 
 // Vérifie stock
-if (part.qty < qtyToAdd) {
+if (JL_STOCK_ENABLED && part.qty < qtyToAdd) {
     alert("Stock insuffisant. Disponible : " + part.qty);
     return;
 }
 
 // Décrémente le stock
-part.qty -= qtyToAdd;
-saveParts();
-renderDashboard();
+if(JL_STOCK_ENABLED){part.qty -= qtyToAdd;saveParts();renderDashboard();}
 
 // Ajoute dans la facture
 items.push({
@@ -15771,7 +15773,7 @@ const revenue = archivedInvoices.reduce(
   let vehiclesCount=0;
   CLIENTS.forEach(c=>vehiclesCount+=(c.vehicles||[]).length);
   const partsCount=PARTS.reduce((s,p)=>s+Number(p.qty||0),0);
-  const lowStock=PARTS.filter(p=>Number(p.qty||0)<=2).length;
+  const lowStock=JL_STOCK_ENABLED?PARTS.filter(p=>Number(p.qty||0)<=2).length:0;
 
   // === WORK ORDERS EN COURS ===
 const woInProgressCount = WORKORDERS.filter(
